@@ -1,0 +1,6 @@
+{
+    "files.autoSave": "onFocusChange",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "explorer.sortOrder": "mixed"
+}
