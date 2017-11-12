@@ -1,18 +1,45 @@
 using System.Runtime.InteropServices;
 
-Func<String> HomeFolder = () => {
+string HomeFolder()
+{
   string home;
-  if(IsRunningOnWindows()) {
+  if(IsRunningOnWindows())
+  {
     home = $"{EnvironmentVariable("HOMEDRIVE")}{EnvironmentVariable("HOMEPATH")}";
-  } else {
+  }
+  else
+  {
     home = EnvironmentVariable("HOME");
   }
   return home;
-};
+}
 
-Func<String> TimeStamp = () => {
+string TimeStamp()
+{
     return Math.Floor((DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds).ToString();
-};
+}
+
+void SymLinkFile(string source, string link)
+{
+  if (IsRunningOnWindows())
+  {
+    StartPowershellScript("New-Item", new PowershellSettings()
+      .WithArguments(args => {
+        args.Append("ItemType", "SymbolicLink")
+            .Append("Target", source)
+            .Append("Path", link);
+      }));
+  }
+  else if (IsRunningOnUnix())
+  {
+    var process = "ln";
+    var arguments = $"-s {source} {link}";
+    Information("process: {0}, args: {1}", process, arguments);
+    var exitCodeWithArgument = StartProcess(process);
+    Information("Exit code: {0}", exitCodeWithArgument);
+  } else
+    return;
+}
 
 internal static class MacPlatformDetector
 {

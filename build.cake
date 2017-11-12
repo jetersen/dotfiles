@@ -7,28 +7,6 @@ var target = Argument("target", "Default");
 String timeStamp = TimeStamp();
 var home = Directory(HomeFolder());
 
-Action<string, string> SymLinkFile = (source, link) => {
-  if (IsRunningOnWindows())
-  {
-    StartPowershellScript("New-Item", new PowershellSettings()
-      .WithArguments(args => {
-        args.Append("ItemType", "SymbolicLink")
-            .Append("Target", source)
-            .Append("Path", link);
-      }));
-  }
-  else if (IsRunningOnUnix())
-  {
-    var process = "ln";
-    var arguments = $"-s {source} {link}";
-    Information("process: {0}, args: {1}", process, arguments);
-    var exitCodeWithArgument = StartProcess(process);
-    Information("Exit code: {0}", exitCodeWithArgument);
-  } else {
-    return;
-  }
-};
-
 Action<string, string, bool> dotfile = (source, dest, dotting) => {
   var directory = Directory(dest);
   var repo_file = File($"./{source}");
