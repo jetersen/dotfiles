@@ -1,0 +1,29 @@
+# Misc folders
+[Bb]in/
+[Oo]bj/
+[Pp]ackages/
+[Ww]ork/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+
+# Idea
+.idea/
+*.iml
+
+# Windows
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# MacOS
+*.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+.Trash-*

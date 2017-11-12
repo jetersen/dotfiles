@@ -1,0 +1,32 @@
+[alias]
+	p = push
+	pr = pull -r
+	pushf = push --force-with-lease
+	s = status
+	rb = rebase
+	rbc = rebase --continue
+	rbs = rebase --skip
+	rba = rebase --abort
+	fixauthor = commit --amend --reset-author --no-edit
+	remote-cleanup = !git branch -r --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git push origin --delete
+	local-cleanup = !git branch --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git branch -d
+[help]
+	autocorrect = 1
+[core]
+	autocrlf = true
+	excludesfile = ~/.gitignore.global
+[pull]
+	rebase = true
+[push]
+	default = current
+	followTags = true
+[fetch]
+	prune = true
+[branch]
+	autosetupmerge = always
+	autosetuprebase = always
+[remote "origin"]
+	fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
+	fetch = +refs/tags/*:refs/tags/*
+[include]
+	path = .gitconfig.local

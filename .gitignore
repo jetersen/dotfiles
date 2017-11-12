@@ -1,0 +1,4 @@
+# Build related
+tools/**
+!tools/packages.config
+git/gitconfig.local
