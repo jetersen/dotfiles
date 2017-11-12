@@ -45,6 +45,7 @@ Action<string, string, bool> dotfile = (source, dest, dotting) => {
 
 Task("Default")
   .IsDependentOn("git")
+  .IsDependentOn("vscode")
   .Does(() =>
 {
 });
