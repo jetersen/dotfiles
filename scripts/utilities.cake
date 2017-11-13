@@ -37,12 +37,11 @@ void SymLinkFile(string source, string link)
 {
   if (IsRunningOnWindows())
   {
-    StartPowershellScript("New-Item", new PowershellSettings()
-      .WithArguments(args => {
+    StartPowershellScript("New-Item", args => {
         args.Append("ItemType", "SymbolicLink")
             .Append("Target", source)
             .Append("Path", link);
-      }));
+      });
   }
   else if (IsRunningOnUnix())
   {
