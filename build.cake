@@ -35,6 +35,7 @@ Task("vscode")
   } else {
     return;
   }
+  EnsureDirectoryExists(app_home);
   dotfile("vscode/settings.json", app_home, false);
 });
 
