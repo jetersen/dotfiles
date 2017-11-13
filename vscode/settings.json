@@ -2,5 +2,10 @@
     "files.autoSave": "onFocusChange",
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/*.FileListAbsolute.txt": true
+    },
     "explorer.sortOrder": "mixed"
 }
