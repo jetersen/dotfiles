@@ -39,4 +39,12 @@ Task("vscode")
   dotfile("vscode/settings.json", app_home, false);
 });
 
+Task("ssh")
+  .Does(() =>
+{
+  var app_home = Directory($"{  home}/.ssh");
+  EnsureDirectoryExists(app_home);
+  dotfile("ssh/config", app_home, false);
+});
+
 RunTarget(target);

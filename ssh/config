@@ -1,0 +1,5 @@
+Host bitbucket.widex.io
+  IdentityFile ~/.ssh/bitbucket_rsa
+
+Host github.com
+  IdentityFile ~/.ssh/github_rsa
