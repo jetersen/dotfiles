@@ -1,4 +1,3 @@
-#addin "Cake.FileHelpers"
 #addin "Cake.Powershell"
 
 #load "scripts/utilities.cake"
