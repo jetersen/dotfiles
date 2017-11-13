@@ -46,10 +46,10 @@ void SymLinkFile(string source, string link)
   }
   else if (IsRunningOnUnix())
   {
-    var process = "ln";
-    var arguments = $"-s {source} {link}";
+    var process = "link";
+    var arguments = $"{source} {link}";
     Information("process: {0}, args: {1}", process, arguments);
-    var exitCodeWithArgument = StartProcess(process);
+    var exitCodeWithArgument = StartProcess(process, arguments);
     Information("Exit code: {0}", exitCodeWithArgument);
   } else
     return;
