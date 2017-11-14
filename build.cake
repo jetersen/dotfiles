@@ -53,10 +53,8 @@ Task("ssh")
 /// </summary>
 Task("choco")
   .WithCriteria(IsRunningOnWindows())
-  .WithCriteria(
-    !FileExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey") ||
-    !HasEnvironmentVariable("ChocolateyInstall")
-  )
+  .WithCriteria(!DirectoryExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey"))
+  .WithCriteria(!HasEnvironmentVariable("ChocolateyInstall"))
   .Does(() =>
 {
   StartPowershellScript("Start-Process", args => {
