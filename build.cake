@@ -3,7 +3,6 @@
 #load "scripts/utilities.cake"
 
 var target = Argument("target", "Default");
-String timeStamp = TimeStamp();
 var home = Directory(HomeFolder());
 
 Task("Default")

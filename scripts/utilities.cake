@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+#addin "Cake.Powershell"
+
 string HomeFolder()
 {
   string home;
@@ -27,7 +29,7 @@ void dotfile(string source, string dest, bool dotting = true) {
   var link = directory + File(file);
   if (FileExists(link))
   {
-    var old = directory + File($"{file}.{timeStamp}.old");
+    var old = directory + File($"{file}.{TimeStamp()}.old");
     MoveFile(link, old);
   }
   SymLinkFile(repo_file, link);
