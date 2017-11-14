@@ -43,7 +43,7 @@ Task("vscode")
 Task("ssh")
   .Does(() =>
 {
-  var app_home = Directory($"{  home}/.ssh");
+  var app_home = Directory($"{home}/.ssh");
   EnsureDirectoryExists(app_home);
   dotfile("ssh/config", app_home, false);
 });
