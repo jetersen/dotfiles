@@ -9,6 +9,7 @@ var home = Directory(HomeFolder());
 Task("Default")
   .IsDependentOn("git")
   .IsDependentOn("vscode")
+  .IsDependentOn("ssh")
   .Does(() =>
 {
 });
