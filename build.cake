@@ -7,6 +7,7 @@ String timeStamp = TimeStamp();
 var home = Directory(HomeFolder());
 
 Task("Default")
+  .IsDependentOn("choco")
   .IsDependentOn("git")
   .IsDependentOn("vscode")
   .IsDependentOn("ssh")
@@ -46,6 +47,28 @@ Task("ssh")
   var app_home = Directory($"{  home}/.ssh");
   EnsureDirectoryExists(app_home);
   dotfile("ssh/config", app_home, false);
+});
+
+/// <summary>
+/// When you cannot get enough package managers 🤣
+/// </summary>
+Task("choco")
+  .WithCriteria(IsRunningOnWindows())
+  .WithCriteria(
+    !FileExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey") ||
+    !HasEnvironmentVariable("ChocolateyInstall")
+  )
+  .Does(() =>
+{
+  StartPowershellScript("Start-Process", args => {
+    args
+      .Append("powershell")
+      .Append("Verb", "Runas")
+      .AppendStringLiteral(
+        "ArgumentList", "Set-ExecutionPolicy Bypass -Scope Process -Force; " +
+        "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+      );
+  });
 });
 
 RunTarget(target);
