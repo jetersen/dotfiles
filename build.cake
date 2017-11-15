@@ -18,7 +18,7 @@ Task("git")
   .Does(() =>
 {
   dotfile("git/gitconfig", home);
-  dotfile("git/gitconfig.local", home);
+  dotfile("git/gitconfig.local", home, copy: true);
   dotfile("git/gitignore.global", home);
 });
 
