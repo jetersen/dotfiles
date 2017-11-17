@@ -21,20 +21,20 @@ string TimeStamp()
     return Math.Floor((DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds).ToString();
 }
 
-void dotfile(string source, string dest, bool dotting = true, bool copy = false) {
+void dotfile(string source, string dest, bool dotting = true, bool copy = false, bool renew = true) {
   var directory = Directory(dest);
   var repo_file = File($"./{source}");
   var dot = dotting ? "." : "";
   var file = $"{dot}{source.Split('/').Last()}";
   var link = directory + File(file);
-  if (FileExists(link) && !copy)
+  if (FileExists(link) && renew)
   {
     var old = directory + File($"{file}.{TimeStamp()}.old");
     MoveFile(link, old);
   }
   if (copy && !FileExists(link)) {
     CopyFile(repo_file, link);
-  } else {
+  } else if (!FileExists(link)) {
     SymLinkFile(repo_file, link);
   }
 }

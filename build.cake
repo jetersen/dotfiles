@@ -18,8 +18,11 @@ Task("git")
   .Does(() =>
 {
   dotfile("git/gitconfig", home);
-  dotfile("git/gitconfig.local", home, copy: true);
+  dotfile("git/gitconfig.local", home, true, true, false);
   dotfile("git/gitignore.global", home);
+  var githooks = Directory($"{home}/.githooks");
+  EnsureDirectoryExists(githooks);
+  dotfile("git/hooks/commit-msg", githooks, false, true);
 });
 
 Task("vscode")
