@@ -4,6 +4,7 @@
 
 var target = Argument("target", "Default");
 var home = Directory(HomeFolder());
+bool chocotest = StartProcess("choco", "--version") == 0;
 
 Task("Default")
   .IsDependentOn("choco")
@@ -51,13 +52,23 @@ Task("ssh")
   dotfile("ssh/config", app_home, false);
 });
 
+Task("testchoco")
+  .Does(() => 
+{
+  Information($"Exit code == 0 : {chocotest}");
+});
+
 /// <summary>
 /// When you cannot get enough package managers 🤣
 /// </summary>
 Task("choco")
   .WithCriteria(IsRunningOnWindows())
-  .WithCriteria(!DirectoryExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey"))
-  .WithCriteria(!HasEnvironmentVariable("ChocolateyInstall"))
+  .WithCriteria(
+    !chocotest
+    ||
+    !DirectoryExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey")
+    ||
+    !HasEnvironmentVariable("ChocolateyInstall"))
   .Does(() =>
 {
   StartPowershellScript("Start-Process", args => {
