@@ -5,7 +5,8 @@
     "search.exclude": {
         "**/node_modules": true,
         "**/bower_components": true,
-        "**/*.FileListAbsolute.txt": true
+        "**/obj": true,
+        "**/bin": true
     },
     "explorer.sortOrder": "mixed",
     "editor.fontFamily": "Fira Code, Consolas, monospace",
