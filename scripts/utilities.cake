@@ -45,14 +45,14 @@ void SymLinkFile(string source, string link)
   {
     StartPowershellScript("New-Item", args => {
         args.Append("ItemType", "SymbolicLink")
-            .Append("Target", source)
-            .Append("Path", link);
+            .Append("Target", source.Quote())
+            .Append("Path", link.Quote());
       });
   }
   else if (IsRunningOnUnix())
   {
     var process = "link";
-    var arguments = $"{source} {link}";
+    var arguments = $"{source.Quote()} {link.Quote()}";
     Information("process: {0}, args: {1}", process, arguments);
     var exitCodeWithArgument = StartProcess(process, arguments);
     Information("Exit code: {0}", exitCodeWithArgument);
