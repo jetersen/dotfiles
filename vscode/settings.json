@@ -10,5 +10,8 @@
     },
     "explorer.sortOrder": "mixed",
     "editor.fontFamily": "Fira Code, Consolas, monospace",
-    "editor.fontSize": 14
+    "editor.fontSize": 14,
+    "javascript.validate.enable": false,
+    "standard.autoFixOnSave": true,
+    "editor.rulers": [140]
 }
