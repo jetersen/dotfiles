@@ -6,10 +6,23 @@ var target = Argument("target", "Default");
 var home = Directory(HomeFolder());
 bool chocotest = StartProcess("choco", "--version") == 0;
 
+var vscodeExtensions = new string[] {
+  "cake-build.cake-vscode",
+  "chenxsan.vscode-standard-format",
+  "chenxsan.vscode-standardjs",
+  "EditorConfig.EditorConfig",
+  "mathiasfrohlich.Kotlin",
+  "mikestead.dotenv",
+  "ms-vscode.csharp",
+  "ms-vscode.PowerShell",
+  "PeterJausovec.vscode-docker",
+};
+
 Task("Default")
   .IsDependentOn("choco")
   .IsDependentOn("git")
   .IsDependentOn("vscode")
+  .IsDependentOn("vscode-extensions")
   .IsDependentOn("ssh")
   .Does(() =>
 {
@@ -34,7 +47,7 @@ Task("vscode")
   {
     app_home = Directory($"{EnvironmentVariable("APPDATA")}/Code/User");
   } else if (IsRunningOnLinux()) {
-    app_home = Directory($"{home}/.config/Code"); 
+    app_home = Directory($"{home}/.config/Code");
   } else if (IsRunningOnMac()) {
     app_home = Directory($"{home}/Library/Application Support/Code");
   } else {
@@ -42,6 +55,20 @@ Task("vscode")
   }
   EnsureDirectoryExists(app_home);
   dotfile("vscode/settings.json", app_home, false);
+});
+
+Task("vscode-extensions")
+  .Does(() =>
+{
+  foreach (var extension in vscodeExtensions)
+  {
+    StartProcess("code", new ProcessSettings
+    {
+      Arguments = new ProcessArgumentBuilder()
+        .Append("--install-extension")
+        .Append(extension)
+    });
+  }
 });
 
 Task("ssh")
@@ -53,7 +80,7 @@ Task("ssh")
 });
 
 Task("testchoco")
-  .Does(() => 
+  .Does(() =>
 {
   Information($"Exit code == 0 : {chocotest}");
 });
@@ -81,5 +108,13 @@ Task("choco")
       );
   });
 });
+
+Task("CodePage")
+  .WithCriteria(IsRunningOnWindows())
+  .Does(() =>
+{
+  StartPowershellScript("sp -t d HKCU:\\Console CodePage 0xfde9");
+});
+
 
 RunTarget(target);
