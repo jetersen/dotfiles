@@ -1,5 +1,8 @@
 Host bitbucket.widex.io
   IdentityFile ~/.ssh/bitbucket_rsa
 
+Host git.3shape.local
+  IdentityFile ~/.ssh/gitkraken_rsa
+
 Host github.com
   IdentityFile ~/.ssh/github_rsa
