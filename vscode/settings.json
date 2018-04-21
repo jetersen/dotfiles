@@ -13,5 +13,14 @@
     "editor.fontSize": 14,
     "javascript.validate.enable": false,
     "standard.autoFixOnSave": true,
-    "editor.rulers": [140]
+    "editor.rulers": [
+        140
+    ],
+    "[javascript]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+    },
+    "window.zoomLevel": 1,
+    "files.trimTrailingWhitespace": true,
+    "editor.detectIndentation": false
 }
