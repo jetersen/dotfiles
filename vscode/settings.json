@@ -22,5 +22,6 @@
     },
     "window.zoomLevel": 1,
     "files.trimTrailingWhitespace": true,
-    "editor.detectIndentation": false
+    "editor.detectIndentation": false,
+    "git.confirmSync": false
 }
