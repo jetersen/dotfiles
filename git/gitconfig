@@ -16,6 +16,7 @@
 	autocrlf = true
 	excludesfile = ~/.gitignore.global
 	hooksPath = ~/.githooks
+	editor = code --wait
 [pull]
 	rebase = true
 [push]
