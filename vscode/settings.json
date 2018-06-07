@@ -11,17 +11,21 @@
     "explorer.sortOrder": "mixed",
     "editor.fontFamily": "Fira Code, Consolas, monospace",
     "editor.fontSize": 14,
+    "editor.fontLigatures": true,
     "javascript.validate.enable": false,
     "standard.autoFixOnSave": true,
     "editor.rulers": [
         140
     ],
-    "[javascript]": {
-        "editor.insertSpaces": true,
-        "editor.tabSize": 2,
-    },
-    "window.zoomLevel": 1,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "window.zoomLevel": 0,
     "files.trimTrailingWhitespace": true,
     "editor.detectIndentation": false,
-    "git.confirmSync": false
-}
+    "git.confirmSync": false,
+    "terminal.integrated.shell.windows": "C:\\Windows\\sysnative\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "git.autofetch": true,
+    "editor.minimap.enabled": false,
+    "editor.mouseWheelZoom": true,
+    "workbench.colorTheme": "Cobalt2"
+  }
