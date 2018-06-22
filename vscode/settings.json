@@ -27,5 +27,7 @@
     "git.autofetch": true,
     "editor.minimap.enabled": false,
     "editor.mouseWheelZoom": true,
-    "workbench.colorTheme": "Cobalt2"
+    "workbench.colorTheme": "Cobalt2",
+    "powershell.integratedConsole.showOnStartup": false,
+    "workbench.editor.showTabs": false
   }
