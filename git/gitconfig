@@ -7,6 +7,7 @@
 	rbc = rebase --continue
 	rbs = rebase --skip
 	rba = rebase --abort
+	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
 	remote-cleanup = !git branch -r --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git push origin --delete
 	local-cleanup = !git branch --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git branch -d
@@ -15,7 +16,6 @@
 [core]
 	autocrlf = true
 	excludesfile = ~/.gitignore.global
-	hooksPath = ~/.githooks
 	editor = code --wait
 [pull]
 	rebase = true
