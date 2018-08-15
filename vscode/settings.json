@@ -29,5 +29,7 @@
     "editor.mouseWheelZoom": true,
     "workbench.colorTheme": "Cobalt2",
     "powershell.integratedConsole.showOnStartup": false,
-    "workbench.editor.showTabs": false
+    "workbench.editor.showTabs": false,
+    "powershell.powerShellExePath": "C:\\WINDOWS\\SysWow64\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "terminal.integrated.rendererType": "dom"
   }
