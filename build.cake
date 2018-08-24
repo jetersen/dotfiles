@@ -4,7 +4,6 @@
 
 var target = Argument("target", "Default");
 var home = Directory(HomeFolder());
-bool chocotest = StartProcess("choco", "--version") == 0;
 
 var vscodeExtensions = new string[] {
   "cake-build.cake-vscode",
@@ -79,20 +78,12 @@ Task("ssh")
   dotfile("ssh/config", app_home, false);
 });
 
-Task("testchoco")
-  .Does(() =>
-{
-  Information($"Exit code == 0 : {chocotest}");
-});
-
 /// <summary>
 /// When you cannot get enough package managers 🤣
 /// </summary>
 Task("choco")
   .WithCriteria(IsRunningOnWindows())
   .WithCriteria(
-    !chocotest
-    ||
     !DirectoryExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey")
     ||
     !HasEnvironmentVariable("ChocolateyInstall"))
