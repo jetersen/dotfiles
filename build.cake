@@ -5,23 +5,10 @@
 var target = Argument("target", "Default");
 var home = Directory(HomeFolder());
 
-var vscodeExtensions = new string[] {
-  "cake-build.cake-vscode",
-  "chenxsan.vscode-standard-format",
-  "chenxsan.vscode-standardjs",
-  "EditorConfig.EditorConfig",
-  "mathiasfrohlich.Kotlin",
-  "mikestead.dotenv",
-  "ms-vscode.csharp",
-  "ms-vscode.PowerShell",
-  "PeterJausovec.vscode-docker",
-};
-
 Task("Default")
   .IsDependentOn("choco")
   .IsDependentOn("git")
   .IsDependentOn("vscode")
-  .IsDependentOn("vscode-extensions")
   .IsDependentOn("ssh")
   .Does(() =>
 {
@@ -54,20 +41,6 @@ Task("vscode")
   }
   EnsureDirectoryExists(app_home);
   dotfile("vscode/settings.json", app_home, false);
-});
-
-Task("vscode-extensions")
-  .Does(() =>
-{
-  foreach (var extension in vscodeExtensions)
-  {
-    StartProcess("code", new ProcessSettings
-    {
-      Arguments = new ProcessArgumentBuilder()
-        .Append("--install-extension")
-        .Append(extension)
-    });
-  }
 });
 
 Task("ssh")
