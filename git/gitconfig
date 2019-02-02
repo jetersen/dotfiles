@@ -37,3 +37,6 @@
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
+[user]
+	name = Joseph Petersen
+	email = josephp90@gmail.com
