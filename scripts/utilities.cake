@@ -1,98 +1,85 @@
 using System.Runtime.InteropServices;
 
-#addin "Cake.Powershell"
+#addin "nuget:?package=Cake.Powershell&version=0.4.7"
 
-string HomeFolder()
-{
+var renew = EnvironmentVariable("renew")?.Equals("1") ?? false;
+
+string HomeFolder() {
   string home;
-  if(IsRunningOnWindows())
-  {
+  if(IsRunningOnWindows()) {
     home = $"{EnvironmentVariable("HOMEDRIVE")}{EnvironmentVariable("HOMEPATH")}";
-  }
-  else
-  {
+  } else {
     home = EnvironmentVariable("HOME");
   }
   return home;
 }
 
-string TimeStamp()
-{
+string TimeStamp() {
     return Math.Floor((DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds).ToString();
 }
 
-void dotfile(string source, string dest, bool dotting = true, bool copy = false, bool renew = true) {
+void dotfile(string source, string dest, bool dotting = true, bool copy = false) {
   var directory = Directory(dest);
-  var repo_file = File($"./{source}");
+  var repo_file = MakeAbsolute(File($"./{source}")).FullPath;
   var dot = dotting ? "." : "";
   var file = $"{dot}{source.Split('/').Last()}";
   var link = directory + File(file);
   if (FileExists(link) && renew)
   {
-    var old = directory + File($"{file}.{TimeStamp()}.old");
-    MoveFile(link, old);
+    if (copy) {
+      var old = directory + File($"{file}.{TimeStamp()}.old");
+      MoveFile(link, old);
+    } else DeleteFile(link);
   }
-  if (copy && !FileExists(link)) {
-    CopyFile(repo_file, link);
-  } else if (!FileExists(link)) {
-    SymLinkFile(repo_file, link);
+  if (!FileExists(link)) {
+    if (copy) CopyFile(repo_file, link);
+    else SymLinkFile(repo_file, link);
   }
 }
 
-void SymLinkFile(string source, string link)
-{
-  if (IsRunningOnWindows())
-  {
+void SymLinkFile(string source, string link) {
+  if (IsRunningOnWindows()) {
     StartPowershellScript("New-Item", args => {
         args.Append("ItemType", "SymbolicLink")
             .Append("Target", source.Quote())
             .Append("Path", link.Quote());
       });
-  }
-  else if (IsRunningOnUnix())
-  {
-    var process = "link";
-    var arguments = $"{source.Quote()} {link.Quote()}";
-    Information("process: {0}, args: {1}", process, arguments);
+  } else if (IsRunningOnUnix()) {
+    var process = "ln";
+    var arguments = $"-s {source.Quote()} {link.Quote()}";
+    Information($"process: {process}, args: {arguments}");
     var exitCodeWithArgument = StartProcess(process, arguments);
-    Information("Exit code: {0}", exitCodeWithArgument);
-  } else
-    return;
+    Information($"Exit code: {exitCodeWithArgument}");
+  }
 }
 
-internal static class MacPlatformDetector
-{
+internal static class MacPlatformDetector {
     internal static readonly Lazy<bool> IsMac = new Lazy<bool>(IsRunningOnMac);
 
     [DllImport("libc")]
     static extern int uname(IntPtr buf);
 
-    static bool IsRunningOnMac()
-    {
+    static bool IsRunningOnMac() {
         IntPtr buf = IntPtr.Zero;
         try {
             buf = Marshal.AllocHGlobal(8192);
             // This is a hacktastic way of getting sysname from uname()
             if (uname(buf) == 0) {
                 string os = Marshal.PtrToStringAnsi(buf);
-                if (os == "Darwin")
-                    return true;
+                if (os == "Darwin") return true;
             }
         } catch {
         } finally {
-            if (buf != IntPtr.Zero)
-                Marshal.FreeHGlobal(buf);
+            if (buf != IntPtr.Zero) Marshal.FreeHGlobal(buf);
         }
         return false;
     }
 }
 
-bool IsRunningOnMac()
-{
+bool IsRunningOnMac() {
     return System.Environment.OSVersion.Platform == PlatformID.MacOSX || MacPlatformDetector.IsMac.Value;
 }
 
-bool IsRunningOnLinux()
-{
+bool IsRunningOnLinux() {
     return IsRunningOnUnix() && !IsRunningOnMac();
 }

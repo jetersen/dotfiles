@@ -1,4 +1,4 @@
-#addin "Cake.Powershell"
+#addin "nuget:?package=Cake.Powershell&version=0.4.7"
 
 #load "scripts/utilities.cake"
 
@@ -18,19 +18,18 @@ Task("git")
   .Does(() =>
 {
   dotfile("git/gitconfig", home);
-  dotfile("git/gitconfig.local", home, true, true, false);
+  dotfile("git/gitconfig.local", home, copy: true);
   dotfile("git/gitignore.global", home);
   var githooks = Directory($"{home}/.githooks");
   EnsureDirectoryExists(githooks);
-  dotfile("git/hooks/commit-msg", githooks, false, true);
+  dotfile("git/hooks/commit-msg", githooks, dotting: false, copy: true);
 });
 
 Task("vscode")
   .Does(() =>
 {
   var app_home = home;
-  if (IsRunningOnWindows())
-  {
+  if (IsRunningOnWindows()) {
     app_home = Directory($"{EnvironmentVariable("APPDATA")}/Code/User");
   } else if (IsRunningOnLinux()) {
     app_home = Directory($"{home}/.config/Code - OSS/User");
@@ -40,7 +39,7 @@ Task("vscode")
     return;
   }
   EnsureDirectoryExists(app_home);
-  dotfile("vscode/settings.json", app_home, false);
+  dotfile("vscode/settings.json", app_home, dotting: false);
 });
 
 Task("ssh")
@@ -48,7 +47,7 @@ Task("ssh")
 {
   var app_home = Directory($"{home}/.ssh");
   EnsureDirectoryExists(app_home);
-  dotfile("ssh/config", app_home, false);
+  dotfile("ssh/config", app_home, dotting: false);
 });
 
 /// <summary>
