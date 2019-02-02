@@ -21,7 +21,7 @@
     "editor.tabSize": 2,
     "window.zoomLevel": 0,
     "files.trimTrailingWhitespace": true,
-    "editor.detectIndentation": false,
+    "editor.detectIndentation": true,
     "git.confirmSync": false,
     "terminal.integrated.shell.windows": "C:\\Windows\\sysnative\\WindowsPowerShell\\v1.0\\powershell.exe",
     "git.autofetch": true,
@@ -30,6 +30,6 @@
     "workbench.colorTheme": "Cobalt2",
     "powershell.integratedConsole.showOnStartup": false,
     "workbench.editor.showTabs": false,
-    "powershell.powerShellExePath": "C:\\WINDOWS\\SysWow64\\WindowsPowerShell\\v1.0\\powershell.exe",
-    "terminal.integrated.rendererType": "dom"
+    "powershell.powerShellExePath": "C:\\Program Files\\PowerShell\\6\\pwsh.exe",
+    "workbench.sideBar.location": "right"
   }
