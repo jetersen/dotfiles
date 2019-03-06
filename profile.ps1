@@ -1,23 +1,19 @@
 # Silience I kill you!
 Set-PSReadlineOption -BellStyle None
 
+$DefaultUser = "$env:USERNAME"
+
 # Modules should be installed on User scope
 # if Modules are not installed on User scope please run as admin:
 # Uninstall-Module -Name Module
 function Get-EnsureModule {
   param(
-    [parameter(Mandatory,ValueFromPipeline)]
+    [parameter(Mandatory, ValueFromPipeline)]
     [string[]] $modulesNames
   )
-  Begin {
-    $installedModules = Get-InstalledModule
-  }
   Process {
     foreach ($moduleName in $modulesNames) {
-      if (!(Get-Module $moduleName)) {
-        if ($installedModules.Name -notcontains $moduleName) {
-          Install-Module $moduleName -Scope CurrentUser -Force
-        }
+      if (!(Get-Module -Name $moduleName)) {
         Import-Module $moduleName
       }
     }
@@ -27,7 +23,24 @@ function Get-EnsureModule {
   }
 }
 
+function Install-Modules {
+  $installedModules = Get-InstalledModule
+  $checkRepo = $true
+  if ($checkRepo) {
+    Update-Repo
+    $checkRepo = $false
+  }
+  foreach ($moduleName in $modulesNames) {
+    if (!(Get-Module -Name $moduleName)) {
+      if ($installedModules.Name -notcontains $moduleName) {
+        Install-Module $moduleName -Scope CurrentUser -Force
+      }
+    }
+  }
+}
+
 function Update-Modules {
+  Update-Repo
   $installedModules = Get-InstalledModule
   foreach ($module in $installedModules) {
     Try {
@@ -39,8 +52,25 @@ function Update-Modules {
     }
     if ($online.version -gt $module.version) {
       Write-Host "Updating $($module.name) module"
-      Update-Module $module.name -Scope CurrentUser
+      Update-Module "${module.name}"
     }
+  }
+}
+
+function Update-Repo {
+  # Ensure package mangers are installed
+  $packageProviders = PackageManagement\Get-PackageProvider -ListAvailable
+  $checkPowerShellGet = $packageProviders | Where-Object name -eq "PowerShellGet"
+  $checkNuget = $packageProviders | Where-Object name -eq "NuGet"
+  $checkPSGallery = Get-PSRepository PSGallery
+  if (!$checkPSGallery -or $checkPSGallery.InstallationPolicy -ne 'Trusted') {
+    Set-PSRepository PSGallery -InstallationPolicy trusted -SourceLocation "https://www.powershellgallery.com/api/v2"
+  }
+  if (!$checkPowerShellGet) {
+    PackageManagement\Get-PackageProvider -Name PowerShellGet -Force
+  }
+  if (!$checkNuget) {
+    PackageManagement\Get-PackageProvider -Name NuGet -Force
   }
 }
 
@@ -49,47 +79,39 @@ function Get-ContainerID {(docker ps -l -q)}
 
 #docker rm $(docker ps -a -q)
 function Remove-StoppedContainers {
-    foreach ($id in & docker ps -a -q) {
-        & docker rm -f $id }
+  foreach ($id in & docker ps -a -q) {
+    & docker rm -f $id
+  }
 }
 
 #docker rmi $(docker images -f "dangling=true" -q)
 function Remove-DanglingImages {
-    foreach ($id in & docker images -q -f 'dangling=true') {
-        & docker rmi $id }
+  foreach ($id in & docker images -q -f 'dangling=true') {
+    & docker rmi $id
+  }
+}
+
+function Remove-AllImages {
+  foreach ($id in & docker images -a -q) {
+    & docker rmi -f $id
+  }
 }
 
 #docker volume rm $(docker volume ls -qf dangling=true)
 function Remove-DanglingVolumes {
-    foreach ($id in & docker volume ls -q -f 'dangling=true') {
-        & docker volume rm $id }
+  foreach ($id in & docker volume ls -q -f 'dangling=true') {
+    & docker volume rm $id
+  }
 }
 
 # docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' <id>
 function Get-ContainerIPAddress {
-    param (
-        [string] $id
-    )
-    & docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $id
+  param (
+    [string] $id
+  )
+  & docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $id
 }
 # END of functions
-
-# Ensure package mangers are installed
-$packageProviders = PackageManagement\Get-PackageProvider -ListAvailable
-$checkPowerShellGet = $packageProviders | Where-Object name -eq "PowerShellGet"
-$checkNuget = $packageProviders | Where-Object name -eq "NuGet"
-$checkPSGallery = Get-PSRepository PSGallery
-if (!$checkPSGallery -or $checkPSGallery.InstallationPolicy -ne 'Trusted') {
-  Set-PSRepository PSGallery -InstallationPolicy trusted -SourceLocation "https://www.powershellgallery.com/api/v2"
-}
-if (!$checkPowerShellGet) {
-  PackageManagement\Get-PackageProvider -Name PowerShellGet -Force
-}
-if (!$checkNuget) {
-  PackageManagement\Get-PackageProvider -Name NuGet -Force
-}
-
-$SkipUpdateModule = $True
 
 $modules = (
   "Get-ChildItemColor",
@@ -104,10 +126,23 @@ $modules | Get-EnsureModule
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
-$developmentWorkspace = "$env:USERPROFILE\code"
+$developmentWorkspace = "C:\code"
 
 # Helper function to change directory to your development workspace
 function cws { Set-Location "$developmentWorkspace" }
+
+function sln {
+  Get-ChildItem -Filter "*.sln" -Recurse | Select-Object -first 1 | Invoke-Item
+}
+
+function clean-sln {
+  $cleanup = @(
+    '.vs',
+    'bin',
+    'obj'
+  )
+  Get-ChildItem $cleanup -Directory -Recurse | Remove-Item -Force -Recurse
+}
 
 # setup cd extras
 $cde.CD_PATH = @("$developmentWorkspace")
@@ -120,7 +155,6 @@ Set-Alias dir ll -Option AllScope
 
 # setup oh-my-posh
 Set-Theme agnoster
-$DefaultUser = "$env:USERNAME"
 
 # Docker aliases
 Set-Alias dl Get-ContainerID
@@ -139,3 +173,5 @@ Set-Alias d docker
 
 # Basic git alias
 Set-Alias g git
+
+Set-Alias open Invoke-Item
