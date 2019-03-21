@@ -7,6 +7,7 @@
   rbc = rebase --continue
   rbs = rebase --skip
   rba = rebase --abort
+  oops = commit --amend -a --no-edit
   fix-working-tree = !git rm --cached -r . && git reset --hard
   fixauthor = commit --amend --reset-author --no-edit
   remote-cleanup = !git branch -r --merged | grep -v 'development\\|dev\\||devel\\|master' | grep origin | cut -d/ -f2 | xargs -r -n 1 git push origin --delete
