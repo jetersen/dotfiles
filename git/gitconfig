@@ -1,42 +1,42 @@
 [alias]
-	p = push
-	pr = pull -r
-	pushf = push --force-with-lease
-	s = status
-	rb = rebase
-	rbc = rebase --continue
-	rbs = rebase --skip
-	rba = rebase --abort
-	fix-working-tree = !git rm --cached -r . && git reset --hard
-	fixauthor = commit --amend --reset-author --no-edit
-	remote-cleanup = !git branch -r --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git push origin --delete
-	local-cleanup = !git branch --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git branch -d
+  p = push
+  pr = pull -r
+  pushf = push --force-with-lease
+  s = status
+  rb = rebase
+  rbc = rebase --continue
+  rbs = rebase --skip
+  rba = rebase --abort
+  fix-working-tree = !git rm --cached -r . && git reset --hard
+  fixauthor = commit --amend --reset-author --no-edit
+  remote-cleanup = !git branch -r --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git push origin --delete
+  local-cleanup = !git branch --merged | grep -v 'development\\|master' | grep origin | sed 's/origin\\///' | xargs -r -n 1 git branch -d
 [help]
-	autocorrect = 1
+  autocorrect = 1
 [core]
-	autocrlf = true
-	excludesfile = ~/.gitignore.global
-	editor = code --wait
+  autocrlf = true
+  excludesfile = ~/.gitignore.global
+  editor = code --wait
 [pull]
-	rebase = true
+  rebase = true
 [push]
-	default = current
-	followTags = true
+  default = current
+  followTags = true
 [fetch]
-	prune = true
+  prune = true
 [branch]
-	autosetupmerge = always
-	autosetuprebase = always
+  autosetupmerge = always
+  autosetuprebase = always
 [remote "origin"]
-	fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
-	fetch = +refs/tags/*:refs/tags/*
+  fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
+  fetch = +refs/tags/*:refs/tags/*
 [include]
-	path = .gitconfig.local
+  path = .gitconfig.local
 [filter "lfs"]
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
-	clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
+  clean = git-lfs clean -- %f
 [user]
-	name = Joseph Petersen
-	email = josephp90@gmail.com
+  name = Joseph Petersen
+  email = josephp90@gmail.com
