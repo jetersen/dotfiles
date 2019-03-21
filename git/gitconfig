@@ -29,7 +29,6 @@
   autosetuprebase = always
 [remote "origin"]
   fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
-  fetch = +refs/tags/*:refs/tags/*
 [include]
   path = .gitconfig.local
 [filter "lfs"]
