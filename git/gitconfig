@@ -13,12 +13,16 @@
   local-cleanup = !git branch --merged | grep -v 'development\\|dev\\||devel\\|master' | grep origin | cut -d/ -f2 | xargs -r -n 1 git branch -d
   fork-cleanup = !git branch -r | grep origin/ | grep -v 'master$' | grep -v HEAD | cut -d/ -f2 | xargs -r -n 1 git push origin --delete
   rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
+  work = config user.email \"joseph.petersen@3shape.com\"
+  home = config user.email \"josephp90@gmail.com\"
 [help]
   autocorrect = 1
 [core]
   autocrlf = true
   excludesfile = ~/.gitignore.global
   editor = code --wait
+[commit]
+  gpgsign = true
 [pull]
   rebase = true
 [push]
@@ -41,3 +45,11 @@
 [user]
   name = Joseph Petersen
   email = josephp90@gmail.com
+[includeIf "gitdir:~/work/"]
+  path = .gitconfig.work
+[includeIf "gitdir:~/code/"]
+  path = .gitconfig.home
+[includeIf "gitdir/i:C:/work/"]
+  path = .gitconfig.work
+[includeIf "gitdir/i:C:/code/"]
+  path = .gitconfig.home

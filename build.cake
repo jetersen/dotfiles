@@ -18,7 +18,8 @@ Task("git")
   .Does(() =>
 {
   dotfile("git/gitconfig", home);
-  dotfile("git/gitconfig.local", home, copy: true);
+  dotfile("git/gitconfig.home", home);
+  dotfile("git/gitconfig.work", home);
   dotfile("git/gitignore.global", home);
   var githooks = Directory($"{home}/.githooks");
   EnsureDirectoryExists(githooks);

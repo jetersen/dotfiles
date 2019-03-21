@@ -1,6 +1,0 @@
-[user]
-    name = {name}
-    email = {home.email}
-[alias]
-    work = config user.email \"{work.email}\"
-    home = config user.email \"{home.email}\"
