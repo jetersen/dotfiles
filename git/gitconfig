@@ -23,6 +23,10 @@
   editor = code --wait
 [commit]
   gpgsign = true
+[gpg]
+	program = gpg
+[tag]
+	forceSignAnnotated = true
 [pull]
   rebase = true
 [push]

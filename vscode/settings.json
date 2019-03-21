@@ -32,5 +32,6 @@
     "workbench.editor.showTabs": false,
     "powershell.powerShellExePath": "C:\\Program Files\\PowerShell\\6\\pwsh.exe",
     "workbench.sideBar.location": "right",
-    "editor.renderFinalNewline": true
+    "editor.renderFinalNewline": true,
+    "git.enableCommitSigning": true
   }
