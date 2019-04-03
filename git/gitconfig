@@ -47,6 +47,12 @@
   process = git-lfs filter-process
   required = true
   clean = git-lfs clean -- %f
+[url "ssh://git@github.com/"]
+  insteadOf = https://github.com/
+[url "ssh://git@gitlab.com/"]
+  insteadOf = https://gitlab.com/
+[url "ssh://git@bitbucket.org/"]
+  insteadOf = https://bitbucket.org/
 [user]
   name = Joseph Petersen
   email = josephp90@gmail.com
