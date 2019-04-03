@@ -19,7 +19,7 @@
 [help]
   autocorrect = 1
 [core]
-  autocrlf = true
+  autocrlf = input
   excludesfile = ~/.gitignore.global
   editor = code --wait
 [commit]
