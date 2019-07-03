@@ -144,6 +144,15 @@ function clean-sln {
   Get-ChildItem $cleanup -Directory -Recurse | Remove-Item -Force -Recurse
 }
 
+function hostfile {
+  if ($IsWindows) {
+    $path = "C:\windows\system32\drivers\etc\hosts"
+  } elseif ($IsLinux) {
+    $path = "/etc/hosts"
+  }
+  Start-Process "code" -ArgumentList "$path" -Verb RunAs
+}
+
 # setup cd extras
 $cde.CD_PATH = @("$developmentWorkspace")
 
