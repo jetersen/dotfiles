@@ -33,5 +33,16 @@
     "powershell.powerShellExePath": "C:\\Program Files\\PowerShell\\6\\pwsh.exe",
     "workbench.sideBar.location": "right",
     "editor.renderFinalNewline": true,
-    "git.enableCommitSigning": true
+    "git.enableCommitSigning": true,
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    },
+    "files.exclude": {
+        "**/node_modules": true
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.suggestSelection": "first",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
   }
