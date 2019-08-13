@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices;
 
-#addin "nuget:?package=Cake.Powershell&version=0.4.7"
-
 var renew = EnvironmentVariable("renew")?.Equals("1") ?? false;
 
 string HomeFolder() {
@@ -38,19 +36,19 @@ void dotfile(string source, string dest, bool dotting = true, bool copy = false)
 }
 
 void SymLinkFile(string source, string link) {
+  var process = "";
+  var arguments = "";
   if (IsRunningOnWindows()) {
-    StartPowershellScript("New-Item", args => {
-        args.Append("ItemType", "SymbolicLink")
-            .Append("Target", source.Quote())
-            .Append("Path", link.Quote());
-      });
+    process = "powershell.exe";
+    var script = $"New-Item -ItemType SymbolicLink -Target {source.Quote()} -Path {link.Quote()}";
+    arguments = $"-noprofile -c {script.Quote()}";
   } else if (IsRunningOnUnix()) {
-    var process = "ln";
-    var arguments = $"-s {source.Quote()} {link.Quote()}";
-    Information($"process: {process}, args: {arguments}");
-    var exitCodeWithArgument = StartProcess(process, arguments);
-    Information($"Exit code: {exitCodeWithArgument}");
+    process = "ln";
+    arguments = $"-s {source.Quote()} {link.Quote()}";
   }
+  Information($"process: {process}, args: {arguments}");
+  var exitCodeWithArgument = StartProcess(process, arguments);
+  Information($"Exit code: {exitCodeWithArgument}");
 }
 
 internal static class MacPlatformDetector {

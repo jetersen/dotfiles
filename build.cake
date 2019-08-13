@@ -1,12 +1,9 @@
-#addin "nuget:?package=Cake.Powershell&version=0.4.7"
-
 #load "scripts/utilities.cake"
 
 var target = Argument("target", "Default");
 var home = Directory(HomeFolder());
 
 Task("Default")
-  .IsDependentOn("choco")
   .IsDependentOn("git")
   .IsDependentOn("vscode")
   .IsDependentOn("ssh")
@@ -50,35 +47,5 @@ Task("ssh")
   EnsureDirectoryExists(app_home);
   dotfile("ssh/config", app_home, dotting: false);
 });
-
-/// <summary>
-/// When you cannot get enough package managers 🤣
-/// </summary>
-Task("choco")
-  .WithCriteria(IsRunningOnWindows())
-  .WithCriteria(
-    !DirectoryExists($"{EnvironmentVariable("HOMEDRIVE")}/ProgramData/chocolatey")
-    ||
-    !HasEnvironmentVariable("ChocolateyInstall"))
-  .Does(() =>
-{
-  StartPowershellScript("Start-Process", args => {
-    args
-      .Append("powershell")
-      .Append("Verb", "Runas")
-      .AppendStringLiteral(
-        "ArgumentList", "Set-ExecutionPolicy Bypass -Scope Process -Force; " +
-        "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
-      );
-  });
-});
-
-Task("CodePage")
-  .WithCriteria(IsRunningOnWindows())
-  .Does(() =>
-{
-  StartPowershellScript("sp -t d HKCU:\\Console CodePage 0xfde9");
-});
-
 
 RunTarget(target);
