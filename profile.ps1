@@ -33,7 +33,7 @@ function Install-Modules {
   foreach ($moduleName in $modulesNames) {
     if (!(Get-Module -Name $moduleName)) {
       if ($installedModules.Name -notcontains $moduleName) {
-        Install-Module $moduleName -Scope CurrentUser -Force
+        Install-Module $moduleName -Scope CurrentUser -Force -AllowClobber
       }
     }
   }
