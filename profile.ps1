@@ -129,7 +129,7 @@ Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 $developmentWorkspace = @("C:\code", "C:\work")
 
 # Helper function to change directory to your development workspace
-function cws { Set-Location "$developmentWorkspace" }
+function cws { Set-Location "$($developmentWorkspace.Get(0))" }
 
 function sln {
   Get-ChildItem -Filter "*.sln" -Recurse | Select-Object -first 1 | Invoke-Item
@@ -154,7 +154,7 @@ function hostfile {
 }
 
 # setup cd extras
-$cde.CD_PATH = @("$developmentWorkspace")
+$cde.CD_PATH = @($developmentWorkspace)
 
 # Set dir, l, ll, and ls alias to use the new Get-ChildItemColor cmdlets
 Set-Alias ls Get-ChildItemColorFormatWide -Option AllScope
