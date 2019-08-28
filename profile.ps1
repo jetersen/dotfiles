@@ -145,12 +145,13 @@ function clean-sln {
 }
 
 function hostfile {
+  $path = "C:\windows\system32\drivers\etc\hosts"
   if ($IsWindows) {
     $path = "C:\windows\system32\drivers\etc\hosts"
   } elseif ($IsLinux) {
     $path = "/etc/hosts"
   }
-  Start-Process "code" -ArgumentList "$path" -Verb RunAs
+  Start-Process "code" -ArgumentList "$path"
 }
 
 # setup cd extras
