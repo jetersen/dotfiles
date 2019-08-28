@@ -154,6 +154,15 @@ function hostfile {
   Start-Process "code" -ArgumentList "$path"
 }
 
+function dotfile {
+  $dotfile = 'https://github.com/casz/dotfiles'
+  if ($IsLinux) {
+    Invoke-Expression "xdg-open $dotfile"
+  } else {
+    Invoke-Expression "cmd.exe /C start $dotfile"
+  }
+}
+
 # setup cd extras
 $cde.CD_PATH = @($developmentWorkspace)
 
