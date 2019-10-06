@@ -24,6 +24,11 @@ function Get-EnsureModule {
 }
 
 function Install-Modules {
+  param(
+    [parameter(Mandatory, ValueFromPipeline)]
+    [string[]] $modulesNames
+  )
+  Process {
   $installedModules = Get-InstalledModule
   $checkRepo = $true
   if ($checkRepo) {
@@ -36,6 +41,10 @@ function Install-Modules {
         Install-Module $moduleName -Scope CurrentUser -Force -AllowClobber
       }
     }
+  }
+}
+  End {
+    Write-Host "Modules Installed"
   }
 }
 
