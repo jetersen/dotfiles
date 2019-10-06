@@ -7,6 +7,7 @@ Task("Default")
   .IsDependentOn("git")
   .IsDependentOn("vscode")
   .IsDependentOn("ssh")
+  .IsDependentOn("powershell")
   .Does(() =>
 {
 });
@@ -47,5 +48,23 @@ Task("ssh")
   EnsureDirectoryExists(app_home);
   dotfile("ssh/config", app_home, dotting: false);
 });
+
+Task("pwsh")
+  .WithCriteria(OnPath("pwsh"))
+  .Does(() =>
+{
+  SymLinkProfile("pwsh", "powershell/profile.ps1");
+});
+
+Task("powershellv5")
+  .WithCriteria(OnPath("powershell"))
+  .Does(() =>
+{
+  SymLinkProfile("powershell", "powershell/profile.ps1");
+});
+
+Task("powershell")
+  .IsDependentOn("pwsh")
+  .IsDependentOn("powershellv5");
 
 RunTarget(target);

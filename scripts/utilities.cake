@@ -40,15 +40,37 @@ void SymLinkFile(string source, string link) {
   var arguments = "";
   if (IsRunningOnWindows()) {
     process = "powershell.exe";
-    var script = $"New-Item -ItemType SymbolicLink -Target {source.Quote()} -Path {link.Quote()}";
+    var script = $"New-Item -Force -ItemType SymbolicLink -Target {source.Quote()} -Path {link.Quote()} | Out-Null";
     arguments = $"-noprofile -c {script.Quote()}";
   } else if (IsRunningOnUnix()) {
     process = "ln";
     arguments = $"-s {source.Quote()} {link.Quote()}";
   }
+  RunProcess(process, arguments);
+}
+
+void SymLinkProfile(string process, string source) {
+  var repo_file = MakeAbsolute(File(source)).FullPath;
+  var script = $"New-Item -Force -ItemType SymbolicLink -Target {repo_file.Quote()} -Path \"$profile\" | Out-Null";
+  var arguments = $"-noprofile -c {script.Quote()}";
+  RunProcess(process, arguments);
+}
+
+void RunProcess(string process, string arguments) {
   Information($"process: {process}, args: {arguments}");
   var exitCodeWithArgument = StartProcess(process, arguments);
   Information($"Exit code: {exitCodeWithArgument}");
+}
+
+bool OnPath(string process, string arguments = "-h -noprofile") {
+  var available = 1;
+  try {
+    available = StartProcess(process, new ProcessSettings {
+      Arguments = arguments,
+      RedirectStandardOutput = true
+    });
+  } catch {}
+  return available == 0;
 }
 
 internal static class MacPlatformDetector {
