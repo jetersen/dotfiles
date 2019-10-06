@@ -29,20 +29,20 @@ function Install-Modules {
     [string[]] $modulesNames
   )
   Process {
-  $installedModules = Get-InstalledModule
-  $checkRepo = $true
-  if ($checkRepo) {
-    Update-Repo
-    $checkRepo = $false
-  }
-  foreach ($moduleName in $modulesNames) {
-    if (!(Get-Module -Name $moduleName)) {
-      if ($installedModules.Name -notcontains $moduleName) {
-        Install-Module $moduleName -Scope CurrentUser -Force -AllowClobber
+    $installedModules = Get-InstalledModule
+    $checkRepo = $true
+    if ($checkRepo) {
+      Update-Repo
+      $checkRepo = $false
+    }
+    foreach ($moduleName in $modulesNames) {
+      if (!(Get-Module -Name $moduleName)) {
+        if ($installedModules.Name -notcontains $moduleName) {
+          Install-Module $moduleName -Scope CurrentUser -Force -AllowClobber
+        }
       }
     }
   }
-}
   End {
     Write-Host "Modules Installed"
   }
@@ -55,8 +55,7 @@ function Update-Modules {
     Try {
       Write-Host "Checking $($module.name)"
       $online = Find-Module $module.name
-    }
-    Catch {
+    } Catch {
       Write-Warning "Module $($module.name) was not found in the PSGallery"
     }
     if ($online.version -gt $module.version) {
@@ -84,7 +83,7 @@ function Update-Repo {
 }
 
 # docker ps -l -q
-function Get-ContainerID {(docker ps -l -q)}
+function Get-ContainerID { (docker ps -l -q) }
 
 #docker rm $(docker ps -a -q)
 function Remove-StoppedContainers {
