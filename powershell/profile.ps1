@@ -130,6 +130,14 @@ $modules = (
   "cd-extras"
 )
 
+$_PSVersion = $PSVersionTable.PSVersion.Major
+$_File = "$PSScriptRoot/installed/$_PSVersion.test"
+if (!(Test-Path $_File)) {
+  Update-Repo
+  $modules | Install-Modules
+  New-Item -Path $_File -ItemType File -Force | Out-Null
+}
+
 $modules | Get-EnsureModule
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
