@@ -54,6 +54,16 @@ void SymLinkProfile(string process, string source) {
   var script = $"New-Item -Force -ItemType SymbolicLink -Target {repo_file.Quote()} -Path \"$profile\" | Out-Null";
   var arguments = $"-noprofile -c {script.Quote()}";
   RunProcess(process, arguments);
+  SymLinkVSCodeProfile(process, source);
+}
+
+void SymLinkVSCodeProfile(string process, string source) {
+  var repo_file = MakeAbsolute(File(source)).FullPath;
+  var script =
+    "$p = $profile | Split-Path -Parent; $vsCodeProfile = Join-Path $p 'Microsoft.VSCode_profile.ps1';" +
+    $"New-Item -Force -ItemType SymbolicLink -Target {repo_file.Quote()} -Path \"$vsCodeProfile\" | Out-Null";
+  var arguments = $"-noprofile -c {script.Quote()}";
+  RunProcess(process, arguments);
 }
 
 void RunProcess(string process, string arguments) {
