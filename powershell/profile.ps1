@@ -28,6 +28,9 @@ function Install-Modules {
     [parameter(Mandatory, ValueFromPipeline)]
     [string[]] $modulesNames
   )
+  Begin {
+    Write-Host "Installing Modules..."
+  }
   Process {
     $installedModules = Get-InstalledModule
     $checkRepo = $true
@@ -38,6 +41,7 @@ function Install-Modules {
     foreach ($moduleName in $modulesNames) {
       if (!(Get-Module -Name $moduleName)) {
         if ($installedModules.Name -notcontains $moduleName) {
+          Write-Host "Installing $moduleName"
           Install-Module $moduleName -Scope CurrentUser -Force -AllowClobber
         }
       }
