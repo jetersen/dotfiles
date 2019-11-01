@@ -54,13 +54,13 @@
 [url "ssh://git@bitbucket.org/"]
   insteadOf = https://bitbucket.org/
 [user]
-  name = Joseph Petersen
-  email = josephp90@gmail.com
-[includeIf "gitdir:~/work/"]
+	name = Joseph Petersen
+	email = josephp90@gmail.com
+[includeIf "gitdir:~/git/work/"]
   path = .gitconfig.work
-[includeIf "gitdir:~/code/"]
+[includeIf "gitdir:~/git/code/"]
   path = .gitconfig.home
-[includeIf "gitdir/i:C:/work/"]
+[includeIf "gitdir/i:C:/git/work/"]
   path = .gitconfig.work
-[includeIf "gitdir/i:C:/code/"]
+[includeIf "gitdir/i:C:/git/code/"]
   path = .gitconfig.home
