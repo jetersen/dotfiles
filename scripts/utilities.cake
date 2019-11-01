@@ -28,8 +28,7 @@ void dotfile(string source, string dest, bool dotting = true, bool copy = false)
       var old = directory + File($"{file}.{TimeStamp()}.old");
       MoveFile(link, old);
     } else DeleteFile(link);
-  }
-  if (!FileExists(link)) {
+  } else {
     if (copy) CopyFile(repo_file, link);
     else SymLinkFile(repo_file, link);
   }
