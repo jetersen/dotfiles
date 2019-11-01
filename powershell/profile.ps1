@@ -146,7 +146,7 @@ $modules | Get-EnsureModule
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
-$developmentWorkspace = @("C:\code", "C:\work")
+$developmentWorkspace = @("C:\git\code", "C:\git\work")
 
 # Helper function to change directory to your development workspace
 function cws { Set-Location "$($developmentWorkspace.Get(0))" }
