@@ -14,7 +14,12 @@ function Get-EnsureModule {
   Process {
     foreach ($moduleName in $modulesNames) {
       if (!(Get-Module -Name $moduleName)) {
-        Import-Module $moduleName
+        try {
+          Import-Module $moduleName -ErrorAction Stop
+        } catch {
+          Install-Module $moduleName -Scope CurrentUser -Force -AllowClobber
+          Import-Module $moduleName
+        }
       }
     }
   }
