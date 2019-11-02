@@ -127,7 +127,7 @@ function Get-ContainerIPAddress {
 
 $modules = (
   "Get-ChildItemColor",
-  "posh-docker",
+  "DockerCompletion",
   "posh-git",
   "oh-my-posh",
   "PSReadLine",
