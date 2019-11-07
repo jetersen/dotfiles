@@ -39,7 +39,7 @@ void SymLinkFile(string source, string link) {
   var arguments = "";
   if (IsRunningOnWindows()) {
     process = "powershell.exe";
-    var script = $"New-Item -Force -ItemType SymbolicLink -Target {source.Quote()} -Path {link.Quote()} | Out-Null";
+    var script = $"New-Item -Force -ItemType SymbolicLink -Target '{source}' -Path '{link}' | Out-Null";
     arguments = $"-noprofile -c {script.Quote()}";
   } else if (IsRunningOnUnix()) {
     process = "ln";
@@ -50,7 +50,7 @@ void SymLinkFile(string source, string link) {
 
 void SymLinkProfile(string process, string source) {
   var repo_file = MakeAbsolute(File(source)).FullPath;
-  var script = $"New-Item -Force -ItemType SymbolicLink -Target {repo_file.Quote()} -Path \"$profile\" | Out-Null";
+  var script = $"New-Item -Force -ItemType SymbolicLink -Target '{repo_file}' -Path \"$profile\" | Out-Null";
   var arguments = $"-noprofile -c {script.Quote()}";
   RunProcess(process, arguments);
   SymLinkVSCodeProfile(process, source);
@@ -60,7 +60,7 @@ void SymLinkVSCodeProfile(string process, string source) {
   var repo_file = MakeAbsolute(File(source)).FullPath;
   var script =
     "$p = $profile | Split-Path -Parent; $vsCodeProfile = Join-Path $p 'Microsoft.VSCode_profile.ps1';" +
-    $"New-Item -Force -ItemType SymbolicLink -Target {repo_file.Quote()} -Path \"$vsCodeProfile\" | Out-Null";
+    $"New-Item -Force -ItemType SymbolicLink -Target '{repo_file}' -Path \"$vsCodeProfile\" | Out-Null";
   var arguments = $"-noprofile -c {script.Quote()}";
   RunProcess(process, arguments);
 }
