@@ -30,7 +30,7 @@
     "workbench.colorTheme": "Cobalt2",
     "powershell.integratedConsole.showOnStartup": false,
     "workbench.editor.showTabs": false,
-    "powershell.powerShellExePath": "C:\\Program Files\\PowerShell\\6\\pwsh.exe",
+    "powershell.powerShellExePath": "C:\\Program Files\\PowerShell\\7-preview\\pwsh.exe",
     "workbench.sideBar.location": "right",
     "editor.renderFinalNewline": true,
     "git.enableCommitSigning": true,
@@ -45,4 +45,5 @@
     },
     "editor.suggestSelection": "first",
     "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    "powershell.codeFormatting.preset": "OTBS",
   }
