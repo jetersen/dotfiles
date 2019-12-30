@@ -69,7 +69,7 @@ function Update-Modules {
     }
     if ($online.version -gt $module.version) {
       Write-Host "Updating $($module.name) module"
-      Update-Module "${module.name}"
+      Update-Module -Name $module.name
     }
   }
 }
