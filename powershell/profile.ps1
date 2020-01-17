@@ -200,6 +200,15 @@ function fork {
   git fetch --all
 }
 
+function rimraf {
+  param (
+    [string] $item
+  )
+  if (Test-Path "$item") {
+    Remove-Item -Force -Recurse $item
+  }
+}
+
 # setup cd extras
 $cde.CD_PATH = @($developmentWorkspace)
 
