@@ -188,6 +188,18 @@ function dotfile {
   }
 }
 
+function fork {
+  param (
+    [string] $repo
+  )
+  git clone $repo
+  $folder = Split-Path -Leaf $repo
+  Set-Location $folder.Replace('.git', '')
+  git remote rename origin upstream
+  hub fork --remote-name origin
+  git fetch --all
+}
+
 # setup cd extras
 $cde.CD_PATH = @($developmentWorkspace)
 
