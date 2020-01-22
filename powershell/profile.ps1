@@ -222,7 +222,7 @@ Set-Alias dir ll -Option AllScope
 Set-Theme paradox
 
 # Docker aliases
-Set-Alias dl Get-ContainerID
+Set-Alias dcid Get-ContainerID
 
 Set-Alias drm Remove-StoppedContainers
 
