@@ -192,7 +192,7 @@ function fork {
   param (
     [string] $repo
   )
-  git clone $repo
+  hub clone $repo
   $folder = Split-Path -Leaf $repo
   Set-Location $folder.Replace('.git', '')
   git remote rename origin upstream
