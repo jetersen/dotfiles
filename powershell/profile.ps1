@@ -237,9 +237,9 @@ Set-Alias dc docker-compose
 Set-Alias d docker
 
 # Basic git alias
-Set-Alias g git
-
 Set-Alias git hub
+
+Set-Alias g git
 
 Set-Alias open Invoke-Item
 
