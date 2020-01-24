@@ -190,11 +190,11 @@ function dotfile {
 
 function fork {
   param (
-    [string] $repo
+    [string] $repo,
+    [string] $folder = (Split-Path -Leaf $repo).Replace('.git', '')
   )
-  hub clone $repo
-  $folder = Split-Path -Leaf $repo
-  Set-Location $folder.Replace('.git', '')
+  hub clone $repo $folder
+  Set-Location $folder
   git remote rename origin upstream
   hub fork --remote-name origin
   git fetch --all
