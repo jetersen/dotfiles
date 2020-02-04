@@ -23,10 +23,7 @@ function Get-EnsureModule {
       }
     }
   }
-  End {
-    Write-Host "Modules loaded"
   }
-}
 
 function Install-Modules {
   param(
