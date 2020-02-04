@@ -23,7 +23,7 @@ function Get-EnsureModule {
       }
     }
   }
-  }
+}
 
 function Install-Modules {
   param(
@@ -190,6 +190,7 @@ function fork {
     [string] $repo,
     [string] $folder = (Split-Path -Leaf $repo).Replace('.git', '')
   )
+  $folder = $folder -replace '[/\\-]', '.'
   hub clone $repo $folder
   Set-Location $folder
   git remote rename origin upstream
