@@ -247,4 +247,4 @@ Set-Alias g git
 Set-Alias open Invoke-Item
 
 # clear variables
-Remove-Variable _PSVersion, _File, modules, developmentWorkspace
+Remove-Variable _PSVersion, _File, modules
