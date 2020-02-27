@@ -217,7 +217,7 @@ Set-Alias ll Get-ChildItemColor -Option AllScope
 Set-Alias dir ll -Option AllScope
 
 # setup oh-my-posh
-Set-Theme paradox
+Set-Theme Paradox
 
 # Docker aliases
 Set-Alias dcid Get-ContainerID
