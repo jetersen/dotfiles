@@ -43,7 +43,7 @@ void SymLinkFile(string source, string link) {
     arguments = $"-noprofile -c {script.Quote()}";
   } else if (IsRunningOnUnix()) {
     process = "ln";
-    arguments = $"-s {source.Quote()} {link.Quote()}";
+    arguments = $"-sf {source.Quote()} {link.Quote()}";
   }
   RunProcess(process, arguments);
 }
