@@ -33,7 +33,7 @@
     "powershell.powerShellExePath": "C:\\Program Files\\PowerShell\\7-preview\\pwsh.exe",
     "workbench.sideBar.location": "right",
     "editor.renderFinalNewline": true,
-    "git.enableCommitSigning": true,
+    // "git.enableCommitSigning": true,
     "[markdown]": {
         "files.trimTrailingWhitespace": false
     },

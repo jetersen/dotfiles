@@ -3,6 +3,11 @@ Set-PSReadlineOption -BellStyle None
 
 $DefaultUser = "$env:USERNAME"
 
+$chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path "$chocoProfile") {
+  Import-Module "$chocoProfile"
+}
+
 # Modules should be installed on User scope
 # if Modules are not installed on User scope please run as admin:
 # Uninstall-Module -Name Module
