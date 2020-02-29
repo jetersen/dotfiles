@@ -9,7 +9,7 @@
         "**/bin": true
     },
     "explorer.sortOrder": "mixed",
-    "editor.fontFamily": "Fira Code, Consolas, monospace",
+    "editor.fontFamily": "JetBrains Mono, Fira Code, Consolas, monospace",
     "editor.fontSize": 14,
     "editor.fontLigatures": true,
     "javascript.validate.enable": false,

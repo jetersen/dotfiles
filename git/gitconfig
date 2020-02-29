@@ -22,10 +22,10 @@
   autocrlf = input
   excludesfile = ~/.gitignore.global
   editor = code --wait
-[commit]
-  gpgsign = true
-[gpg]
-	program = gpg
+# [commit]
+#   gpgsign = true
+# [gpg]
+# 	program = gpg
 [tag]
 	forceSignAnnotated = true
 [pull]
