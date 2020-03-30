@@ -1,7 +1,12 @@
 # Silience I kill you!
 Set-PSReadlineOption -BellStyle None
 
-$DefaultUser = "$env:USERNAME"
+
+$DefaultUser = if ($env:USERNAME) {
+  "$env:USERNAME"
+} else {
+  "$env:USER"
+}
 
 $chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path "$chocoProfile") {
