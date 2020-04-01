@@ -258,3 +258,7 @@ Set-Alias open Invoke-Item
 
 # clear variables
 Remove-Variable _PSVersion, _File, modules
+
+if ((Get-Location).Path -eq "/mnt/c/Users/$DefaultUser") {
+  Set-Location ~
+ }
