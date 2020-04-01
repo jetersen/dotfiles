@@ -261,4 +261,8 @@ Remove-Variable _PSVersion, _File, modules
 
 if ((Get-Location).Path -eq "/mnt/c/Users/$DefaultUser") {
   Set-Location ~
- }
+}
+
+if ("$ENV:PATH" -notlike "*$ENV:HOME/bin*") {
+  $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/bin"
+}
