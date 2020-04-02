@@ -55,6 +55,7 @@
   insteadOf = https://bitbucket.org/
 [user]
 	name = Joseph Petersen
+  signingKey = 05756914983DA9E9
 	email = josephp90@gmail.com
 [includeIf "gitdir:~/git/work/"]
   path = .gitconfig.work
