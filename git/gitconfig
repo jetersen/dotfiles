@@ -1,4 +1,5 @@
 [alias]
+  cp = cherry-pick
   p = push
   pr = pull -r
   pushf = push --force-with-lease
