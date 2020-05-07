@@ -215,11 +215,9 @@ function fork {
 
 function rimraf {
   param (
-    [string] $item
+    [string[]] $paths
   )
-  if (Test-Path "$item") {
-    Remove-Item -Force -Recurse $item
-  }
+  Remove-Item -Force -Recurse $paths
 }
 
 # setup cd extras
