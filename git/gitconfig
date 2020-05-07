@@ -14,7 +14,7 @@
   local-cleanup = !git branch --merged | grep -v 'development\\|dev\\|devel\\|master' | grep origin | cut -d/ -f2- | xargs -r -n 1 git branch -d
   fork-cleanup = !git branch -r | grep origin/ | grep -v 'master$' | grep -v HEAD | cut -d/ -f2- | xargs -r -n 1 git push origin --delete
   rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
-  work = config user.email \"joseph.petersen@3shape.com\"
+  work = config user.email \"jpet@siteimprove.com\"
   home = config user.email \"josephp90@gmail.com\"
 [help]
   autocorrect = 1
