@@ -143,7 +143,8 @@ $modules = (
   "posh-git",
   "oh-my-posh",
   "PSReadLine",
-  "cd-extras"
+  "cd-extras",
+  "powershell-yaml"
 )
 
 $_PSVersion = $PSVersionTable.PSVersion.Major
