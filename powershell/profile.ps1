@@ -192,13 +192,30 @@ function hostfile {
   Start-Process "code" -ArgumentList "$path"
 }
 
-function dotfile {
-  $dotfile = 'https://github.com/casz/dotfiles'
+function openBrowser {
+  param (
+    [string] $url
+  )
   if ($IsLinux) {
-    Invoke-Expression "xdg-open $dotfile"
+    Invoke-Expression "xdg-open $url"
   } else {
-    Invoke-Expression "cmd.exe /C start $dotfile"
+    Start-Process -Path "$url"
   }
+}
+
+function open {
+  param (
+    [string] $item
+  )
+  if ($item -and $item -imatch "https?://*") {
+    openBrowser $item
+  } else {
+    Invoke-Item $item
+  }
+}
+
+function dotfile {
+  openBrowser 'https://github.com/casz/dotfiles'
 }
 
 function fork {
@@ -266,8 +283,6 @@ Set-Alias d docker
 Set-Alias git hub
 
 Set-Alias g git
-
-Set-Alias open Invoke-Item
 
 # clear variables
 Remove-Variable _PSVersion, _File, modules
