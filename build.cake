@@ -8,6 +8,7 @@ Task("Default")
   .IsDependentOn("vscode")
   .IsDependentOn("ssh")
   .IsDependentOn("powershell")
+  .IsDependentOn("zsh")
   .Does(() =>
 {
 });
@@ -66,5 +67,12 @@ Task("powershellv5")
 Task("powershell")
   .IsDependentOn("pwsh")
   .IsDependentOn("powershellv5");
+
+Task("zsh")
+  .Does(() =>
+{
+  dotfile("zsh/zshrc", home);
+  dotfile("zsh/zprofile", home);
+});
 
 RunTarget(target);

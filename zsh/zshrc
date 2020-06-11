@@ -1,0 +1,86 @@
+#!/usr/bin/env zsh
+
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+### Added by Zinit's installer
+if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
+    print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
+    command git clone https://github.com/zdharma/zinit "$HOME/.zinit/bin" && \
+        print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
+        print -P "%F{160}▓▒░ The clone has failed.%f%b"
+fi
+
+source "$HOME/.zinit/bin/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+### End of Zinit's installer chunk
+
+# Load a few important annexes, without Turbo
+# (this is currently required for annexes)
+zinit light-mode for \
+    zinit-zsh/z-a-as-monitor \
+    zinit-zsh/z-a-patch-dl \
+    zinit-zsh/z-a-bin-gem-node \
+    zinit-zsh/z-a-rust \
+    romkatv/powerlevel10k \
+    laggardkernel/zsh-thefuck
+
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+autoload -U colors && colors
+
+# Zsh plugins
+
+zinit wait lucid for \
+  zsh-users/zsh-autosuggestions \
+  zdharma/fast-syntax-highlighting \
+  zdharma/history-search-multi-word \
+  atload"zicompinit; zicdreplay" blockf \
+    load zsh-users/zsh-completions
+
+# Binaries
+
+zinit as"null" wait lucid from"gh-r" for \
+  mv"argocd* -> argocd" sbin argoproj/argo-cd \
+  mv"yq* -> yq" sbin mikefarah/yq \
+  mv"krew* -> krew" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
+  mv"gh* -> gh" sbin"gh" cli/cli \
+  mv"hub-*/bin/hub -> hub" sbin @github/hub \
+  sbin"kustomize" kubernetes-sigs/kustomize \
+  mv"exa* -> exa" sbin ogham/exa \
+  mv"jb* -> jb" sbin jsonnet-bundler/jsonnet-bundler \
+  sbin"jsonnet" google/jsonnet
+
+zstyle \
+  ':completion:*:complete:(cd|pushd):*' tag-order \
+  'local-directories named-directories'
+zstyle ':completion:*' menu yes select
+
+cdpath=($HOME/git/code $HOME/git/work)
+
+HISTSIZE=1000000
+SAVEHIST=1000000
+HISTFILE=$HOME/.zsh_history
+DOTFILES=$HOME/git/code/dotfiles
+
+# Set up the prompt
+
+setopt hist_ignore_all_dups
+setopt hist_expire_dups_first
+setopt hist_reduce_blanks
+setopt inc_append_history
+setopt share_history
+
+# Keybinding
+bindkey -e
+bindkey "^[[1;5C" forward-word
+bindkey "^[[1;5D" backward-word
+
+[[ ! -f "$DOTFILES/zsh/aliases" ]] || source "$DOTFILES/zsh/aliases"
+[[ ! -f "$DOTFILES/zsh/p10k.zsh" ]] || source "$DOTFILES/zsh/p10k.zsh"

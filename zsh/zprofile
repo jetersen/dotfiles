@@ -1,0 +1,20 @@
+#!/usr/bin/env zsh
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+# Rust cargo should use git cli to avou
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+
+# Go lang settings
+export GOPATH="${HOME}/.go"
+
+# eliminates duplicates in *paths
+typeset -gU cdpath fpath path
+
+# Zsh search path for executable
+path=(
+  $HOME/.krew/bin
+  ${GOPATH}/bin
+  $path
+)
