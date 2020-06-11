@@ -57,6 +57,9 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"jb* -> jb" sbin jsonnet-bundler/jsonnet-bundler \
   sbin"jsonnet" google/jsonnet
 
+zinit wait lucid atload"zicompinit; zicdreplay" blockf for \
+  OMZP::kubectl/kubectl.plugin.zsh
+
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
   'local-directories named-directories'
