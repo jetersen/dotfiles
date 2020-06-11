@@ -50,7 +50,7 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"argocd* -> argocd" sbin argoproj/argo-cd \
   mv"yq* -> yq" sbin mikefarah/yq \
   mv"krew* -> krew" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
-  mv"gh* -> gh" sbin"gh" cli/cli \
+  mv"gh*/bin/gh -> gh" sbin cli/cli \
   mv"hub-*/bin/hub -> hub" sbin @github/hub \
   sbin"kustomize" kubernetes-sigs/kustomize \
   mv"exa* -> exa" sbin ogham/exa \
