@@ -54,7 +54,8 @@ zinit as"null" wait lucid from"gh-r" for \
   sbin"kustomize" kubernetes-sigs/kustomize \
   mv"exa* -> exa" sbin ogham/exa \
   mv"jb* -> jb" sbin jsonnet-bundler/jsonnet-bundler \
-  sbin"jsonnet" google/jsonnet
+  sbin"jsonnet" google/jsonnet \
+  sbin"kubelogin" int128/kubelogin
 
 zinit wait lucid atload"zicompinit; zicdreplay" blockf for \
   OMZP::kubectl/kubectl.plugin.zsh
