@@ -20,6 +20,7 @@ typeset -gU cdpath fpath path
 path=(
   $HOME/.local/bin
   $HOME/.krew/bin
+  $HOME/.asdf/bin
   ${GOPATH}/bin
   ${GOROOT}/bin
   $path

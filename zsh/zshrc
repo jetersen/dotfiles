@@ -55,7 +55,10 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"exa* -> exa" sbin ogham/exa \
   mv"jb* -> jb" sbin jsonnet-bundler/jsonnet-bundler \
   sbin"jsonnet" google/jsonnet \
-  sbin"kubelogin" int128/kubelogin
+
+
+zinit wait lucid for \
+  pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf
 
 zinit wait lucid atload"zicompinit; zicdreplay" blockf for \
   OMZP::kubectl/kubectl.plugin.zsh
