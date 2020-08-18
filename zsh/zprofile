@@ -8,6 +8,8 @@ export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 export GOROOT="/usr/lib/go-1.14"
 
+export EDITOR="code --wait"
+
 # Go lang settings
 export GOPATH="${HOME}/.go"
 
