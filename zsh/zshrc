@@ -55,6 +55,11 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"exa* -> exa" sbin ogham/exa \
   mv"jb* -> jb" sbin jsonnet-bundler/jsonnet-bundler \
   sbin"jsonnet" google/jsonnet \
+  sbin"kubelogin" int128/kubelogin \
+  mv"updatecli* -> updatecli" sbin olblak/updatecli       \
+  mv"usr/local/bin/sops -> sops" sbin"sops" mozilla/sops \
+  mv"helmfile* -> helmfile" sbin roboll/helmfile \
+  mv"kops* -> kops" sbin kubernetes/kops \
 
 
 zinit wait lucid for \
