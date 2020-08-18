@@ -21,6 +21,7 @@ path=(
   $HOME/.local/bin
   $HOME/.krew/bin
   $HOME/.asdf/bin
+  $HOME/.dotnet/tools
   ${GOPATH}/bin
   ${GOROOT}/bin
   $path
