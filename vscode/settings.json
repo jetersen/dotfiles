@@ -2,6 +2,10 @@
     "files.autoSave": "onFocusChange",
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
+    "files.associations": {
+        "*.yml.tpl": "yaml",
+        "*.yaml.tpl": "yaml"
+    },
     "search.exclude": {
         "**/node_modules": true,
         "**/bower_components": true,
@@ -24,10 +28,10 @@
     "editor.detectIndentation": true,
     "git.confirmSync": false,
     "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+    "terminal.integrated.shell.linux": "/usr/bin/zsh",
     "git.autofetch": true,
     "editor.minimap.enabled": false,
     "editor.mouseWheelZoom": true,
-    "workbench.colorTheme": "Cobalt2",
     "powershell.integratedConsole.showOnStartup": false,
     "workbench.editor.showTabs": false,
     "workbench.sideBar.location": "right",
