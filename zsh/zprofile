@@ -6,6 +6,8 @@ export LANG=en_US.UTF-8
 # Rust cargo should use git cli to avou
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
+export GOROOT="/usr/lib/go-1.14"
+
 # Go lang settings
 export GOPATH="${HOME}/.go"
 
@@ -17,5 +19,6 @@ path=(
   $HOME/.local/bin
   $HOME/.krew/bin
   ${GOPATH}/bin
+  ${GOROOT}/bin
   $path
 )
