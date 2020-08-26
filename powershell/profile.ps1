@@ -215,7 +215,7 @@ function open {
 }
 
 function dotfile {
-  openBrowser 'https://github.com/casz/dotfiles'
+  openBrowser 'https://github.com/jetersen/dotfiles'
 }
 
 function fork {
