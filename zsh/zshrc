@@ -47,18 +47,9 @@ zinit wait lucid for \
 # Binaries
 
 zinit as"null" wait lucid from"gh-r" for \
-  mv"argocd* -> argocd" sbin argoproj/argo-cd \
   mv"krew* -> krew" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
-  mv"gh*/bin/gh -> gh" sbin cli/cli \
-  mv"hub-*/bin/hub -> hub" sbin @github/hub \
-  sbin"kustomize" kubernetes-sigs/kustomize \
   mv"exa* -> exa" sbin ogham/exa \
-  mv"jb* -> jb" sbin jsonnet-bundler/jsonnet-bundler \
-  sbin"jsonnet" google/jsonnet \
-  sbin"kubelogin" int128/kubelogin \
-  mv"updatecli* -> updatecli" sbin olblak/updatecli       \
-  mv"usr/local/bin/sops -> sops" sbin"sops" mozilla/sops \
-  mv"helmfile* -> helmfile" sbin roboll/helmfile \
+  mv"updatecli* -> updatecli" sbin olblak/updatecli \
 
 
 zinit wait lucid for \
