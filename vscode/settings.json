@@ -1,52 +1,52 @@
 {
-    "files.autoSave": "onFocusChange",
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "files.associations": {
-        "*.yml.tpl": "yaml",
-        "*.yaml.tpl": "yaml"
-    },
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/bower_components": true,
-        "**/obj": true,
-        "**/bin": true
-    },
-    "explorer.sortOrder": "mixed",
-    "editor.fontFamily": "JetBrains Mono, Fira Code, Segoe UI Emoji, Consolas, monospace",
-    "editor.fontSize": 14,
-    "editor.fontLigatures": true,
-    "javascript.validate.enable": false,
-    "standard.autoFixOnSave": true,
-    "editor.rulers": [
-        140
-    ],
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2,
-    "window.zoomLevel": 0,
-    "files.trimTrailingWhitespace": true,
-    "editor.detectIndentation": true,
-    "git.confirmSync": false,
-    "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
-    "terminal.integrated.shell.linux": "/usr/bin/zsh",
-    "git.autofetch": true,
-    "editor.minimap.enabled": false,
-    "editor.mouseWheelZoom": true,
-    "powershell.integratedConsole.showOnStartup": false,
-    "workbench.editor.showTabs": false,
-    "workbench.sideBar.location": "right",
-    "editor.renderFinalNewline": true,
-    "git.enableCommitSigning": true,
-    "[markdown]": {
-        "files.trimTrailingWhitespace": false
-    },
-    "files.exclude": {
-        "**/node_modules": true
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "editor.suggestSelection": "first",
-    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-    "powershell.codeFormatting.preset": "OTBS",
-  }
+  "files.autoSave": "onFocusChange",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.associations": {
+    "*.yml.tpl": "yaml",
+    "*.yaml.tpl": "yaml"
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/obj": true,
+    "**/bin": true
+  },
+  "explorer.sortOrder": "mixed",
+  "editor.fontFamily": "JetBrains Mono, Fira Code, Segoe UI Emoji, Consolas, monospace",
+  "editor.fontSize": 14,
+  "editor.fontLigatures": true,
+  "javascript.validate.enable": false,
+  "standard.autoFixOnSave": true,
+  "editor.rulers": [
+    140
+  ],
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "window.zoomLevel": 0,
+  "files.trimTrailingWhitespace": true,
+  "editor.detectIndentation": true,
+  "git.confirmSync": false,
+  "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+  "terminal.integrated.shell.linux": "/usr/bin/zsh",
+  "git.autofetch": true,
+  "editor.minimap.enabled": false,
+  "editor.mouseWheelZoom": true,
+  "powershell.integratedConsole.showOnStartup": false,
+  "workbench.editor.showTabs": false,
+  "workbench.sideBar.location": "right",
+  "editor.renderFinalNewline": true,
+  "git.enableCommitSigning": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "files.exclude": {
+    "**/node_modules": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.suggestSelection": "first",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "powershell.codeFormatting.preset": "OTBS",
+}
