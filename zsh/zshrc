@@ -47,7 +47,7 @@ zinit wait lucid for \
 # Binaries
 
 zinit as"null" wait lucid from"gh-r" for \
-  mv"krew* -> krew" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
+  mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
   mv"exa* -> exa" sbin ogham/exa \
   mv"updatecli* -> updatecli" sbin olblak/updatecli \
 
