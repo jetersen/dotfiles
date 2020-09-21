@@ -22,6 +22,8 @@ path=(
   $HOME/.krew/bin
   $HOME/.asdf/bin
   $HOME/.dotnet/tools
+  $HOME/.npm-global/bin
+  $HOME/.cargo/bin
   ${GOPATH}/bin
   ${GOROOT}/bin
   $path
