@@ -1,72 +1,72 @@
 [alias]
-  cp = cherry-pick
-  p = push
-  pr = pull -r
-  pushf = push --force-with-lease
-  s = status
-  rb = rebase
-  rbc = rebase --continue
-  rbs = rebase --skip
-  rba = rebase --abort
-  oops = commit --amend -a --no-edit
-  fix-working-tree = !git rm --cached -r . && git reset --hard
-  fixauthor = commit --amend --reset-author --no-edit
-  remote-cleanup = !git branch -r --merged | grep -v 'development\\|dev\\|devel\\|master' | grep origin | cut -d/ -f2- | xargs -r -n 1 git push origin --delete
-  local-cleanup = !git branch --merged | grep -v 'development\\|dev\\|devel\\|master' | grep origin | cut -d/ -f2- | xargs -r -n 1 git branch -d
-  fork-cleanup = !git branch -r | grep origin/ | grep -v 'master$' | grep -v HEAD | cut -d/ -f2- | xargs -r -n 1 git push origin --delete
-  rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
-  work = config user.email \"jpet@siteimprove.com\"
-  home = config user.email \"josephp90@gmail.com\"
+	cp = cherry-pick
+	p = push
+	pr = pull -r
+	pushf = push --force-with-lease
+	s = status
+	rb = rebase
+	rbc = rebase --continue
+	rbs = rebase --skip
+	rba = rebase --abort
+	oops = commit --amend -a --no-edit
+	fix-working-tree = !git rm --cached -r . && git reset --hard
+	fixauthor = commit --amend --reset-author --no-edit
+	remote-cleanup = !git branch -r --merged | grep -v 'development\\|dev\\|devel\\|master' | grep origin | cut -d/ -f2- | xargs -r -n 1 git push origin --delete
+	local-cleanup = !git branch --merged | grep -v 'development\\|dev\\|devel\\|master' | grep origin | cut -d/ -f2- | xargs -r -n 1 git branch -d
+	fork-cleanup = !git branch -r | grep origin/ | grep -v 'master$' | grep -v HEAD | cut -d/ -f2- | xargs -r -n 1 git push origin --delete
+	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
+	work = config user.email \"jpet@siteimprove.com\"
+	home = config user.email \"josephp90@gmail.com\"
 [help]
-  autocorrect = 1
+	autocorrect = 1
 [core]
-  autocrlf = input
-  excludesfile = ~/.gitignore.global
-  editor = code --wait
+	autocrlf = input
+	excludesfile = ~/.gitignore.global
+	editor = code --wait
 [commit]
-  gpgsign = true
+	gpgsign = true
 [gpg]
 	program = gpg
 [tag]
 	forceSignAnnotated = true
 [pull]
-  rebase = true
+	rebase = true
 [push]
-  default = current
-  followTags = true
+	default = current
+	followTags = true
 [fetch]
-  prune = true
+	prune = true
 [branch]
-  autosetupmerge = always
-  autosetuprebase = always
+	autosetupmerge = always
+	autosetuprebase = always
 [remote "origin"]
-  fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
+	fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
 [include]
-  path = .gitconfig.local
+	path = .gitconfig.local
 [filter "lfs"]
-  smudge = git-lfs smudge -- %f
-  process = git-lfs filter-process
-  required = true
-  clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
 [url "git@github.com:"]
-  insteadOf = https://github.com/
+	insteadOf = https://github.com/
 [url "ssh://git@gitlab.com/"]
-  insteadOf = https://gitlab.com/
+	insteadOf = https://gitlab.com/
 [url "ssh://git@bitbucket.org/"]
-  insteadOf = https://bitbucket.org/
+	insteadOf = https://bitbucket.org/
 [url "ssh://git@heroku.com/"]
 	insteadOf = https://git.heroku.com/
 [user]
 	name = Joseph Petersen
-  signingKey = 05756914983DA9E9
+	signingKey = 05756914983DA9E9
 	email = josephp90@gmail.com
 [includeIf "gitdir:~/git/work/"]
-  path = .gitconfig.work
+	path = .gitconfig.work
 [includeIf "gitdir:~/git/code/"]
-  path = .gitconfig.home
+	path = .gitconfig.home
 [includeIf "gitdir/i:C:/git/work/"]
-  path = .gitconfig.work
+	path = .gitconfig.work
 [includeIf "gitdir/i:C:/git/code/"]
-  path = .gitconfig.home
+	path = .gitconfig.home
 [diff "sopsdiffer"]
 	textconv = sops -d
