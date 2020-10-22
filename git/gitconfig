@@ -23,6 +23,8 @@
 	autocrlf = input
 	excludesfile = ~/.gitignore.global
 	editor = code --wait
+[init]
+	defaultBranch = main
 [commit]
 	gpgsign = true
 [gpg]
