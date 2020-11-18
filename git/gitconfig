@@ -70,5 +70,7 @@
 	path = .gitconfig.work
 [includeIf "gitdir/i:C:/git/code/"]
 	path = .gitconfig.home
+[includeIf "gitdir:/home/codespaces"]
+	path = .gitconfig.codespaces
 [diff "sopsdiffer"]
 	textconv = sops -d

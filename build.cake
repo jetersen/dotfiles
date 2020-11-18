@@ -20,6 +20,7 @@ Task("git")
   dotfile("git/gitconfig.home", home);
   dotfile("git/gitconfig.work", home);
   dotfile("git/gitignore.global", home);
+  dotfile("git/gitconfig.codespaces", home);
   var githooks = Directory($"{home}/.githooks");
   EnsureDirectoryExists(githooks);
   dotfile("git/hooks/commit-msg", githooks, dotting: false, copy: true);
