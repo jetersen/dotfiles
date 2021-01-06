@@ -3,7 +3,7 @@
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 
-# Rust cargo should use git cli to avou
+# Rust cargo should use git cli for ssh support
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 export GOROOT="/usr/lib/go-1.14"
