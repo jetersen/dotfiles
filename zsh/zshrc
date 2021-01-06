@@ -52,11 +52,14 @@ zinit as"null" wait lucid from"gh-r" for \
 
 # completions
 
-zinit depth"1" wait lucid atload"zicompinit; zicdreplay" blockf for \
-  pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
+zinit depth"1" wait lucid for \
+  pick"asdf.sh" @asdf-vm/asdf \
+
+zinit depth"1" wait lucid atload="zicompinit; zicdreplay" blockf for \
   OMZ::plugins/kubectl/kubectl.plugin.zsh \
   OMZ::plugins/helm/helm.plugin.zsh \
   OMZ::plugins/git/git.plugin.zsh \
+  https://github.com/jetersen/ohmyzsh/raw/feature/gh-plugin/plugins/gh/gh.plugin.zsh \
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
