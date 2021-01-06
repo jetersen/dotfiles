@@ -42,7 +42,6 @@ zinit depth"1" wait lucid for \
   zdharma/fast-syntax-highlighting \
   zdharma/history-search-multi-word \
 
-
 # Binaries
 
 zinit as"null" wait lucid from"gh-r" for \
@@ -53,7 +52,6 @@ zinit wait lucid atload"zicompinit; zicdreplay" blockf for \
   depth"1" zsh-users/zsh-completions \
   depth"1" pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
   OMZP::kubectl/kubectl.plugin.zsh \
-
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
