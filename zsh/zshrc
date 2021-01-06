@@ -36,9 +36,13 @@ zinit depth"1" light-mode for \
 # Zsh plugins
 
 zinit depth"1" wait lucid for \
-  zsh-users/zsh-autosuggestions \
-  zdharma/fast-syntax-highlighting \
-  zdharma/history-search-multi-word \
+  atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma/fast-syntax-highlighting \
+  blockf \
+    zsh-users/zsh-completions \
+  atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions \
+    zdharma/history-search-multi-word \
 
 # Binaries
 
@@ -49,10 +53,10 @@ zinit as"null" wait lucid from"gh-r" for \
 # completions
 
 zinit depth"1" wait lucid atload"zicompinit; zicdreplay" blockf for \
-  zsh-users/zsh-completions \
   pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
-  OMZP::kubectl/kubectl.plugin.zsh \
-  OMZP::helm/helm.plugin.zsh \
+  OMZ::plugins/kubectl/kubectl.plugin.zsh \
+  OMZ::plugins/helm/helm.plugin.zsh \
+  OMZ::plugins/git/git.plugin.zsh \
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
