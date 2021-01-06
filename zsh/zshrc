@@ -23,7 +23,7 @@ autoload -Uz _zinit
 
 # Load a few important annexes, without Turbo
 # (this is currently required for annexes)
-zinit light-mode for \
+zinit depth"1" light-mode for \
     zinit-zsh/z-a-as-monitor \
     zinit-zsh/z-a-patch-dl \
     zinit-zsh/z-a-bin-gem-node \
@@ -37,26 +37,23 @@ autoload -U colors && colors
 
 # Zsh plugins
 
-zinit wait lucid for \
+zinit depth"1" wait lucid for \
   zsh-users/zsh-autosuggestions \
   zdharma/fast-syntax-highlighting \
   zdharma/history-search-multi-word \
-  atload"zicompinit; zicdreplay" blockf \
-    load zsh-users/zsh-completions
+
 
 # Binaries
 
 zinit as"null" wait lucid from"gh-r" for \
   mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
   mv"exa* -> exa" sbin ogham/exa \
-  mv"updatecli* -> updatecli" sbin olblak/updatecli \
-
-
-zinit wait lucid for \
-  pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf
 
 zinit wait lucid atload"zicompinit; zicdreplay" blockf for \
-  OMZP::kubectl/kubectl.plugin.zsh
+  depth"1" zsh-users/zsh-completions \
+  depth"1" pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
+  OMZP::kubectl/kubectl.plugin.zsh \
+
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
