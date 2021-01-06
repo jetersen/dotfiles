@@ -2,3 +2,4 @@
 tools/**
 !tools/packages.config
 git/gitconfig.local
+*.zwc
