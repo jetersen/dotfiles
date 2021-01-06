@@ -33,8 +33,6 @@ zinit depth"1" light-mode for \
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-autoload -U colors && colors
-
 # Zsh plugins
 
 zinit depth"1" wait lucid for \
@@ -48,10 +46,13 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
   mv"exa* -> exa" sbin ogham/exa \
 
-zinit wait lucid atload"zicompinit; zicdreplay" blockf for \
-  depth"1" zsh-users/zsh-completions \
-  depth"1" pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
+# completions
+
+zinit depth"1" wait lucid atload"zicompinit; zicdreplay" blockf for \
+  zsh-users/zsh-completions \
+  pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
   OMZP::kubectl/kubectl.plugin.zsh \
+  OMZP::helm/helm.plugin.zsh \
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
