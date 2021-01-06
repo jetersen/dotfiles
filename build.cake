@@ -70,10 +70,14 @@ Task("powershell")
   .IsDependentOn("powershellv5");
 
 Task("zsh")
+  .WithCriteria(OnPath("zsh", "--version"))
   .Does(() =>
 {
   dotfile("zsh/zshrc", home);
   dotfile("zsh/zprofile", home);
+  var config = Directory($"{home}/.config/zsh");
+  EnsureDirectoryExists(config);
+  dotfile("zsh/znap-repos", config, dotting: false);
 });
 
 RunTarget(target);

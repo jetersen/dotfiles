@@ -1,58 +1,30 @@
 #!/usr/bin/env zsh
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-### Added by Zinit's installer
-if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
-  print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
-  command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
-  command git clone https://github.com/zdharma/zinit "$HOME/.zinit/bin" && \
+### zsh-snap installer
+if [[ ! -f "$HOME/.zsh/zsh-snap/znap.zsh" ]]; then
+  print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}marlonrichert/zsh-snap%F{220})…%f"
+  command mkdir -p "$HOME/.zsh" && command chmod g-rwX "$HOME/.zsh"
+  HOME= command git clone --verbose --depth 1 https://github.com/marlonrichert/zsh-snap "$HOME/.zsh/zsh-snap" && \
     print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
     print -P "%F{160}▓▒░ The clone has failed.%f%b"
 fi
 
-source "$HOME/.zinit/bin/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
-### End of Zinit's installer chunk
+source "$HOME/.zsh/zsh-snap/znap.zsh"
+### End of zsh-snap installer
 
-# Load a few important annexes, without Turbo
-# (this is currently required for annexes)
-zinit depth"1" light-mode for \
-  zinit-zsh/z-a-as-monitor \
-  zinit-zsh/z-a-patch-dl \
-  zinit-zsh/z-a-bin-gem-node \
-  zinit-zsh/z-a-rust \
-  romkatv/powerlevel10k \
-  laggardkernel/zsh-thefuck
+znap source powerlevel10k
 
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+znap source ohmyzsh plugins/gitfast
 
-# Zsh plugins
+znap source asdf
 
-zinit depth"1" wait lucid for \
-  zsh-users/zsh-autosuggestions \
-  zdharma/fast-syntax-highlighting \
-  zdharma/history-search-multi-word \
+znap source asdf completions
 
-# Binaries
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+znap source zsh-syntax-highlighting
 
-zinit as"null" wait lucid from"gh-r" for \
-  mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
-  mv"exa* -> exa" sbin ogham/exa \
-
-# completions
-
-zinit depth"1" wait lucid atload"zicompinit; zicdreplay" blockf for \
-  zsh-users/zsh-completions \
-  pick"asdf.sh" src"completions/_asdf" @asdf-vm/asdf \
-  OMZP::kubectl/kubectl.plugin.zsh \
-  OMZP::helm/helm.plugin.zsh \
+znap eval thefuck 'thefuck --alias'
+znap eval kubectl 'kubectl completion zsh'
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
