@@ -169,8 +169,16 @@ if ($IsWindows) {
 # Helper function to change directory to your development workspace
 function cws { Set-Location "$($developmentWorkspace.Get(0))" }
 
+function Get-FirstSln {
+  Get-ChildItem -Filter "*.sln" -Recurse | Select-Object -first 1
+}
+
 function sln {
-  Get-ChildItem -Filter "*.sln" -Recurse | Select-Object -first 1 | Invoke-Item
+  Get-FirstSln | Invoke-Item
+}
+
+function ride {
+  Rider.cmd (Get-FirstSln).FullName
 }
 
 function clean-sln {
