@@ -23,11 +23,11 @@
   ],
   "editor.insertSpaces": true,
   "editor.tabSize": 2,
-  "window.zoomLevel": 0,
+  "window.zoomLevel": 3,
   "files.trimTrailingWhitespace": true,
   "editor.detectIndentation": true,
   "git.confirmSync": false,
-  "terminal.integrated.shell.windows": "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+  "terminal.integrated.shell.windows": "pwsh.exe",
   "terminal.integrated.shell.linux": "/usr/bin/zsh",
   "git.autofetch": true,
   "editor.minimap.enabled": false,
@@ -49,4 +49,11 @@
   "editor.suggestSelection": "first",
   "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
   "powershell.codeFormatting.preset": "OTBS",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "workbench.colorTheme": "Visual Studio 2019 Dark",
+  "workbench.editorAssociations": [],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
 }
