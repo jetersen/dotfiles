@@ -56,4 +56,5 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": true
   },
+  "telemetry.enableTelemetry": false,
 }
