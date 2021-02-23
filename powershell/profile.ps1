@@ -170,15 +170,24 @@ if ($IsWindows) {
 function cws { Set-Location "$($developmentWorkspace.Get(0))" }
 
 function Get-FirstSln {
-  Get-ChildItem -Filter "*.sln" -Recurse | Select-Object -first 1
+  param (
+    [string] $path = "."
+  )
+  Get-ChildItem -Path $path -Filter "*.sln" -Recurse | Select-Object -first 1
 }
 
 function sln {
-  Get-FirstSln | Invoke-Item
+  param (
+    [string] $path
+  )
+  Get-FirstSln "$path" | Invoke-Item
 }
 
 function ride {
-  Rider.cmd (Get-FirstSln).FullName
+  param (
+    [string] $path
+  )
+  Rider.cmd (Get-FirstSln "$path").FullName
 }
 
 function clean-sln {
