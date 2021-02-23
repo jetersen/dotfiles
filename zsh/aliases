@@ -3,3 +3,5 @@
 alias l="exa -1 --color=always --group-directories-first --all"
 alias ll="exa --binary --group --header --all --long --links --classify --group-directories-first"
 alias ls="exa --git --color=always --group-directories-first"
+alias pip=pip3
+alias python=python3
