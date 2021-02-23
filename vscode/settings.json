@@ -1,7 +1,6 @@
 {
   "files.autoSave": "onFocusChange",
   "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true,
   "files.associations": {
     "*.yml.tpl": "yaml",
     "*.yaml.tpl": "yaml"
@@ -17,7 +16,6 @@
   "editor.fontSize": 14,
   "editor.fontLigatures": true,
   "javascript.validate.enable": false,
-  "standard.autoFixOnSave": true,
   "editor.rulers": [
     140
   ],
