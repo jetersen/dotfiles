@@ -227,38 +227,11 @@ function dotfile {
   openBrowser 'https://github.com/jetersen/dotfiles'
 }
 
-function fork {
-  param (
-    [string] $repo,
-    [string] $folder = (Split-Path -Leaf $repo).Replace('.git', '')
-  )
-  $folder = $folder -replace '[/\\-]', '.'
-  hub clone $repo $folder
-  Set-Location $folder
-  git remote rename origin upstream
-  hub fork --remote-name origin
-  git fetch --all
-}
-
 function rimraf {
   param (
     [string[]] $paths
   )
   Remove-Item -Force -Recurse $paths
-}
-
-function Update-KubeConfig {
-  $newUser = Get-Clipboard | ConvertFrom-Yaml
-  if (!$newUser.name) {
-    Write-Host "No user found in clipboard"
-    return
-  }
-  $kubeConf = Get-Content "$HOME/.kube/config" | ConvertFrom-Yaml
-  if ($kubeConf.users -and $kubeConf.users[0] -and $kubeConf.users[0].name -eq 'jpet') {
-    $kubeConf.users[0].user = $newUser.user
-  }
-  $kubeConf | ConvertTo-Yaml | Out-File "$HOME/.kube/config"
-  wsl cp /mnt/c/Users/$ENV:USERNAME/.kube/config ~/.kube/config
 }
 
 function DotEnv {
@@ -353,6 +326,6 @@ if ((Get-Location).Path -eq "/mnt/c/Users/$DefaultUser") {
   Set-Location ~
 }
 
-if ("$ENV:PATH" -notlike "*$ENV:HOME/bin*") {
-  $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/bin"
+if ("$ENV:PATH" -notlike "*$ENV:HOME/.bin*") {
+  $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/.bin"
 }
