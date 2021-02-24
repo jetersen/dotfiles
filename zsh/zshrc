@@ -24,7 +24,8 @@ zinit depth"1" light-mode for \
   zinit-zsh/z-a-patch-dl \
   zinit-zsh/z-a-bin-gem-node \
   zinit-zsh/z-a-rust \
-  laggardkernel/zsh-thefuck
+  laggardkernel/zsh-thefuck \
+  romkatv/zsh-defer \
 
 # Zsh plugins
 
@@ -82,7 +83,7 @@ bindkey "^[[1;5D" backward-word
 [[ ! -f "$DOTFILES/zsh/aliases" ]] || source "$DOTFILES/zsh/aliases"
 
 if [ -z "$WSL_DISTRO_NAME" ]; then
-  eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"
+  zsh-defer -c 'eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"'
 else
-  eval "$(oh-my-posh-wsl --init --shell zsh --config ~/.jetersen.omp.json)"
+  zsh-defer -c 'eval "$(oh-my-posh-wsl --init --shell zsh --config ~/.jetersen.omp.json)"'
 fi
