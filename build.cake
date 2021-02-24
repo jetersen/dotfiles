@@ -9,6 +9,7 @@ Task("Default")
   .IsDependentOn("ssh")
   .IsDependentOn("powershell")
   .IsDependentOn("zsh")
+  .IsDependentOn("oh-my-posh")
   .Does(() =>
 {
 });
@@ -74,6 +75,13 @@ Task("zsh")
 {
   dotfile("zsh/zshrc", home);
   dotfile("zsh/zprofile", home);
+});
+
+Task("oh-my-posh")
+  .Does(() =>
+{
+  dotfile("zsh/zshrc", home);
+  dotfile("oh-my-posh/jetersen.omp.json", home);
 });
 
 RunTarget(target);

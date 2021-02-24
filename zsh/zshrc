@@ -3,13 +3,6 @@
 # module_path+=( "/home/joseph/.zinit/bin/zmodules/Src" )
 # zmodload zdharma/zplugin
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 ### Added by Zinit's installer
 if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
   print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
@@ -33,8 +26,6 @@ zinit depth"1" light-mode for \
   zinit-zsh/z-a-rust \
   romkatv/powerlevel10k \
   laggardkernel/zsh-thefuck
-
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Zsh plugins
 
@@ -90,4 +81,9 @@ bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
 
 [[ ! -f "$DOTFILES/zsh/aliases" ]] || source "$DOTFILES/zsh/aliases"
-[[ ! -f "$DOTFILES/zsh/p10k.zsh" ]] || source "$DOTFILES/zsh/p10k.zsh"
+
+if [ -z "$WSL_DISTRO_NAME" ]; then
+  eval "$(oh-my-posh-wsl --init --shell zsh --config ~/.jetersen.omp.json)"
+else
+  eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"
+fi

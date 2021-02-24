@@ -1,13 +1,6 @@
 # Silience I kill you!
 Set-PSReadlineOption -BellStyle None
 
-
-$DefaultUser = if ($env:USERNAME) {
-  "$env:USERNAME"
-} else {
-  "$env:USER"
-}
-
 $chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path "$chocoProfile") {
   Import-Module "$chocoProfile"
@@ -141,7 +134,6 @@ $modules = (
   "Get-ChildItemColor",
   "DockerCompletion",
   "posh-git",
-  "oh-my-posh",
   "PSReadLine",
   "cd-extras",
   "powershell-yaml"
@@ -335,7 +327,7 @@ Set-Alias ll Get-ChildItemColor -Option AllScope
 Set-Alias dir ll -Option AllScope
 
 # setup oh-my-posh
-Set-Theme Paradox
+Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:USERPROFILE/.jetersen.omp.json")
 
 # Docker aliases
 Set-Alias dcid Get-ContainerID
@@ -351,9 +343,6 @@ Set-Alias dip Get-ContainerIPAddress
 Set-Alias dc docker-compose
 
 Set-Alias d docker
-
-# Basic git alias
-Set-Alias git hub
 
 Set-Alias g git
 
