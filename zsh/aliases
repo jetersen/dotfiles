@@ -5,3 +5,5 @@ alias ll="exa --binary --group --header --all --long --links --classify --group-
 alias ls="exa --git --color=always --group-directories-first"
 alias pip=pip3
 alias python=python3
+alias rimraf="rm -rf"
+alias open=xdg-open

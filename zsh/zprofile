@@ -5,6 +5,7 @@ export LANG=en_US.UTF-8
 
 # Rust cargo should use git cli for ssh support
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
+[[ ! -z "$WSL_DISTRO_NAME" ]] || export BROWSER=wslview
 
 export GOROOT="/usr/lib/go-1.14"
 
