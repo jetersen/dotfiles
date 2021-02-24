@@ -12,7 +12,7 @@
     "**/bin": true
   },
   "explorer.sortOrder": "mixed",
-  "editor.fontFamily": "JetBrains Mono, Fira Code, Segoe UI Emoji, Consolas, monospace",
+  "editor.fontFamily": "JetBrainsMono Nerd Font, JetBrains Mono, Fira Code, Segoe UI Emoji, Consolas, monospace",
   "editor.fontSize": 14,
   "editor.fontLigatures": true,
   "javascript.validate.enable": false,
@@ -55,4 +55,5 @@
     "source.fixAll": true
   },
   "telemetry.enableTelemetry": false,
+  "workbench.iconTheme": "file-icons",
 }
