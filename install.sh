@@ -1,26 +1,12 @@
 #!/usr/bin/env bash
+set -euox pipefail
 
-# Define default arguments.
-SCRIPT="build.cake"
-CAKE_ARGUMENTS=()
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-# Parse arguments.
-for i in "$@"; do
-    case $1 in
-        -s|--script) SCRIPT="$2"; shift ;;
-        --) shift; CAKE_ARGUMENTS+=("$@"); break ;;
-        *) CAKE_ARGUMENTS+=("$1") ;;
-    esac
-    shift
-done
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_NOLOGO=1
 
-# Restore Cake tool
 dotnet tool restore
 
-if [ $? -ne 0 ]; then
-    echo "An error occured while installing Cake."
-    exit 1
-fi
-
-# Start Cake
-dotnet tool run dotnet-cake "$SCRIPT" "${CAKE_ARGUMENTS[@]}"
+dotnet cake "$@"

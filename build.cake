@@ -35,7 +35,7 @@ Task("vscode")
     app_home = Directory($"{EnvironmentVariable("APPDATA")}/Code/User");
   } else if (IsRunningOnLinux()) {
     app_home = Directory($"{home}/.config/Code/User");
-  } else if (IsRunningOnMac()) {
+  } else if (IsRunningOnMacOs()) {
     app_home = Directory($"{home}/Library/Application Support/Code");
   } else {
     return;
