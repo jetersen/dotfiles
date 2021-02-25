@@ -300,6 +300,7 @@ Set-Alias ll Get-ChildItemColor -Option AllScope
 Set-Alias dir ll -Option AllScope
 
 # setup oh-my-posh
+$env:POSH_SESSION_DEFAULT_USER = $env:USERNAME
 Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:USERPROFILE/.jetersen.omp.json")
 
 # Docker aliases
