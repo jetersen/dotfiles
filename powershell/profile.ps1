@@ -152,10 +152,10 @@ $modules | Get-EnsureModule
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
 $developmentWorkspace =
-if ($IsWindows) {
-  @("C:\git\code", "C:\git\work")
-} else {
+if ($IsLinux -or $IsMacOS) {
   @("~/git/code", "~/git/work")
+} else {
+  @("C:\git\code", "C:\git\work")
 }
 
 # Helper function to change directory to your development workspace
@@ -192,11 +192,11 @@ function clean-sln {
 }
 
 function hostfile {
-  $path = "C:\windows\system32\drivers\etc\hosts"
-  if ($IsWindows) {
-    $path = "C:\windows\system32\drivers\etc\hosts"
-  } elseif ($IsLinux) {
-    $path = "/etc/hosts"
+  $path =
+  if ($IsLinux -or $IsMacOS) {
+    "/etc/hosts"
+  } else {
+    "C:\windows\system32\drivers\etc\hosts"
   }
   Start-Process "code" -ArgumentList "$path"
 }
