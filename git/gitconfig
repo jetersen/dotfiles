@@ -57,7 +57,7 @@
 	insteadOf = https://git.heroku.com/
 [user]
 	name = Joseph Petersen
-	signingKey = 05756914983DA9E9
+	signingKey = 368806594A969FBF577217D905756914983DA9E9
 	email = josephp90@gmail.com
 [includeIf "gitdir:~/git/work/"]
 	path = .gitconfig.work
