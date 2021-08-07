@@ -42,17 +42,23 @@
     "**/node_modules": true
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
+    },
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
+    },
   },
   "editor.suggestSelection": "first",
   "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
   "powershell.codeFormatting.preset": "OTBS",
   "diffEditor.ignoreTrimWhitespace": false,
   "workbench.colorTheme": "Visual Studio 2019 Dark",
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll": true
-  },
   "telemetry.enableTelemetry": false,
   "workbench.iconTheme": "file-icons",
 }
