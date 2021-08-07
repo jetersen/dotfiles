@@ -49,7 +49,6 @@
   "powershell.codeFormatting.preset": "OTBS",
   "diffEditor.ignoreTrimWhitespace": false,
   "workbench.colorTheme": "Visual Studio 2019 Dark",
-  "workbench.editorAssociations": [],
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": true
