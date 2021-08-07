@@ -1,6 +1,9 @@
 # Silience I kill you!
 Set-PSReadlineOption -BellStyle None
 
+if (!$env:ChocolateyInstall) {
+  $env:ChocolateyInstall = "C:\ProgramData\chocolatey"
+}
 $chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if (Test-Path "$chocoProfile") {
   Import-Module "$chocoProfile"
