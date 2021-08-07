@@ -5,7 +5,7 @@ if (!$env:ChocolateyInstall) {
   $env:ChocolateyInstall = "C:\ProgramData\chocolatey"
 }
 $chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path "$chocoProfile") {
+if ([System.IO.File]::Exists("$chocoProfile")) {
   Import-Module "$chocoProfile"
 }
 
@@ -144,7 +144,7 @@ $modules = (
 
 $_PSVersion = $PSVersionTable.PSVersion.Major
 $_File = "$PSScriptRoot/installed/$_PSVersion.test"
-if (!(Test-Path $_File)) {
+if ([System.IO.File]::Exists($_File) -eq $false) {
   Update-Repo
   $modules | Install-Modules
   New-Item -Path $_File -ItemType File -Force | Out-Null
@@ -244,7 +244,7 @@ function DotEnv {
   )
 
   #return if no env file
-  if (!( Test-Path $localEnvFile)) {
+  if ([System.IO.File]::Exists("$localEnvFile") -eq $false) {
     Write-Verbose "No .env file"
     return
   }
