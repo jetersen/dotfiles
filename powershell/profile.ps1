@@ -233,6 +233,20 @@ function rimraf {
   Remove-Item -Force -Recurse $paths
 }
 
+function Update-ScreenResolution {
+  $listScreens = ChangeScreenResolution.exe /l
+  $regex = '(?sm)\[2\].+?Settings: (\d{4})x(\d{4})'
+  $groups = ($listScreens | Out-String | Select-String -Pattern $regex).Matches.Groups
+  $height = $groups[2].Value
+  $width = $groups[1].Value
+  if ($width -eq '2560') {
+    $width = 3440
+  } else {
+    $width = 2560
+  }
+  ChangeScreenResolution.exe /d=2 /w=$width /h=$height /f=100 | Out-Null
+}
+
 function DotEnv {
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
   param(
