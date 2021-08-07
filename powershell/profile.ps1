@@ -231,9 +231,8 @@ function dotfile {
 }
 
 function rimraf {
-  param (
-    [string[]] $paths
-  )
+  $paths = [string[]]$args
+
   Remove-Item -Force -Recurse $paths
 }
 
