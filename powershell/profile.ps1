@@ -135,11 +135,8 @@ function Get-ContainerIPAddress {
 
 $modules = (
   "Get-ChildItemColor",
-  "DockerCompletion",
   "posh-git",
-  "PSReadLine",
-  "cd-extras",
-  "powershell-yaml"
+  "cd-extras"
 )
 
 $_PSVersion = $PSVersionTable.PSVersion.Major
