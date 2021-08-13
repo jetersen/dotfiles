@@ -61,4 +61,7 @@
   "workbench.colorTheme": "Visual Studio 2019 Dark",
   "telemetry.enableTelemetry": false,
   "workbench.iconTheme": "file-icons",
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
 }
