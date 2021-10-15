@@ -65,4 +65,5 @@
     "*.ipynb": "jupyter-notebook"
   },
   "editor.bracketPairColorization.enabled": true,
+  "notebook.lineNumbers": "on",
 }
