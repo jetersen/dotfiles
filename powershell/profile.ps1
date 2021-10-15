@@ -201,7 +201,7 @@ function hostfile {
   Start-Process "code" -ArgumentList "$path"
 }
 
-function openBrowser {
+function Open-Browser {
   param (
     [string] $url
   )
@@ -217,14 +217,14 @@ function open {
     [string] $item
   )
   if ($item -and $item -imatch "https?://*") {
-    openBrowser $item
+    Open-Browser $item
   } else {
     Invoke-Item $item
   }
 }
 
 function dotfile {
-  openBrowser 'https://github.com/jetersen/dotfiles'
+  Open-Browser 'https://github.com/jetersen/dotfiles'
 }
 
 function rimraf {
