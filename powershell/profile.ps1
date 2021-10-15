@@ -247,6 +247,10 @@ function Update-ScreenResolution {
   ChangeScreenResolution.exe /d=2 /w=$width /h=$height /f=100 | Out-Null
 }
 
+function Stop-Spotify {
+  Get-Process -Name 'Spotify' | Stop-Process
+}
+
 function DotEnv {
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
   param(
