@@ -64,4 +64,5 @@
   "workbench.editorAssociations": {
     "*.ipynb": "jupyter-notebook"
   },
+  "editor.bracketPairColorization.enabled": true,
 }
