@@ -66,4 +66,17 @@
   },
   "editor.bracketPairColorization.enabled": true,
   "notebook.lineNumbers": "on",
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  },
+  "editor.inlineSuggest.enabled": true,
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": false,
+    "markdown": false,
+    "git-commit": false
+  },
+  "remoteHub.commitDirectlyWarning": "off",
+  "files.trimFinalNewlines": true,
 }
