@@ -237,12 +237,14 @@ function Update-ScreenResolution {
   $listScreens = ChangeScreenResolution.exe /l
   $regex = '(?sm)\[2\].+?Settings: (\d{4})x(\d{4})'
   $groups = ($listScreens | Out-String | Select-String -Pattern $regex).Matches.Groups
-  $height = $groups[2].Value
-  $width = $groups[1].Value
-  if ($width -eq '2560') {
+  $height = 1440
+  $width = [int]$groups[1].Value
+  if ($width -eq 2560) {
     $width = 3440
-  } else {
+  } elseif ($width -eq 3440) {
     $width = 2560
+  } else {
+    $width = 3440
   }
   ChangeScreenResolution.exe /d=2 /w=$width /h=$height /f=100 | Out-Null
 }
