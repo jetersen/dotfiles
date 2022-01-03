@@ -321,7 +321,7 @@ Set-Alias dir ll -Option AllScope
 # setup oh-my-posh
 if ($ENV:WSL_DISTRO_NAME) {
   $env:POSH_SESSION_DEFAULT_USER = $env:USER
-  Invoke-Expression (oh-my-posh-wsl --init --shell pwsh --config "$ENV:HOME/.jetersen.omp.json")
+  Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:HOME/.jetersen.omp.json")
 } else {
   $env:POSH_SESSION_DEFAULT_USER = $env:USERNAME
   Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:USERPROFILE/.jetersen.omp.json")

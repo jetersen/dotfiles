@@ -43,6 +43,7 @@ zinit depth"1" wait lucid for \
 zinit as"null" wait lucid from"gh-r" for \
   mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
   mv"bin/exa* -> exa" sbin ogham/exa \
+  mv"posh* -> oh-my-posh" sbin JanDeDobbeleer/oh-my-posh \
 
 # completions
 
@@ -82,8 +83,4 @@ bindkey "^[[1;5D" backward-word
 
 [[ ! -f "$DOTFILES/zsh/aliases" ]] || source "$DOTFILES/zsh/aliases"
 
-if [ -z "$WSL_DISTRO_NAME" ]; then
-  zsh-defer -c 'eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"'
-else
-  zsh-defer -c 'eval "$(oh-my-posh-wsl --init --shell zsh --config ~/.jetersen.omp.json)"'
-fi
+zsh-defer -c 'eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"'
