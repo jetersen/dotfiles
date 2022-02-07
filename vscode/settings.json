@@ -75,8 +75,14 @@
     "yaml": true,
     "plaintext": false,
     "markdown": false,
-    "git-commit": false
+    "git-commit": false,
+    "log": false
   },
   "remoteHub.commitDirectlyWarning": "off",
   "files.trimFinalNewlines": true,
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "git.enableSmartCommit": true,
+  "editor.unicodeHighlight.ambiguousCharacters": false,
 }
