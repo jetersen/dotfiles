@@ -320,10 +320,10 @@ Set-Alias dir ll -Option AllScope
 
 # setup oh-my-posh
 if ($ENV:WSL_DISTRO_NAME) {
-  $env:POSH_SESSION_DEFAULT_USER = $env:USER
+  $env:SESSIONDEFAULTUSER = $env:USER
   Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:HOME/.jetersen.omp.json")
 } else {
-  $env:POSH_SESSION_DEFAULT_USER = $env:USERNAME
+  $env:SESSIONDEFAULTUSER = $env:USERNAME
   Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:USERPROFILE/.jetersen.omp.json")
 }
 
@@ -355,4 +355,10 @@ if ((Get-Location).Path -eq "/mnt/c/Users/$DefaultUser") {
 
 if ("$ENV:PATH" -notlike "*$ENV:HOME/.bin*") {
   $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/.bin"
+}
+
+# Chocolatey profile
+$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path($ChocolateyProfile)) {
+  Import-Module "$ChocolateyProfile"
 }
