@@ -10,7 +10,7 @@
           "leading_diamond": "\ue0b6",
           "properties": {
             "display_default": false,
-            "template": "{{ if eq .Env.SESSIONDEFAULTUSER .UserName }} {{ if .SSHSession }}\uf817 {{ end }}{{ .UserName }}@{{ .HostName }}{{ end }}"
+            "template": "{{ if ne .Env.SESSIONDEFAULTUSER .UserName }} {{ if .SSHSession }}\uf817 {{ end }}{{ .UserName }}@{{ .HostName }}{{ end }}"
           },
           "style": "diamond",
           "trailing_diamond": "\ue0b0",
