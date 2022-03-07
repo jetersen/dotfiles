@@ -47,14 +47,6 @@
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
-[url "git@github.com:"]
-	insteadOf = https://github.com/
-[url "ssh://git@gitlab.com/"]
-	insteadOf = https://gitlab.com/
-[url "ssh://git@bitbucket.org/"]
-	insteadOf = https://bitbucket.org/
-[url "ssh://git@heroku.com/"]
-	insteadOf = https://git.heroku.com/
 [user]
 	name = Joseph Petersen
 	signingKey = 368806594A969FBF577217D905756914983DA9E9
@@ -67,7 +59,5 @@
 	path = .gitconfig.work
 [includeIf "gitdir/i:C:/git/code/"]
 	path = .gitconfig.home
-[includeIf "gitdir:$(prefix)/home/codespace"]
-	path = .gitconfig.codespaces
 [diff "sopsdiffer"]
 	textconv = sops -d
