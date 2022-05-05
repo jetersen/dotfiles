@@ -45,6 +45,7 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"kapitan* -> kapitan" sbin kapicorp/kapitan \
   mv"kapp* -> kapp" sbin vmware-tanzu/carvel-kapp \
   mv"yq* -> yq" sbin mikefarah/yq \
+  mv"updatecli* -> updatecli" sbin updatecli/updatecli \
 
 # completions
 
