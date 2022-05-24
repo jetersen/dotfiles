@@ -42,10 +42,10 @@ zinit as"null" wait lucid from"gh-r" for \
   mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
   mv"bin/exa* -> exa" sbin ogham/exa \
   mv"posh* -> oh-my-posh" sbin JanDeDobbeleer/oh-my-posh \
-  mv"kapitan* -> kapitan" sbin kapicorp/kapitan \
-  mv"kapp* -> kapp" sbin vmware-tanzu/carvel-kapp \
   mv"yq* -> yq" sbin mikefarah/yq \
   mv"updatecli* -> updatecli" sbin updatecli/updatecli \
+  sbin fluxcd/flux2 \
+  sbin bitnami-labs/sealed-secrets \
 
 # completions
 
@@ -86,3 +86,5 @@ bindkey "^[[1;5D" backward-word
 [[ ! -f "$DOTFILES/zsh/aliases" ]] || source "$DOTFILES/zsh/aliases"
 
 zsh-defer -c 'eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"'
+
+type -p direnv &>/dev/null && eval "$(direnv hook zsh)"
