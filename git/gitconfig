@@ -12,7 +12,7 @@
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
 	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
-	work = config user.email \"jpe@specshell.com\"
+	work = config user.email \"joseph.petersen@devoteam.com\"
 	home = config user.email \"josephp90@gmail.com\"
 [help]
 	autocorrect = 1
