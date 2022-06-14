@@ -36,7 +36,8 @@
   "editor.renderFinalNewline": true,
   "git.enableCommitSigning": true,
   "[markdown]": {
-    "files.trimTrailingWhitespace": false
+    "files.trimTrailingWhitespace": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "files.exclude": {
     "**/node_modules": true
@@ -53,6 +54,7 @@
     "editor.codeActionsOnSave": {
       "source.fixAll": true
     },
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "editor.suggestSelection": "first",
   "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
@@ -60,6 +62,7 @@
   "diffEditor.ignoreTrimWhitespace": false,
   "workbench.colorTheme": "Visual Studio 2019 Dark",
   "telemetry.enableTelemetry": false,
+  "telemetry.telemetryLevel": "off",
   "workbench.iconTheme": "file-icons",
   "workbench.editorAssociations": {
     "*.ipynb": "jupyter-notebook"
@@ -85,4 +88,6 @@
   },
   "git.enableSmartCommit": true,
   "editor.unicodeHighlight.ambiguousCharacters": false,
+  "redhat.telemetry.enabled": false,
+  "githubPullRequests.fileListLayout": "tree",
 }
