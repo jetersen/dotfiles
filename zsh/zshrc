@@ -57,6 +57,7 @@ zinit depth"1" wait lucid atload="zicompinit; zicdreplay" blockf for \
   OMZ::plugins/git/git.plugin.zsh \
   OMZ::plugins/helm/helm.plugin.zsh \
   OMZ::plugins/gh/gh.plugin.zsh \
+  OMZ::plugins/gcloud/gcloud.plugin.zsh \
 
 zstyle \
   ':completion:*:complete:(cd|pushd):*' tag-order \
