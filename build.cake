@@ -5,7 +5,6 @@ var home = Directory(HomeFolder());
 
 Task("Default")
   .IsDependentOn("git")
-  .IsDependentOn("vscode")
   .IsDependentOn("ssh")
   .IsDependentOn("powershell")
   .IsDependentOn("zsh")
@@ -25,23 +24,6 @@ Task("git")
   var githooks = Directory($"{home}/.githooks");
   EnsureDirectoryExists(githooks);
   dotfile("git/hooks/commit-msg", githooks, dotting: false, copy: true);
-});
-
-Task("vscode")
-  .Does(() =>
-{
-  var app_home = home;
-  if (IsRunningOnWindows()) {
-    app_home = Directory($"{EnvironmentVariable("APPDATA")}/Code/User");
-  } else if (IsRunningOnLinux()) {
-    app_home = Directory($"{home}/.config/Code/User");
-  } else if (IsRunningOnMacOs()) {
-    app_home = Directory($"{home}/Library/Application Support/Code");
-  } else {
-    return;
-  }
-  EnsureDirectoryExists(app_home);
-  dotfile("vscode/settings.json", app_home, dotting: false);
 });
 
 Task("ssh")
