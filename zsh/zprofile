@@ -8,7 +8,8 @@ export AWS_SDK_LOAD_CONFIG="true"
 # Rust cargo should use git cli for ssh support
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 [[ ! -z "$WSL_DISTRO_NAME" ]] && export BROWSER=wslview
-export GOROOT="/usr/lib/go"
+[ -d "/usr/lib/go" ] && export GOROOT="/usr/lib/go"
+[ -d "/usr/local/go" ] && export GOROOT="/usr/local/go"
 
 export EDITOR="code --wait"
 
