@@ -1,7 +1,7 @@
 [alias]
 	cp = cherry-pick
 	p = push
-	pr = pull -r
+	prb = pull --rebase
 	pushf = push --force-with-lease
 	s = status
 	rb = rebase
@@ -9,6 +9,7 @@
 	rbs = rebase --skip
 	rba = rebase --abort
 	oops = commit --amend --no-edit
+	normalize = add --renormalize
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
 	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
