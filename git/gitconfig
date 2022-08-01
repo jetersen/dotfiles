@@ -62,3 +62,11 @@
 	path = .gitconfig.home
 [diff "sopsdiffer"]
 	textconv = sops -d
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[url "ssh://git@gitlab.com/"]
+	insteadOf = https://gitlab.com/
+[url "ssh://git@bitbucket.org/"]
+	insteadOf = https://bitbucket.org/
+[url "ssh://git@heroku.com/"]
+	insteadOf = https://git.heroku.com/
