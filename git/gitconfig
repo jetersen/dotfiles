@@ -14,7 +14,7 @@
 	fixauthor = commit --amend --reset-author --no-edit
 	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
 	work = config user.email \"joseph.petersen@devoteam.com\"
-	home = config user.email \"josephp90@gmail.com\"
+	home = config user.email \"me@jetersen.dev\"
 [help]
 	autocorrect = 1
 [core]
@@ -51,7 +51,7 @@
 [user]
 	name = Joseph Petersen
 	signingKey = 368806594A969FBF577217D905756914983DA9E9
-	email = josephp90@gmail.com
+	email = me@jetersen.dev
 [includeIf "gitdir:~/git/work/"]
 	path = .gitconfig.work
 [includeIf "gitdir:~/git/code/"]
