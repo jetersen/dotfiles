@@ -28,6 +28,7 @@
 [gpg]
 	program = gpg
 [tag]
+  gpgsign = true
 	forceSignAnnotated = true
 [pull]
 	rebase = true
