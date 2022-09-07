@@ -38,14 +38,15 @@ zinit depth"1" wait lucid for \
 
 # Binaries
 
-zinit as"null" wait lucid from"gh-r" for \
+zinit light-mode lucid as'null' from"gh-r" for \
   mv"krew-linux_amd64 -> krew" bpick"krew.tar.gz" sbin atclone"./krew install krew && ./krew update" atpull"%atclone" has"kubectl" kubernetes-sigs/krew \
   mv"bin/exa* -> exa" sbin ogham/exa \
   mv"posh* -> oh-my-posh" sbin JanDeDobbeleer/oh-my-posh \
   mv"yq* -> yq" sbin mikefarah/yq \
   mv"updatecli* -> updatecli" sbin updatecli/updatecli \
   sbin fluxcd/flux2 \
-  sbin bitnami-labs/sealed-secrets \
+  sbin mozilla/sops \
+  sbin kubernetes-sigs/kustomize \
 
 # completions
 
