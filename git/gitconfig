@@ -13,7 +13,7 @@
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
 	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
-	work = config user.email \"joseph.petersen@devoteam.com\"
+	work = config user.email \"jop@moviestarplanet.com\"
 	home = config user.email \"me@jetersen.dev\"
 [help]
 	autocorrect = 1
