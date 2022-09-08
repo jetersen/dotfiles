@@ -161,25 +161,33 @@ if ($IsLinux -or $IsMacOS) {
 # Helper function to change directory to your development workspace
 function cws { Set-Location "$($developmentWorkspace.Get(0))" }
 
-function Get-FirstSln {
+function Get-FirstProject {
   param (
     [string] $path = "."
   )
-  Get-ChildItem -Path $path -Filter "*.sln" -Recurse | Select-Object -first 1
+  $sln = Get-ChildItem -Path $path -Filter "*.sln" -Recurse | Select-Object -first 1
+  if ($sln) {
+    return $sln.FullName
+  }
+  $csproj = Get-ChildItem -Path $path -Filter "*.csproj" -Recurse | Select-Object -first 1
+  if ($csproj) {
+    return $csproj.FullName
+  }
+  return "."
 }
 
 function sln {
   param (
     [string] $path
   )
-  Get-FirstSln "$path" | Invoke-Item
+  Get-FirstProject "$path" | Invoke-Item
 }
 
 function ride {
   param (
     [string] $path
   )
-  Rider.cmd (Get-FirstSln "$path").FullName
+  Rider.cmd (Get-FirstProject "$path")
 }
 
 function clean-sln {
