@@ -264,11 +264,13 @@ function Stop-Spotify {
 function DotEnv {
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
   param(
-    [string] $localEnvFile = ".\.env"
+    [string] $localEnvFile = "$PWD\.env"
   )
 
+  Write-Host "Loading environment variables from $localEnvFile"
+
   #return if no env file
-  if ([System.IO.File]::Exists("$localEnvFile") -eq $false) {
+  if ([System.IO.File]::Exists($localEnvFile) -eq $false) {
     Write-Verbose "No .env file"
     return
   }
