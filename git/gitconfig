@@ -25,10 +25,8 @@
 	defaultBranch = main
 [commit]
 	gpgsign = true
-[gpg]
-	program = gpg
 [tag]
-  gpgsign = true
+	gpgsign = true
 	forceSignAnnotated = true
 [pull]
 	rebase = true
@@ -53,6 +51,8 @@
 	name = Joseph Petersen
 	signingKey = 368806594A969FBF577217D905756914983DA9E9
 	email = me@jetersen.dev
+[diff "sopsdiffer"]
+	textconv = sops -d
 [includeIf "gitdir:~/git/work/"]
 	path = .gitconfig.work
 [includeIf "gitdir:~/git/code/"]
@@ -61,13 +61,5 @@
 	path = .gitconfig.work
 [includeIf "gitdir/i:C:/git/code/"]
 	path = .gitconfig.home
-[diff "sopsdiffer"]
-	textconv = sops -d
-[url "git@github.com:"]
-	insteadOf = https://github.com/
-[url "ssh://git@gitlab.com/"]
-	insteadOf = https://gitlab.com/
-[url "ssh://git@bitbucket.org/"]
-	insteadOf = https://bitbucket.org/
-[url "ssh://git@heroku.com/"]
-	insteadOf = https://git.heroku.com/
+[includeIf "gitdir/i:/workspaces/"]
+	path = .gitconfig.codespaces

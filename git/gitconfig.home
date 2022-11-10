@@ -1,2 +1,4 @@
 [user]
   email = me@jetersen.dev
+[gpg]
+	program = gpg
