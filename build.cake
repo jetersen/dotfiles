@@ -31,7 +31,7 @@ Task("ssh")
 {
   var app_home = Directory($"{home}/.ssh");
   EnsureDirectoryExists(app_home);
-  dotfile("ssh/config", app_home, dotting: false);
+  dotfile("ssh/config", app_home, dotting: false, copy: true);
 });
 
 Task("pwsh")
