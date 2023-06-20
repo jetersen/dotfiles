@@ -257,6 +257,11 @@ function Update-ScreenResolution {
   ChangeScreenResolution.exe /d=2 /w=$width /h=$height /f=100 | Out-Null
 }
 
+function Get-MyIp {
+  $ip = Invoke-RestMethod -Uri 'https://ifconfig.me/ip'
+  $ip
+}
+
 function Stop-Spotify {
   Get-Process -Name 'Spotify' | Stop-Process
 }

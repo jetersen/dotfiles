@@ -7,3 +7,4 @@ alias pip=pip3
 alias python=python3
 alias rimraf="rm -rf"
 alias open=xdg-open
+alias myip="curl -sSfL -w '\n' https://ifconfig.me/ip"
