@@ -8,3 +8,4 @@ alias python=python3
 alias rimraf="rm -rf"
 alias open=xdg-open
 alias myip="curl -sSfL -w '\n' https://ifconfig.me/ip"
+alias github-auto-merge="gh pr list --json number --jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"

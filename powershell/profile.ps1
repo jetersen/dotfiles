@@ -241,6 +241,12 @@ function rimraf {
   Remove-Item -Force -Recurse $paths
 }
 
+function Invoke-GitHubAutoMerge {
+  [int[]](gh pr list --json number --jq .[].number) `
+    | Sort-Object `
+    | ForEach-Object { gh pr review $_ --approve; gh pr merge $_ --squash }
+}
+
 function Update-ScreenResolution {
   $listScreens = ChangeScreenResolution.exe /l
   $regex = '(?sm)\[2\].+?Settings: (\d{4})x(\d{4})'
