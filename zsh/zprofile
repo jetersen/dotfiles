@@ -19,11 +19,12 @@ export GOPATH="${HOME}/.go"
 # eliminates duplicates in *paths
 typeset -gU cdpath fpath path
 
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
 # Zsh search path for executable
 path=(
   $HOME/.local/bin
   $HOME/.krew/bin
-  $HOME/.asdf/bin
   $HOME/.dotnet/tools
   $HOME/.npm-global/bin
   $HOME/.cargo/bin
