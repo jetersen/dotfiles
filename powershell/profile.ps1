@@ -147,6 +147,10 @@ if ([System.IO.File]::Exists($_File) -eq $false) {
   New-Item -Path $_File -ItemType File -Force | Out-Null
 }
 
+if ($IsWindows -and [System.IO.File]::Exists("$ENV:PROGRAMFILES\gsudo\Current\gsudoModule.psd1")) {
+  Import-Module "$ENV:PROGRAMFILES\gsudo\Current\gsudoModule.psd1"
+}
+
 $modules | Get-EnsureModule
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
