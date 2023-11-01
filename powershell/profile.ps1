@@ -159,7 +159,12 @@ $developmentWorkspace =
 if ($IsLinux -or $IsMacOS) {
   @("~/git/code", "~/git/work")
 } else {
-  @("C:\git\code", "C:\git\work")
+  @(
+    "C:\git\code"
+    "C:\git\work"
+    "D:\git\code"
+    "D:\git\work"
+  )
 }
 
 # Helper function to change directory to your development workspace

@@ -63,5 +63,9 @@
 	path = .gitconfig.work
 [includeIf "gitdir/i:C:/git/code/"]
 	path = .gitconfig.home
+[includeIf "gitdir/i:D:/git/work/"]
+	path = .gitconfig.work
+[includeIf "gitdir/i:D:/git/code/"]
+	path = .gitconfig.home
 [includeIf "gitdir/i:/workspaces/"]
 	path = .gitconfig.codespaces
