@@ -182,6 +182,17 @@
         }
       ],
       "type": "prompt"
+    },
+    {
+      "alignment": "left",
+      "newline": true,
+        "segments": [{
+          "foreground": "#c500cc",
+          "style": "plain",
+          "template": ">",
+          "type": "text"
+          }],
+      "type": "prompt"
     }
   ],
   "console_title_template": "{{ .Shell }} in {{ .Folder }}",
