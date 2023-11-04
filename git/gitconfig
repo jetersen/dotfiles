@@ -1,7 +1,7 @@
 [alias]
 	cp = cherry-pick
 	p = push
-	prb = pull --rebase
+	pf = pushf
 	pushf = push --force-with-lease
 	s = status
 	rb = rebase
@@ -9,12 +9,16 @@
 	rbs = rebase --skip
 	rba = rebase --abort
 	oops = commit --amend --no-edit
+	superoops = !git add -A && git oops && git pushf
 	normalize = add --renormalize
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
 	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
 	work = config user.email \"jop@moviestarplanet.com\"
 	home = config user.email \"me@jetersen.dev\"
+	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+	new = lg main..HEAD
+	missing = lg HEAD..main
 [help]
 	autocorrect = 1
 [core]
