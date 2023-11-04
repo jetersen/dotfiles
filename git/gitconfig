@@ -40,6 +40,9 @@
 [branch]
 	autosetupmerge = always
 	autosetuprebase = always
+[rebase]
+	autosquash = true
+	autoStash = true
 [remote "origin"]
 	fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
 [include]
