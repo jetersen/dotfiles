@@ -14,14 +14,6 @@
           "type": "session"
         },
         {
-          "background": "#0077c2",
-          "powerline_symbol": "\ue0b0",
-          "foreground": "#ffffff",
-          "style": "powerline",
-          "template": " \uf489 {{ .Name }} ",
-          "type": "shell"
-        },
-        {
           "background": "#ff479c",
           "foreground": "#ffffff",
           "powerline_symbol": "\ue0b0",
