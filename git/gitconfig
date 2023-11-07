@@ -26,8 +26,18 @@
 	excludesfile = ~/.gitignore.global
 	editor = code --wait
 	sshCommand = 'C:\\Windows\\System32\\OpenSSH\\ssh.exe'
+	pager = delta
 [init]
 	defaultBranch = main
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	light = false
+[merge]
+	conflictStyle = diff3
+[diff]
+	colorMoved = default
 [commit]
 	gpgsign = true
 [tag]
