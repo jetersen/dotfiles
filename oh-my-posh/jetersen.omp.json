@@ -147,8 +147,7 @@
             "{{if eq \"Full\" .State.String}}#4caf50{{end}}"
           ],
           "foreground": "#ffffff",
-          "invert_powerline": true,
-          "powerline_symbol": "\ue0b2",
+          "powerline_symbol": "\ue0b0",
           "properties": {
             "charged_icon": "\ue22f ",
             "charging_icon": "\ue234 ",
