@@ -8,6 +8,19 @@ $chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
 if ([System.IO.File]::Exists("$chocoProfile")) {
   Import-Module "$chocoProfile"
 }
+if ($ENV:WSL_DISTRO_NAME -or $IsLinux -or $IsMacOS) {
+  $env:SESSIONDEFAULTUSER = $env:USER
+  $env:POSH_THEME = "$ENV:HOME/.jetersen.omp.json"
+} else {
+  $env:SESSIONDEFAULTUSER = $env:USERNAME
+  $env:POSH_THEME = "$ENV:USERPROFILE/.jetersen.omp.json"
+}
+
+# setup oh-my-posh
+function prompt {
+  oh-my-posh init pwsh | Invoke-Expression
+}
+# prompt
 
 # Modules should be installed on User scope
 # if Modules are not installed on User scope please run as admin:
@@ -347,17 +360,6 @@ Set-Alias ls Get-ChildItemColorFormatWide -Option AllScope
 Set-Alias l ls -Option AllScope
 Set-Alias ll Get-ChildItemColor -Option AllScope
 Set-Alias dir ll -Option AllScope
-
-# setup oh-my-posh
-if ($ENV:WSL_DISTRO_NAME) {
-  $env:SESSIONDEFAULTUSER = $env:USER
-  Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:HOME/.jetersen.omp.json")
-} else {
-  $env:SESSIONDEFAULTUSER = $env:USERNAME
-  Invoke-Expression (oh-my-posh --init --shell pwsh --config "$ENV:USERPROFILE/.jetersen.omp.json")
-}
-
-
 
 # Docker aliases
 Set-Alias dcid Get-ContainerID
