@@ -38,6 +38,8 @@
 	conflictStyle = diff3
 [diff]
 	colorMoved = default
+[gpg]
+	format = ssh
 [commit]
 	gpgsign = true
 [tag]
@@ -68,7 +70,7 @@
 	clean = git-lfs clean -- %f
 [user]
 	name = Joseph Petersen
-	signingKey = 368806594A969FBF577217D905756914983DA9E9
+	signingKey = ~/.ssh/id_ed25519.pub
 	email = me@jetersen.dev
 [diff "sopsdiffer"]
 	textconv = sops -d
