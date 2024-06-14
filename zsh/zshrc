@@ -3,19 +3,10 @@
 # module_path+=( "/home/joseph/.zinit/bin/zmodules/Src" )
 # zmodload zdharma/zplugin
 
-### Added by Zinit's installer
-if [[ ! -f $HOME/.zinit/bin/zinit.zsh ]]; then
-  print -P "%F{33}▓▒░ %F{220}Installing %F{33}DHARMA%F{220} Initiative Plugin Manager (%F{33}zdharma/zinit%F{220})…%f"
-  command mkdir -p "$HOME/.zinit" && command chmod g-rwX "$HOME/.zinit"
-  command git clone https://github.com/zdharma-continuum/zinit "$HOME/.zinit/bin" && \
-    print -P "%F{33}▓▒░ %F{34}Installation successful.%f%b" || \
-    print -P "%F{160}▓▒░ The clone has failed.%f%b"
-fi
-
-source "$HOME/.zinit/bin/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
-### End of Zinit's installer chunk
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
 
 if [ -n "$BREW_PREFIX" ]; then
   zinit fpath -f "$BREW_PREFIX/share/zsh/site-functions"
@@ -25,7 +16,7 @@ fi
 # (this is currently required for annexes)
 zinit depth"1" light-mode for \
   zdharma-continuum/zinit-annex-patch-dl \
-  zdharma-continuum/zinit-annex-bin-gem-node \
+  NICHOLAS85/z-a-linkbin \
   laggardkernel/zsh-thefuck \
   romkatv/zsh-defer \
 
@@ -43,7 +34,8 @@ zinit depth"1" wait lucid for \
 # Binaries
 
 zinit light-mode lucid as'null' from"gh-r" for \
-  mv"updatecli* -> updatecli" sbin updatecli/updatecli \
+  lbin updatecli/updatecli \
+  mv"posh* -> oh-my-posh" lbin JanDeDobbeleer/oh-my-posh \
 
 # completions
 
