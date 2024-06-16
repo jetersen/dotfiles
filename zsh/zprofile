@@ -28,6 +28,7 @@ path=(
   $HOME/.dotnet/tools
   $HOME/.npm-global/bin
   $HOME/.cargo/bin
+  $HOME/.local/share/JetBrains/Toolbox/scripts
   ${GOPATH}/bin
   ${GOROOT}/bin
   $path
