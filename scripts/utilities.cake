@@ -13,7 +13,7 @@ string HomeFolder() {
 }
 
 string TimeStamp() {
-    return Math.Floor((DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds).ToString();
+  return DateTimeOffset.Now.ToUnixTimeSeconds().ToString();
 }
 
 void dotfile(string source, string dest, bool dotting = true, bool copy = false) {
