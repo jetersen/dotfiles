@@ -25,7 +25,6 @@
 	autocrlf = input
 	excludesfile = ~/.gitignore.global
 	editor = code --wait
-	sshCommand = 'C:\\Windows\\System32\\OpenSSH\\ssh.exe'
 	pager = delta
 [init]
 	defaultBranch = main
