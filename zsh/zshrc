@@ -12,6 +12,8 @@ if [ -n "$BREW_PREFIX" ]; then
   zinit fpath -f "$BREW_PREFIX/share/zsh/site-functions"
 fi
 
+export SESSIONDEFAULTUSER="$USER"
+
 # Load a few important annexes, without Turbo
 # (this is currently required for annexes)
 zinit depth"1" light-mode for \
