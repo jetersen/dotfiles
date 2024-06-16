@@ -1,8 +1,8 @@
 #!/usr/bin/env zsh
 
-alias l="exa -1 --color=always --group-directories-first --all"
-alias ll="exa --binary --group --header --all --long --links --classify --group-directories-first"
-alias ls="exa --color=always --group-directories-first"
+alias l="eza -1 --color=always --group-directories-first --all"
+alias ll="eza --binary --group --header --all --long --links --classify --group-directories-first"
+alias ls="eza --color=always --group-directories-first"
 alias pip=pip3
 alias python=python3
 alias rimraf="rm -rf"
