@@ -19,6 +19,7 @@
 	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
 	new = lg main..HEAD
 	missing = lg HEAD..main
+	change-remote-to-ssh = !git remote set-url origin $(git remote get-url origin | sed "s#https://github.com/#git@github.com:#")
 [help]
 	autocorrect = 1
 [core]
