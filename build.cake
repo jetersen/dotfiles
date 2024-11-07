@@ -25,7 +25,7 @@ Task("git")
   EnsureDirectoryExists(githooks);
   dotfile("git/hooks/commit-msg", githooks, dotting: false, copy: true);
   var windowsSshCommand = "C:/Windows/System32/OpenSSH/ssh.exe";
-  if(IsRunningOnWindows() && EnvironmentVariable("GIT_SSH_COMMAND") is not windowsSshCommand) {
+  if(IsRunningOnWindows() && EnvironmentVariable("GIT_SSH_COMMAND") != windowsSshCommand) {
     Environment.SetEnvironmentVariable("GIT_SSH_COMMAND", windowsSshCommand, EnvironmentVariableTarget.User);
   }
 });
