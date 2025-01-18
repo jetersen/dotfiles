@@ -9,4 +9,4 @@ alias rimraf="rm -rf"
 alias open=xdg-open
 alias myip="curl -sSfL -w '\n' https://ifconfig.me/ip"
 alias github-auto-merge="gh pr list --json number --jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"
-alias ride="open \"\$(find \$(pwd) -maxdepth 3 -name '*.sln' | head -n 1)\""
+alias ride='f() { xdg-open "$(fd --ignore-case --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension sln . $1)"};f'
