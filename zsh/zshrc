@@ -68,6 +68,11 @@ setopt share_history
 bindkey -e
 bindkey "^[[1;5C" forward-word
 bindkey "^[[1;5D" backward-word
+# Bind Delete key to delete a character
+bindkey "^[[3~" delete-char
+
+# Bind Shift + Delete to delete the entire word under the cursor
+bindkey -s "^[[3;2~" '\eb\ed'
 
 [[ ! -f "$DOTFILES/zsh/aliases" ]] || source "$DOTFILES/zsh/aliases"
 
