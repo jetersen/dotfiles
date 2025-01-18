@@ -88,3 +88,7 @@
 	path = .gitconfig.home
 [includeIf "gitdir/i:/workspaces/"]
 	path = .gitconfig.codespaces
+[credential "https://github.com"]
+	helper = !gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = !gh auth git-credential
