@@ -79,3 +79,18 @@ bindkey -s "^[[3;2~" '\eb\ed'
 zsh-defer -c 'eval "$(oh-my-posh --init --shell zsh --config ~/.jetersen.omp.json)"'
 
 type -p direnv &>/dev/null && eval "$(direnv hook zsh)"
+
+export path=(
+  $HOME/.local/bin
+  $HOME/.krew/bin
+  $HOME/.pulumi/bin
+  $HOME/.dotnet/tools
+  $HOME/.npm-global/bin
+  $HOME/.cargo/bin
+  $HOME/.local/share/JetBrains/Toolbox/scripts
+  ${GOPATH}/bin
+  ${GOROOT}/bin
+  $path
+)
+
+typeset -gU path

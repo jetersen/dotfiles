@@ -23,9 +23,10 @@ if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
 fi
 
 # Zsh search path for executable
-path=(
+export path=(
   $HOME/.local/bin
   $HOME/.krew/bin
+  $HOME/.pulumi/bin
   $HOME/.dotnet/tools
   $HOME/.npm-global/bin
   $HOME/.cargo/bin
@@ -34,3 +35,5 @@ path=(
   ${GOROOT}/bin
   $path
 )
+
+typeset -gU path
