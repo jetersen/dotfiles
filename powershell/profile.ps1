@@ -209,7 +209,11 @@ function ride {
   param (
     [string] $path
   )
-  Rider.cmd (Get-FirstProject "$path")
+  if ($IsLinux -or $IsMacOS) {
+    open (Get-FirstProject "$path")
+  } else {
+    rider.cmd -ArgumentList (Get-FirstProject "$path")
+  }
 }
 
 function clean-sln {
@@ -249,7 +253,11 @@ function open {
   if ($item -and $item -imatch "https?://*") {
     Open-Browser $item
   } else {
-    Invoke-Item $item
+    if ($IsLinux) {
+      Invoke-Expression "xdg-open $item"
+    } else {
+      Invoke-Item $item
+    }
   }
 }
 
