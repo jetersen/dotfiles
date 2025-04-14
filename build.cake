@@ -9,6 +9,7 @@ Task("Default")
   .IsDependentOn("powershell")
   .IsDependentOn("zsh")
   .IsDependentOn("oh-my-posh")
+  .IsDependentOn("fish")
   .Does(() =>
 {
 });
@@ -67,6 +68,14 @@ Task("oh-my-posh")
   .Does(() =>
 {
   dotfile("oh-my-posh/jetersen.omp.json", home);
+});
+
+Task("fish")
+  .Does(() =>
+{
+  var fishConfigDir = Directory($"{home}/.config/fish/conf.d");
+  EnsureDirectoryExists(fishConfigDir);
+  dotfile("fish/config.fish", fishConfigDir, dotting: false);
 });
 
 RunTarget(target);
