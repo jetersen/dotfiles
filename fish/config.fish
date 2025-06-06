@@ -13,7 +13,18 @@ alias python="python3"
 alias rimraf="rm -rf"
 alias open="xdg-open"
 alias myip="curl -sSfL -w '\n' https://ifconfig.me/ip"
-alias github-auto-merge="gh pr list --json number --jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"
+alias github-auto-merge="gh pr list --json number -;-jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"
 function ride
-    xdg-open (fd --ignore-case --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension sln . $argv[1])
+    set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension sln . $argv[1])
+    if test -z "$file"
+        set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension csproj . $argv[1])
+    end
+    if test -n "$file"
+        echo "$file"
+        xdg-open $file
+    else
+        echo "No .sln or .csproj file found."
+    end
 end
+
+set -x CDPATH $HOME/git/code $HOME/git/work
