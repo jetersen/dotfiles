@@ -48,14 +48,11 @@
 [pull]
 	rebase = true
 [push]
-	default = current
+	default = simple
 	followTags = true
 	autoSetupRemote = true
 [fetch]
 	prune = true
-[branch]
-	autosetupmerge = always
-	autosetuprebase = always
 [rebase]
 	autosquash = true
 	autoStash = true
