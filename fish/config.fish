@@ -27,4 +27,9 @@ function ride
     end
 end
 
+set -x SESSIONDEFAULTUSER $USER
+set -X EDITOR "code --wait"
 set -x CDPATH $HOME/git/code $HOME/git/work
+set -x PACKAGEOUTPUTPATH $HOME/.nuget/local
+
+oh-my-posh init fish --config ~/.jetersen.omp.json | source
