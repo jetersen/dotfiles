@@ -28,7 +28,7 @@ function ride
 end
 
 set -x SESSIONDEFAULTUSER $USER
-set -X EDITOR "code --wait"
+set -x EDITOR "code --wait"
 set -x CDPATH $HOME/git/code $HOME/git/work
 set -x PACKAGEOUTPUTPATH $HOME/.nuget/local
 
