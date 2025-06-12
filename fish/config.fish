@@ -12,7 +12,8 @@ alias pip="pip3"
 alias python="python3"
 alias rimraf="rm -rf"
 alias open="xdg-open"
-alias myip="curl -sSfL -w '\n' https://ifconfig.me/ip"
+alias myip="curl -sSfL -w '\n' https://api.ipify.org"
+alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
 alias github-auto-merge="gh pr list --json number -;-jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"
 function ride
     set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension sln . $argv[1])
