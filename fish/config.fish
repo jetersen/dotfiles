@@ -22,7 +22,7 @@ function ride
     end
     if test -n "$file"
         echo "$file"
-        xdg-open $file
+        nohup rider "$file" >/dev/null 2>&1 &
     else
         echo "No .sln or .csproj file found."
     end
