@@ -70,7 +70,7 @@
 	signingKey = ~/.ssh/id_ed25519.pub
 	email = me@jetersen.dev
 [diff "sopsdiffer"]
-	textconv = sops -d
+	textconv = sops decrypt
 [includeIf "gitdir:~/git/work/"]
 	path = .gitconfig.work
 [includeIf "gitdir:~/git/code/"]
