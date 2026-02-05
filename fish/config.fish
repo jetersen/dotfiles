@@ -36,6 +36,19 @@ function ride
     echo "No .slnx, .sln, or .csproj file found."
   end
 end
+function rider-eap
+  for ext in slnx sln csproj
+    set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension $ext . $argv[1])
+    test -n "$file" && break
+  end
+
+  if test -n "$file"
+    echo "$file"
+    nohup rider-eap "$file" >/dev/null 2>&1 &
+  else
+    echo "No .slnx, .sln, or .csproj file found."
+  end
+end
 function git
   if test "$argv[1]" = "clone"
     set clone_output (command git $argv 2>&1)
