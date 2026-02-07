@@ -10,6 +10,11 @@
 {{-   $work = true -}}
 {{- end -}}
 
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $isLinux := eq .chezmoi.os "linux" -}}
+{{- $isMacOS := eq .chezmoi.os "darwin" -}}
+{{- $isCodespaces := eq (env "CODESPACES") "true" -}}
+
 {{- $firstname := "Joseph" -}}
 {{- $lastname := "Petersen" -}}
 {{- $name := printf "%s %s" $firstname $lastname -}}
@@ -21,12 +26,12 @@
 {{-   $email = $workEmail -}}
 {{- end -}}
 
-sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles"
+sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
 
 [data]
-  name = {{ $name | quote }}
   firstname = {{ $firstname | quote }}
   lastname = {{ $lastname | quote }}
+  name = {{ $name | quote }}
   email = {{ $email | quote }}
   workEmail = {{ $workEmail | quote }}
   personalEmail = {{ $personalEmail | quote }}
@@ -34,6 +39,10 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles"
   personal = {{ $personal }}
   hostname = {{ $hostname | quote }}
   githubUsername = {{ $githubUsername | quote }}
+  isWindows = {{ $isWindows }}
+  isLinux = {{ $isLinux }}
+  isMacOS = {{ $isMacOS }}
+  isCodespaces = {{ $isCodespaces }}
 
 [interpreters.ps1]
   command = "pwsh"
@@ -41,3 +50,17 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles"
 
 [github]
   refreshPeriod = "12h"
+
+[hooks.read-source-state.pre]
+{{ if $isLinux }}
+    command = "/usr/bin/env"
+    args = ["-S","bash", "-euo", "pipefail", {{ joinPath .chezmoi.sourceDir ".chezmoiscripts/linux/.init.sh" | toToml }}]
+{{ end }}
+{{ if $isWindows }}
+    command = {{ joinPath (env "SystemRoot") "System32/WindowsPowerShell/v1.0/powershell.exe" | toToml }}
+    args = ["-NoLogo", "-NoProfile", {{ joinPath .chezmoi.sourceDir ".chezmoiscripts/windows/.init.ps1" | toToml }}]
+{{ end }}
+{{ if $isMacOS }}
+    command = "/usr/bin/env"
+    args = ["-S","bash", "-euo", "pipefail", {{ joinPath .chezmoi.sourceDir ".chezmoiscripts/macos/.init.sh" | toToml }}]
+{{ end }}
