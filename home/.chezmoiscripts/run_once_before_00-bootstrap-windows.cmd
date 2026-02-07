@@ -1,7 +1,7 @@
 @echo off
-echo Bootstrapping PowerShell 7...
 
-where pwsh >nul 2>nul
+:: Check if PowerShell 7 is installed, if not, install it using winget
+where "%ProgramFiles%\PowerShell\7:pwsh.exe" >nul 2>nul
 if %errorlevel% neq 0 (
   echo Installing PowerShell 7...
   winget install --id Microsoft.PowerShell --silent --source winget --accept-package-agreements --accept-source-agreements
