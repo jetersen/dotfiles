@@ -1,3 +1,0 @@
-[interpreters.ps1]
-  command = "powershell"
-  args = ["-NoProfile", "-NoLogo", "-ExecutionPolicy", "Bypass"]

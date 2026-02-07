@@ -1,0 +1,9 @@
+{{ if lookPath "pwsh" }}
+[interpreters.ps1]
+  command = "pwsh"
+  args = ["-NoProfile", "-NoLogo"]
+{{ else }}
+[interpreters.ps1]
+  command = "powershell"
+  args = ["-NoProfile", "-NoLogo", "-ExecutionPolicy", "Bypass"]
+{{ end }}

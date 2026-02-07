@@ -1,0 +1,13 @@
+Write-Host "Bootstrapping PowerShell 7..." -ForegroundColor Magenta
+
+# Update winget sources
+winget source update --disable-interactivity --ignore-warnings
+
+if (-not (Get-Command "pwsh" -ErrorAction SilentlyContinue)) {
+  Write-Host "Installing PowerShell 7..."
+  winget install --id Microsoft.PowerShell `
+    --silent --source winget --accept-package-agreements --accept-source-agreements
+  Write-Host "PowerShell 7 installed!"
+}
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
