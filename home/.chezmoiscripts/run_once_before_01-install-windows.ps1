@@ -20,9 +20,3 @@ if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
 }
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-gsudo {
-  Write-Host "🌟 Admin super power unlocked..." -ForegroundColor DarkMagenta
-  Set-ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
-  Write-Host "✅ Execution policy set to RemoteSigned for LocalMachine scope!" -ForegroundColor Green
-}
