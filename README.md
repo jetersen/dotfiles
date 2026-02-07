@@ -1,7 +1,23 @@
 # My dotfiles
 
-## Windows
-`git clone https://github.com/jetersen/dotfiles.git; cd dotfiles; ./build.ps1`
+Managed with [chezmoi](https://www.chezmoi.io/).
 
-## Unix
-`git clone https://github.com/jetersen/dotfiles.git; cd dotfiles; ./build.sh`
+## Install
+
+### Linux / macOS
+
+```sh
+sh -c "$(curl -fsLS get.chezmoi.io/lb)" -- init --apply jetersen
+```
+
+### Windows
+
+```powershell
+iex "&{$(irm 'https://get.chezmoi.io/ps1')} init --aply jetersen"
+```
+
+## Update
+
+```sh
+chezmoi update
+```
