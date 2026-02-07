@@ -1,0 +1,13 @@
+{{ if not .isLinux }}
+.chezmoiscripts/linux
+{{ end }}
+{{ if not .isMacOS }}
+.chezmoiscripts/macos
+{{ end }}
+{{ if not .isWindows }}
+Documents
+.chezmoiscripts/windows
+{{ end }}
+{{ if .isWindows }}
+.config/fish
+{{ end }}
