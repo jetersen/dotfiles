@@ -13,3 +13,8 @@ if ($scope -ne 'RemoteSigned') {
     # Silently continue if execution policy setting fails
   }
 }
+# Check if Proton Pass CLI is installed, if not, install it using winget
+if (-not (Get-Command "pass-cli" -ErrorAction SilentlyContinue)) {
+  Write-Host "Installing Proton Pass CLI..."
+  winget install --id Proton.ProtonPass.CLI --silent --source winget --accept-package --accept-source-agreements
+}
