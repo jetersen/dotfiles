@@ -21,6 +21,8 @@
 {{-   $email = $workEmail -}}
 {{- end -}}
 
+sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles"
+
 [data]
   name = {{ $name | quote }}
   firstname = {{ $firstname | quote }}
