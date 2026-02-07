@@ -13,9 +13,9 @@
 	normalize = add --renormalize
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
-	rerun-ci = !git commit -m \"Rerun CI\" --allow-empty && git push
-	work = config user.email \"jop@moviestarplanet.com\"
-	home = config user.email \"me@jetersen.dev\"
+	rerun-ci = !git commit -m "Rerun CI" --allow-empty && git push
+	work = config user.email "jop@moviestarplanet.com"
+	home = config user.email "me@jetersen.dev"
 	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
 	new = lg main..HEAD
 	missing = lg HEAD..main
@@ -24,9 +24,12 @@
 	autocorrect = 1
 [core]
 	autocrlf = input
-	excludesfile = ~/.gitignore.global
+	excludesfile = ~/.config/git/ignore
 	editor = code --wait
 	pager = delta
+{{- if eq .chezmoi.os "windows" }}
+	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+{{- end }}
 [init]
 	defaultBranch = main
 [interactive]
@@ -58,8 +61,6 @@
 	autoStash = true
 [remote "origin"]
 	fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
-[include]
-	path = .gitconfig.local
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
@@ -72,19 +73,19 @@
 [diff "sopsdiffer"]
 	textconv = sops decrypt
 [includeIf "gitdir:~/git/work/"]
-	path = .gitconfig.work
+	path = ~/.config/git/config.work
 [includeIf "gitdir:~/git/code/"]
-	path = .gitconfig.home
+	path = ~/.config/git/config.home
 [includeIf "gitdir/i:C:/git/work/"]
-	path = .gitconfig.work
+	path = ~/.config/git/config.work
 [includeIf "gitdir/i:C:/git/code/"]
-	path = .gitconfig.home
+	path = ~/.config/git/config.home
 [includeIf "gitdir/i:D:/git/work/"]
-	path = .gitconfig.work
+	path = ~/.config/git/config.work
 [includeIf "gitdir/i:D:/git/code/"]
-	path = .gitconfig.home
+	path = ~/.config/git/config.home
 [includeIf "gitdir/i:/workspaces/"]
-	path = .gitconfig.codespaces
+	path = ~/.config/git/config.codespaces
 [credential "https://github.com"]
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
