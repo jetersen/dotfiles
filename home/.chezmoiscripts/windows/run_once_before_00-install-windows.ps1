@@ -38,7 +38,7 @@ Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-Install-WingetPackage -Id "Git.Git" -CustomArgs '/components="gitlfs" /o:EditorOption=VisualStudioCode /o:CURLOption=WinSSL /o:UseCredentialManager=Enabled'
+Install-WingetPackage -Id "Git.Git" -CustomArgs '/components="gitlfs" /o:EditorOption=VisualStudioCode /o:CURLOption=WinSSL'
 Install-WingetPackage -Id "gerardog.gsudo"
 Install-WingetPackage -Id "dandavison.delta"
 
