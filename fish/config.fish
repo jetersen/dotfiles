@@ -9,6 +9,7 @@ fish_add_path --path --prepend --move --global \
   ~/.npm-global/bin \
   ~/.cargo/bin \
   ~/.krew/bin \
+  ~/.aspire/bin \
   ~/go/bin
 
 alias vim="nvim"
