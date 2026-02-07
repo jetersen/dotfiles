@@ -1,4 +1,4 @@
-Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
+﻿Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
 
 # Update winget sources
 Write-Host "📜 Updating winget sources..."
