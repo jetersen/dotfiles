@@ -1,27 +1,45 @@
-﻿Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
+﻿#Requires -Version 7
+
+function Install-WingetPackage {
+  param(
+    [string]$Id,
+    [string]$Command = "",
+    [string]$CustomArgs = "",
+    [string]$Source = "winget"
+  )
+
+  $Name = $Id.Substring($Id.LastIndexOf('.') + 1)
+
+  $CommandName = if ($Command) { $Command } else { $Name.ToLowerInvariant() }
+
+  if (Get-Command $CommandName -ErrorAction SilentlyContinue) {
+    return
+  }
+
+  $wingetArgs = @(
+    "install",
+    "--id", $Id,
+    "--silent",
+    "--source", $Source,
+    "--accept-package-agreements",
+    "--accept-source-agreements"
+  )
+
+  if ($CustomArgs) {
+    $wingetArgs += "--custom", $CustomArgs
+  }
+
+  Write-Host "📦 Installing $Name..."
+  winget @wingetArgs
+  Write-Host "✅ $Name installed!"
+}
+
+Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
-  Write-Host "📦 Installing Git..."
-  winget install --id Git.Git `
-    --custom '/components="gitlfs" /o:EditorOption=VisualStudioCode /o:CURLOption=WinSSL /o:UseCredentialManager=Enabled' `
-    --silent --source winget --accept-package-agreements --accept-source-agreements
-  Write-Host "✅ Git installed!"
-}
-
-if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
-  Write-Host "📦 Installing gsudo..."
-  winget install --id gerardog.gsudo `
-    --silent --source winget --accept-package-agreements --accept-source-agreements
-  Write-Host "✅ gsudo installed!"
-}
-
-if (-not (Get-Command "delta" -ErrorAction SilentlyContinue)) {
-  Write-Host "📦 Installing delta..."
-  winget install --id dandavison.delta `
-    --silent --source winget --accept-package-agreements --accept-source-agreements
-  Write-Host "✅ delta installed!"
-}
+Install-WingetPackage -Id "Git.Git" -CustomArgs '/components="gitlfs" /o:EditorOption=VisualStudioCode /o:CURLOption=WinSSL /o:UseCredentialManager=Enabled'
+Install-WingetPackage -Id "gerardog.gsudo"
+Install-WingetPackage -Id "dandavison.delta"
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
