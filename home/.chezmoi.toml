@@ -1,3 +1,0 @@
-[interpreters.ps1]
-  command = "pwsh"
-  args = ["-NoProfile", "-NoLogo"]

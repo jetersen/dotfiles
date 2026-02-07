@@ -1,31 +1,31 @@
 [alias]
+	change-remote-to-ssh = !git remote set-url origin $(git remote get-url origin | sed "s#https://github.com/#git@github.com:#")
 	cp = cherry-pick
+	fix-working-tree = !git rm --cached -r . && git reset --hard
+	fixauthor = commit --amend --reset-author --no-edit
+	home = config user.email "{{ $personalEmail }}"
+	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+	missing = lg HEAD..main
+	new = lg main..HEAD
+	normalize = add --renormalize
+	oops = commit --amend --no-edit
 	p = push
 	pf = pushf
 	pushf = push --force-with-lease
-	s = status
 	rb = rebase
+	rba = rebase --abort
 	rbc = rebase --continue
 	rbs = rebase --skip
-	rba = rebase --abort
-	oops = commit --amend --no-edit
-	superoops = !git add -A && git oops && git pushf
-	normalize = add --renormalize
-	fix-working-tree = !git rm --cached -r . && git reset --hard
-	fixauthor = commit --amend --reset-author --no-edit
 	rerun-ci = !git commit -m "Rerun CI" --allow-empty && git push
-	work = config user.email "jop@moviestarplanet.com"
-	home = config user.email "me@jetersen.dev"
-	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
-	new = lg main..HEAD
-	missing = lg HEAD..main
-	change-remote-to-ssh = !git remote set-url origin $(git remote get-url origin | sed "s#https://github.com/#git@github.com:#")
+	s = status
+	superoops = !git add -A && git oops && git pushf
+	work = config user.email "{{ $workEmail }}"
 [help]
 	autocorrect = 1
 [core]
 	autocrlf = input
-	excludesfile = ~/.config/git/ignore
 	editor = code --wait
+	excludesfile = ~/.config/git/ignore
 	pager = delta
 {{- if eq .chezmoi.os "windows" }}
 	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
@@ -35,8 +35,8 @@
 [interactive]
 	diffFilter = delta --color-only
 [delta]
-	navigate = true
 	light = false
+	navigate = true
 [merge]
 	conflictStyle = diff3
 [diff]
@@ -46,14 +46,14 @@
 [commit]
 	gpgsign = true
 [tag]
-	gpgsign = true
 	forceSignAnnotated = true
+	gpgsign = true
 [pull]
 	rebase = true
 [push]
+	autoSetupRemote = true
 	default = simple
 	followTags = true
-	autoSetupRemote = true
 [fetch]
 	prune = true
 [rebase]
@@ -62,20 +62,22 @@
 [remote "origin"]
 	fetch = +refs/pr/*/head:refs/remotes/origin/pr/*
 [filter "lfs"]
-	smudge = git-lfs smudge -- %f
+	clean = git-lfs clean -- %f
 	process = git-lfs filter-process
 	required = true
-	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
 [user]
-	name = Joseph Petersen
+	email = {{ $email }}
+	name = {{ $name }}
 	signingKey = ~/.ssh/id_ed25519.pub
-	email = me@jetersen.dev
 [diff "sopsdiffer"]
 	textconv = sops decrypt
+{{- if ne .chezmoi.os "windows" -}}
 [includeIf "gitdir:~/git/work/"]
 	path = ~/.config/git/config.work
 [includeIf "gitdir:~/git/code/"]
 	path = ~/.config/git/config.home
+{{- else -}}
 [includeIf "gitdir/i:C:/git/work/"]
 	path = ~/.config/git/config.work
 [includeIf "gitdir/i:C:/git/code/"]
@@ -84,8 +86,11 @@
 	path = ~/.config/git/config.work
 [includeIf "gitdir/i:D:/git/code/"]
 	path = ~/.config/git/config.home
+{{- end -}}
+{{- if env "CODESPACES" -}}
 [includeIf "gitdir/i:/workspaces/"]
 	path = ~/.config/git/config.codespaces
+{{- end -}}
 [credential "https://github.com"]
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]

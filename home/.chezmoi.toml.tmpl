@@ -1,0 +1,39 @@
+{{/* boolean feature tags */}}
+{{- $work := false -}}{{/* true if this machine is a work machine */}}
+{{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
+{{- "" -}}
+
+{{- $hostname := .chezmoi.hostname -}}
+{{- if eq $hostname "rocket" -}}
+{{-   $personal = true -}}
+{{- else -}}
+{{-   $work = true -}}
+{{- end -}}
+
+{{- $firstname := "Joseph" -}}
+{{- $lastname := "Petersen" -}}
+{{- $name := printf "%s %s" $firstname $lastname -}}
+{{- $githubUsername := "jetersen" -}}
+{{- $personalEmail := "me@jetersen.dev" -}}
+{{- $workEmail := "jop@moviestarplanet.com" -}}
+{{- $email := $personalEmail -}}
+{{- if $work -}}
+{{-   $email = $workEmail -}}
+{{- end -}}
+
+[data]
+  name = {{ $name | quote }}
+  firstname = {{ $firstname | quote }}
+  lastname = {{ $lastname | quote }}
+  email = {{ $email | quote }}
+  work = {{ $work }}
+  personal = {{ $personal }}
+  hostname = {{ $hostname | quote }}
+  githubUsername = {{ $githubUsername | quote }}
+
+[interpreters.ps1]
+  command = "pwsh"
+  args = ["-NoProfile", "-NoLogo"]
+
+[github]
+  refreshPeriod = "12h"
