@@ -1,6 +1,7 @@
 {{ if ne .chezmoi.os "windows" }} # Ignore windows stuff on linux
 Documents
 .chezmoiscripts/*.ps*
+.chezmoiscripts/*.cmd
 {{ else }} # Ignore linux stuff on windows
 .chezmoiscripts/*.*sh
 .config/fish
