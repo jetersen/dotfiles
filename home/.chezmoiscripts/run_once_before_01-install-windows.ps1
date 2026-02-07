@@ -1,4 +1,3 @@
-{{- "\xef\xbb\xbf" -}}
 Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
 
 # Update winget sources
