@@ -1,0 +1,5 @@
+{{ if eq .chezmoi.os "windows" }}
+.config/fish/
+{{ else }}
+Documents/
+{{ end }}
