@@ -12,7 +12,7 @@ if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
 
 if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
   Write-Host "📦 Installing gsudo..."
-  winget install --id geardog.gsudo `
+  winget install --id gerardog.gsudo `
     --silent --source winget --accept-package-agreements --accept-source-agreements
   Write-Host "✅ gsudo installed!"
 }
