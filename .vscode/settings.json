@@ -1,3 +1,6 @@
 {
-  "powershell.codeFormatting.preset": "OTBS"
+  "powershell.codeFormatting.preset": "OTBS",
+  "files.associations": {
+    "*.ps1.tmpl": "powershell"
+  }
 }
