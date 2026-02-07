@@ -1,0 +1,109 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What This Is
+
+Cross-platform dotfiles repository managing configurations for Fish, PowerShell, Git, SSH, and Oh My Posh. Targets Linux (CachyOS), macOS, Windows, and GitHub Codespaces. Managed with [chezmoi](https://www.chezmoi.io/).
+
+## Build & Deploy
+
+Dotfiles are deployed via chezmoi — a single static binary with no dependencies.
+
+```bash
+# Install and apply all dotfiles
+chezmoi init --apply jetersen
+
+# Preview changes without applying
+chezmoi diff
+
+# Apply changes
+chezmoi apply
+
+# Update from remote repo and apply
+chezmoi update
+```
+
+## Architecture
+
+### chezmoi Source Layout
+
+`.chezmoiroot` contains `home` — chezmoi treats `home/` as its source root. Repo metadata (README, install scripts, etc.) stays outside and is never deployed.
+
+```text
+home/
+├── .chezmoiignore                          # Platform-specific filtering
+├── dot_config/
+│   ├── git/
+│   │   ├── config.tmpl                    # → ~/.config/git/config (template: Windows sshCommand)
+│   │   ├── config.home                    # → ~/.config/git/config.home
+│   │   ├── config.work                    # → ~/.config/git/config.work
+│   │   ├── config.codespaces              # → ~/.config/git/config.codespaces
+│   │   └── ignore                         # → ~/.config/git/ignore
+│   ├── fish/conf.d/
+│   │   └── config.fish                    # → ~/.config/fish/conf.d/config.fish
+│   ├── oh-my-posh/
+│   │   └── jetersen.omp.json              # → ~/.config/oh-my-posh/jetersen.omp.json
+│   └── powershell/
+│       └── Microsoft.PowerShell_profile.ps1  # → canonical pwsh profile
+├── dot_githooks/
+│   └── executable_commit-msg              # → ~/.githooks/commit-msg
+├── private_dot_ssh/
+│   └── config                             # → ~/.ssh/config (0700 dir perms)
+├── Documents/
+│   ├── PowerShell/
+│   │   └── symlink_Microsoft.PowerShell_profile.ps1.tmpl  # Windows symlink
+│   └── WindowsPowerShell/
+│       └── symlink_Microsoft.PowerShell_profile.ps1.tmpl  # Windows symlink
+```
+
+### chezmoi Naming Conventions
+
+- `dot_` prefix → leading `.` in target filename
+- `executable_` prefix → file gets executable permission
+- `private_` prefix → directory gets 0700 permissions
+- `symlink_` prefix → file content is the symlink target path
+- `.tmpl` suffix → processed as a Go template by chezmoi
+- Files without `.tmpl` are copied verbatim (safe for `{{ }}` in oh-my-posh JSON / PowerShell)
+
+### Platform Filtering (`.chezmoiignore`)
+
+- **Linux/macOS**: `Documents/` is ignored (no Windows PS symlinks needed)
+- **Windows**: `.config/fish/` is ignored (fish not used on Windows)
+
+### Git Config Hierarchy
+
+`dot_config/git/config.tmpl` is the main config (XDG location: `~/.config/git/config`), which conditionally includes:
+
+- `config.home` — when working in `~/git/code/` (personal, jetersen.dev email)
+- `config.work` — when working in `~/git/work/` (work email)
+- `config.codespaces` — when in `/workspaces/`
+
+A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from branch names.
+
+### Shell Configs
+
+**Fish** (`dot_config/fish/conf.d/config.fish`): Primary shell on Linux/macOS. Has custom `git clone`/`gh repo clone` wrappers that auto-cd into cloned directories, eza aliases, Oh My Posh prompt.
+
+**PowerShell** (`dot_config/powershell/Microsoft.PowerShell_profile.ps1`): Cross-platform profile with module management and Docker helpers. On Windows, `Documents/PowerShell/` and `Documents/WindowsPowerShell/` contain symlinks pointing to this canonical location.
+
+### Deployment Paths
+
+| Source | Destination |
+| --- | --- |
+| `dot_config/git/config.tmpl` | `~/.config/git/config` |
+| `dot_config/git/config.home` | `~/.config/git/config.home` |
+| `dot_config/git/config.work` | `~/.config/git/config.work` |
+| `dot_config/git/config.codespaces` | `~/.config/git/config.codespaces` |
+| `dot_config/git/ignore` | `~/.config/git/ignore` |
+| `dot_githooks/executable_commit-msg` | `~/.githooks/commit-msg` |
+| `private_dot_ssh/config` | `~/.ssh/config` |
+| `dot_config/fish/conf.d/config.fish` | `~/.config/fish/conf.d/config.fish` |
+| `dot_config/powershell/Microsoft.PowerShell_profile.ps1` | `~/.config/powershell/Microsoft.PowerShell_profile.ps1` |
+| `dot_config/oh-my-posh/jetersen.omp.json` | `~/.config/oh-my-posh/jetersen.omp.json` |
+
+## Code Style
+
+- LF line endings, UTF-8 encoding everywhere (enforced by `.gitattributes`)
+- 2-space indentation (tabs for gitconfig files)
+- Trim trailing whitespace, insert final newline
