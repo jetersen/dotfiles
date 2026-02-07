@@ -11,5 +11,5 @@ if %errorlevel% neq 0 (
 )
 
 :: Set execution policy for both shells
-powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
-"%ProgramFiles%\PowerShell\7\pwsh.exe" -NoProfile -NoLogo -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
+powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue"
+"%ProgramFiles%\PowerShell\7\pwsh.exe" -NoProfile -NoLogo -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force -ErrorAction SilentlyContinue"
