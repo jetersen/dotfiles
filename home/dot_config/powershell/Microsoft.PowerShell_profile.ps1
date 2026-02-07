@@ -385,8 +385,8 @@ if ((Get-Location).Path -eq "/mnt/c/Users/$DefaultUser") {
   Set-Location ~
 }
 
-if ("$ENV:PATH" -notlike "*$ENV:HOME/bin*") {
-  $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/bin"
+if ("$ENV:PATH" -notlike "*$HOME/bin*") {
+  $ENV:PATH += [IO.Path]::PathSeparator + "$HOME/bin"
 }
 
 if (Get-Command "oh-my-posh" -ErrorAction SilentlyContinue) {
