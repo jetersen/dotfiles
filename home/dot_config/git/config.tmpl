@@ -3,7 +3,7 @@
 	cp = cherry-pick
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
-	home = config user.email "{{ $personalEmail }}"
+	home = config user.email "{{ .personalEmail }}"
 	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
 	missing = lg HEAD..main
 	new = lg main..HEAD
@@ -19,7 +19,7 @@
 	rerun-ci = !git commit -m "Rerun CI" --allow-empty && git push
 	s = status
 	superoops = !git add -A && git oops && git pushf
-	work = config user.email "{{ $workEmail }}"
+	work = config user.email "{{ .workEmail }}"
 [help]
 	autocorrect = 1
 [core]
@@ -67,17 +67,17 @@
 	required = true
 	smudge = git-lfs smudge -- %f
 [user]
-	email = {{ $email }}
-	name = {{ $name }}
+	email = {{ .email }}
+	name = {{ .name }}
 	signingKey = ~/.ssh/id_ed25519.pub
 [diff "sopsdiffer"]
 	textconv = sops decrypt
-{{- if ne .chezmoi.os "windows" -}}
+{{- if ne .chezmoi.os "windows" }}
 [includeIf "gitdir:~/git/work/"]
 	path = ~/.config/git/config.work
 [includeIf "gitdir:~/git/code/"]
 	path = ~/.config/git/config.home
-{{- else -}}
+{{- else }}
 [includeIf "gitdir/i:C:/git/work/"]
 	path = ~/.config/git/config.work
 [includeIf "gitdir/i:C:/git/code/"]
@@ -86,11 +86,11 @@
 	path = ~/.config/git/config.work
 [includeIf "gitdir/i:D:/git/code/"]
 	path = ~/.config/git/config.home
-{{- end -}}
-{{- if env "CODESPACES" -}}
+{{- end }}
+{{- if env "CODESPACES" }}
 [includeIf "gitdir/i:/workspaces/"]
 	path = ~/.config/git/config.codespaces
-{{- end -}}
+{{- end }}
 [credential "https://github.com"]
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
