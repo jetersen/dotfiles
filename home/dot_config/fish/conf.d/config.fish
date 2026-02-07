@@ -84,4 +84,4 @@ function gh
   end
 end
 
-oh-my-posh init fish --config ~/.jetersen.omp.json | source
+oh-my-posh init fish --config ~/.config/oh-my-posh/jetersen.omp.json | source
