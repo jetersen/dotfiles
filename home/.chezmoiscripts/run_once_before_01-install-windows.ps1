@@ -2,10 +2,6 @@
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-# Update winget sources
-Write-Host "📜 Updating winget sources..."
-winget source update --disable-interactivity --ignore-warnings
-
 if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
   Write-Host "📦 Installing Git..."
   winget install --id Git.Git `

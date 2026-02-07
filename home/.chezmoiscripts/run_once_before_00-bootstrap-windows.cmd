@@ -1,8 +1,6 @@
 @echo off
 echo Bootstrapping PowerShell 7...
 
-winget source update --disable-interactivity --ignore-warnings
-
 where pwsh >nul 2>nul
 if %errorlevel% neq 0 (
   echo Installing PowerShell 7...
