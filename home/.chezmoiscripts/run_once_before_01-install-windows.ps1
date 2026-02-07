@@ -1,5 +1,7 @@
 ﻿Write-Host "🥳 First install, let's get you setup!" -ForegroundColor Magenta
 
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
 # Update winget sources
 Write-Host "📜 Updating winget sources..."
 winget source update --disable-interactivity --ignore-warnings
@@ -17,6 +19,13 @@ if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
   winget install --id geardog.gsudo `
     --silent --source winget --accept-package-agreements --accept-source-agreements
   Write-Host "✅ gsudo installed!"
+}
+
+if (-not (Get-Command "delta" -ErrorAction SilentlyContinue)) {
+  Write-Host "📦 Installing delta..."
+  winget install --id dandavison.delta `
+    --silent --source winget --accept-package-agreements --accept-source-agreements
+  Write-Host "✅ delta installed!"
 }
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
