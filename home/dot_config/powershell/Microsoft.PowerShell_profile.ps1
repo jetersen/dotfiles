@@ -389,4 +389,6 @@ if ("$ENV:PATH" -notlike "*$ENV:HOME/.bin*") {
   $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/.bin"
 }
 
-oh-my-posh init pwsh --config "$HOME/.config/oh-my-posh/jetersen.omp.json" | Invoke-Expression
+if (Get-Command "oh-my-posh" -ErrorAction SilentlyContinue) {
+  oh-my-posh init pwsh --config "$HOME/.config/oh-my-posh/jetersen.omp.json" | Invoke-Expression
+}
