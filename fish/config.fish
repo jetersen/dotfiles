@@ -2,6 +2,7 @@ set -x BROWSER "zen-browser"
 set -x SESSIONDEFAULTUSER $USER
 set -x EDITOR "code --wait"
 set -x CDPATH $HOME/git/code $HOME/git/work
+set -x PACKAGEOUTPUTPATH "$HOME/.nuget/local"
 
 fish_add_path --path --prepend --move --global \
   ~/.dotnet/tools \
