@@ -1,26 +1,18 @@
 # Silience I kill you!
 Set-PSReadlineOption -BellStyle None
 
-if (!$env:ChocolateyInstall) {
-  $env:ChocolateyInstall = "C:\ProgramData\chocolatey"
-}
-$chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if ([System.IO.File]::Exists("$chocoProfile")) {
-  Import-Module "$chocoProfile"
-}
-if ($ENV:WSL_DISTRO_NAME -or $IsLinux -or $IsMacOS) {
-  $env:SESSIONDEFAULTUSER = $env:USER
-  $env:POSH_THEME = "$ENV:HOME/.jetersen.omp.json"
-} else {
+if ($null -eq $IsWindows -or $IsWindows -eq $true) {
+  if (!$env:ChocolateyInstall) {
+    $env:ChocolateyInstall = "C:\ProgramData\chocolatey"
+  }
+  $chocoProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+  if ([System.IO.File]::Exists("$chocoProfile")) {
+    Import-Module "$chocoProfile"
+  }
   $env:SESSIONDEFAULTUSER = $env:USERNAME
-  $env:POSH_THEME = "$ENV:USERPROFILE/.jetersen.omp.json"
+} else {
+  $env:SESSIONDEFAULTUSER = $env:USER
 }
-
-# setup oh-my-posh
-function prompt {
-  oh-my-posh init pwsh | Invoke-Expression
-}
-# prompt
 
 # Modules should be installed on User scope
 # if Modules are not installed on User scope please run as admin:
@@ -146,25 +138,25 @@ function Get-ContainerIPAddress {
 }
 # END of functions
 
-$modules = (
+$__modules = (
   "Get-ChildItemColor",
   "posh-git",
   "cd-extras"
 )
 
-$_PSVersion = $PSVersionTable.PSVersion.Major
-$_File = "$PSScriptRoot/installed/$_PSVersion.test"
-if ([System.IO.File]::Exists($_File) -eq $false) {
+# Check marker file to see if modules have been installed for this PS version
+$__markerFile = "$PSScriptRoot/.installed-ps$($PSVersionTable.PSVersion.Major)"
+if (-not [System.IO.File]::Exists($__markerFile)) {
   Update-Repo
-  $modules | Install-Modules
-  New-Item -Path $_File -ItemType File -Force | Out-Null
+  $__modules | Install-Modules
+  New-Item -Path $__markerFile -ItemType File -Force | Out-Null
 }
 
 if ($IsWindows -and [System.IO.File]::Exists("$ENV:PROGRAMFILES\gsudo\Current\gsudoModule.psd1")) {
   Import-Module "$ENV:PROGRAMFILES\gsudo\Current\gsudoModule.psd1"
 }
 
-$modules | Get-EnsureModule
+$__modules | Get-EnsureModule
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
@@ -387,7 +379,7 @@ Set-Alias d docker
 Set-Alias g git
 
 # clear variables
-Remove-Variable _PSVersion, _File, modules
+Remove-Variable -Name "__*" -ErrorAction SilentlyContinue
 
 if ((Get-Location).Path -eq "/mnt/c/Users/$DefaultUser") {
   Set-Location ~
@@ -397,8 +389,4 @@ if ("$ENV:PATH" -notlike "*$ENV:HOME/.bin*") {
   $ENV:PATH += [IO.Path]::PathSeparator + "$ENV:HOME/.bin"
 }
 
-# Chocolatey profile
-$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-if (Test-Path($ChocolateyProfile)) {
-  Import-Module "$ChocolateyProfile"
-}
+oh-my-posh init pwsh --config "$HOME/.config/oh-my-posh/jetersen.omp.json" | Invoke-Expression
