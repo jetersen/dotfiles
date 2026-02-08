@@ -101,41 +101,10 @@ function Update-Repo {
   }
 }
 
-# docker ps -l -q
-function Get-ContainerID { (docker ps -l -q) }
+function dcid { docker ps -l -q }
 
-#docker rm $(docker ps -a -q)
-function Remove-StoppedContainers {
-  foreach ($id in & docker ps -a -q) {
-    & docker rm -f $id
-  }
-}
-
-#docker rmi $(docker images -f "dangling=true" -q)
-function Remove-DanglingImages {
-  foreach ($id in & docker images -q -f 'dangling=true') {
-    & docker rmi $id
-  }
-}
-
-function Remove-AllImages {
-  foreach ($id in & docker images -a -q) {
-    & docker rmi -f $id
-  }
-}
-
-#docker volume rm $(docker volume ls -qf dangling=true)
-function Remove-DanglingVolumes {
-  foreach ($id in & docker volume ls -q -f 'dangling=true') {
-    & docker volume rm $id
-  }
-}
-
-# docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' <id>
-function Get-ContainerIPAddress {
-  param (
-    [string] $id
-  )
+function dip {
+  param ([string] $id)
   & docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $id
 }
 function git {
@@ -190,6 +159,7 @@ if ($IsWindows -and [System.IO.File]::Exists("$ENV:PROGRAMFILES\gsudo\Current\gs
 }
 
 $__modules | Get-EnsureModule
+Remove-Item Function:\Get-EnsureModule, Function:\Install-Modules
 
 Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
@@ -208,36 +178,19 @@ if ($IsLinux -or $IsMacOS) {
 # Helper function to change directory to your development workspace
 function cws { Set-Location "$($developmentWorkspace.Get(0))" }
 
-function Get-FirstProject {
+function ride {
   param (
     [string] $path = "."
   )
-  $sln = Get-ChildItem -Path $path -Filter "*.sln" -Recurse | Select-Object -first 1
-  if ($sln) {
-    return $sln.FullName
+  $project = Get-ChildItem -Path $path -Filter "*.sln" -Recurse | Select-Object -First 1
+  if (!$project) {
+    $project = Get-ChildItem -Path $path -Filter "*.csproj" -Recurse | Select-Object -First 1
   }
-  $csproj = Get-ChildItem -Path $path -Filter "*.csproj" -Recurse | Select-Object -first 1
-  if ($csproj) {
-    return $csproj.FullName
-  }
-  return "."
-}
-
-function sln {
-  param (
-    [string] $path
-  )
-  Get-FirstProject "$path" | Invoke-Item
-}
-
-function ride {
-  param (
-    [string] $path
-  )
+  $target = if ($project) { $project.FullName } else { "." }
   if ($IsLinux -or $IsMacOS) {
-    open (Get-FirstProject "$path")
+    open $target
   } else {
-    rider.cmd -ArgumentList (Get-FirstProject "$path")
+    rider.cmd -ArgumentList $target
   }
 }
 
@@ -258,34 +211,23 @@ function hostfile {
   }
 }
 
-function Open-Browser {
-  param (
-    [string] $url
-  )
-  if ($IsLinux) {
-    Invoke-Expression "xdg-open $url"
-  } else {
-    Start-Process -Path "$url"
-  }
-}
-
 function open {
   param (
     [string] $item
   )
-  if ($item -and $item -imatch "https?://*") {
-    Open-Browser $item
+  if ($IsLinux) {
+    Invoke-Expression "xdg-open $item"
+  } elseif ($IsMacOS) {
+    & /usr/bin/open $item
+  } elseif ($item -and $item -imatch "https?://*") {
+    Start-Process -Path "$item"
   } else {
-    if ($IsLinux) {
-      Invoke-Expression "xdg-open $item"
-    } else {
-      Invoke-Item $item
-    }
+    Invoke-Item $item
   }
 }
 
 function dotfile {
-  Open-Browser 'https://github.com/jetersen/dotfiles'
+  open 'https://github.com/jetersen/dotfiles'
 }
 
 function rimraf {
@@ -298,22 +240,6 @@ function Invoke-GitHubAutoMerge {
   [int[]](gh pr list --json number --jq .[].number) `
     | Sort-Object `
     | ForEach-Object { gh pr review $_ --approve; gh pr merge $_ --squash }
-}
-
-function Update-ScreenResolution {
-  $listScreens = ChangeScreenResolution.exe /l
-  $regex = '(?sm)\[2\].+?Settings: (\d{4})x(\d{4})'
-  $groups = ($listScreens | Out-String | Select-String -Pattern $regex).Matches.Groups
-  $height = 1440
-  $width = [int]$groups[1].Value
-  if ($width -eq 2560) {
-    $width = 3440
-  } elseif ($width -eq 3440) {
-    $width = 2560
-  } else {
-    $width = 3440
-  }
-  ChangeScreenResolution.exe /d=2 /w=$width /h=$height /f=100 | Out-Null
 }
 
 function myip { Invoke-RestMethod -Uri 'https://api.ipify.org' }
@@ -387,17 +313,8 @@ Set-Alias ll Get-ChildItemColor -Option AllScope
 Set-Alias dir ll -Option AllScope
 
 # Docker aliases
-Set-Alias dcid Get-ContainerID
-
-Set-Alias drm Remove-StoppedContainers
-
-Set-Alias drmi Remove-DanglingImages
-
-Set-Alias drmv Remove-DanglingVolumes
-
-Set-Alias dip Get-ContainerIPAddress
-
 function dc { docker compose @args }
+function dprune { docker system prune @args }
 
 Set-Alias d docker
 
