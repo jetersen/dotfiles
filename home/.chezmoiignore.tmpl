@@ -9,5 +9,8 @@ Documents
 .chezmoiscripts/windows
 {{ end }}
 {{ if .isWindows }}
-.config/fish
+dot_config/fish
+{{ end }}
+{{ if not .isHyprland }}
+dot_config/hypr
 {{ end }}
