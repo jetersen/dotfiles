@@ -290,10 +290,6 @@ function Get-MyIp {
   $ip
 }
 
-function Stop-Spotify {
-  Get-Process -Name 'Spotify' | Stop-Process
-}
-
 function DotEnv {
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
   param(
