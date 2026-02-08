@@ -1,0 +1,63 @@
+#Requires -Version 7
+
+function Install-WingetPackage {
+  param(
+    [string]$Id,
+    [string]$Source = "winget"
+  )
+
+  $Name = $Id.Substring($Id.LastIndexOf('.') + 1)
+
+  $wingetArgs = @(
+    "install",
+    "--id", $Id,
+    "--silent",
+    "--source", $Source,
+    "--accept-package-agreements",
+    "--accept-source-agreements"
+  )
+
+  Write-Host "Installing $Name..."
+  winget @wingetArgs
+}
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+winget source update
+
+# Common apps
+Install-WingetPackage -Id "Bitwarden.Bitwarden"
+Install-WingetPackage -Id "Flameshot.Flameshot"
+Install-WingetPackage -Id "Google.GoogleDrive"
+Install-WingetPackage -Id "JanDeDobbeleer.OhMyPosh"
+Install-WingetPackage -Id "Microsoft.Edge"
+Install-WingetPackage -Id "Microsoft.PowerShell"
+Install-WingetPackage -Id "Microsoft.WindowsTerminal"
+Install-WingetPackage -Id "OlegDanilov.RapidEnvironmentEditor"
+Install-WingetPackage -Id "OpenVPNTechnologies.OpenVPNConnect"
+Install-WingetPackage -Id "Parsec.Parsec"
+Install-WingetPackage -Id "SlackTechnologies.Slack"
+Install-WingetPackage -Id "Spotify.Spotify"
+Install-WingetPackage -Id "UderzoSoftware.SpaceSniffer"
+Install-WingetPackage -Id "Yubico.Authenticator"
+
+# Dev apps
+Install-WingetPackage -Id "Amazon.AWSCli"
+Install-WingetPackage -Id "GitHub.cli"
+Install-WingetPackage -Id "GitHub.GitHubDesktop"
+Install-WingetPackage -Id "Google.CloudSDK"
+Install-WingetPackage -Id "JetBrains.Toolbox"
+Install-WingetPackage -Id "Microsoft.DotNet.SDK.10"
+Install-WingetPackage -Id "Microsoft.VisualStudioCode"
+Install-WingetPackage -Id "Mirantis.Lens"
+Install-WingetPackage -Id "SecretsOPerationS.SOPS"
+Install-WingetPackage -Id "WinSCP.WinSCP"
+
+{{ if .isPersonal -}}
+# Personal apps
+Install-WingetPackage -Id "Elgato.ControlCenter"
+Install-WingetPackage -Id "Elgato.StreamDeck"
+Install-WingetPackage -Id "Nvidia.Broadcast"
+Install-WingetPackage -Id "Valve.Steam"
+Install-WingetPackage -Id "Voicemod.Voicemod"
+{{ end -}}
