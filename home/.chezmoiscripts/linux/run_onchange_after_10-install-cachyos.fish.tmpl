@@ -1,0 +1,47 @@
+{{ if eq .chezmoi.osRelease.id "cachyos" -}}
+#!/usr/bin/env fish
+
+echo "Going to ask for sudo password to install packages"
+if sudo -v
+  echo "Thanks!"
+else
+  echo "Sudo password is required to proceed."
+  exit 1
+end
+
+# Install official repo packages
+echo "Installing pacman packages..."
+sudo pacman -Sq --needed --noconfirm {{ .packages.arch.pacman | join " " }}
+
+# Install AUR packages
+echo "Installing AUR packages..."
+paru -Sq --needed --noconfirm --overwrite="*" {{ .packages.arch.aur | join " " }}
+
+{{ if .isPersonal -}}
+# Install personal pacman packages
+echo "Installing personal pacman packages..."
+sudo pacman -Sq --needed --noconfirm {{ .packages.arch.personal.pacman | join " " }}
+
+# Install personal AUR packages
+echo "Installing personal AUR packages..."
+paru -Sq --needed --noconfirm --overwrite="*" {{ .packages.arch.personal.aur | join " " }}
+
+{{ end -}}
+# Update all packages
+echo "Updating all packages..."
+paru -Syu --noconfirm
+
+# Create sensitive directories
+echo "Creating sensitive directories..."
+for dir in ~/.ssh ~/.aws ~/.kube ~/.local
+  mkdir -p -m 700 $dir
+end
+
+# Create general directories
+echo "Creating general directories..."
+for dir in ~/.local/bin ~/git/code ~/git/work
+  mkdir -p -m 751 $dir
+end
+
+echo "Setup complete!"
+{{ end -}}
