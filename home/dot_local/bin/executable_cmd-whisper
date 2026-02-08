@@ -14,7 +14,7 @@ trap 'rm -f "$LOCKFILE" "$WAVFILE"' EXIT
 notify-send -e "Whisper" "Listening..." -t 2000
 
 # Record until 3.5s of silence is detected
-rec -r 16000 -c 1 -b 16 "$WAVFILE" silence 1 0.1 3% 1 3.5 15%
+rec -r 16000 -c 1 -b 16 "$WAVFILE" silence 1 0.1 3% 1 3.5 3%
 
 notify-send -e "Whisper" "Transcribing..." -t 2000
 
