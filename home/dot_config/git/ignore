@@ -24,3 +24,5 @@ Desktop.ini
 
 # Linux
 .Trash-*
+
+**/.claude/settings.local.json
