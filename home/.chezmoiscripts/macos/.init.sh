@@ -10,3 +10,9 @@ if ! command -v pass-cli &> /dev/null; then
   fi
   brew install protonpass/tap/pass-cli --quiet
 fi
+
+# Check login status of Proton Pass CLI, if not logged in, prompt the user to log in
+if ! pass-cli test &> /dev/null; then
+  echo "Please log in to Proton Pass CLI..."
+  pass-cli login
+fi
