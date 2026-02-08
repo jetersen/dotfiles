@@ -14,6 +14,8 @@ if ($null -eq $IsWindows -or $IsWindows -eq $true) {
   $env:SESSIONDEFAULTUSER = $env:USER
 }
 
+$env:EDITOR = "code --wait"
+
 # Modules should be installed on User scope
 # if Modules are not installed on User scope please run as admin:
 # Uninstall-Module -Name Module
@@ -249,13 +251,11 @@ function clean-sln {
 }
 
 function hostfile {
-  $path =
   if ($IsLinux -or $IsMacOS) {
-    "/etc/hosts"
+    sudoedit /etc/hosts
   } else {
-    "C:\windows\system32\drivers\etc\hosts"
+    Start-Process "code" -ArgumentList "C:\windows\system32\drivers\etc\hosts"
   }
-  Start-Process "code" -ArgumentList "$path"
 }
 
 function Open-Browser {

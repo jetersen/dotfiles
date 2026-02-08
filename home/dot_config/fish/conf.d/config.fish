@@ -97,7 +97,7 @@ function clean-sln
   fd -HI -t d '^(\.vs|bin|obj)$' -x rm -rf
 end
 function hostfile
-  code /etc/hosts
+  sudoedit /etc/hosts
 end
 function dcid
   docker ps -l -q
