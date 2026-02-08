@@ -107,3 +107,5 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 - LF line endings, UTF-8 encoding everywhere (enforced by `.gitattributes`)
 - 2-space indentation (tabs for gitconfig files)
 - Trim trailing whitespace, insert final newline
+
+Every text file **must** end with a final newline (enforced by `.editorconfig`). Some tools — notably Hyprland's config parser — fail to process the last line of a file if it isn't followed by a newline. Always ensure new and edited files have one.
