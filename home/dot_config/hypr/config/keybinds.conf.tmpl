@@ -1,9 +1,3 @@
-# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-# ┃                         Keybinds                            ┃
-# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
-source = ~/.config/hypr/config/defaults.conf
-
 # ======= Screenshots =======
 
 bindd = , PRINT, Creates a screenshot of an area, exec, cmd-screenshot area
@@ -42,8 +36,16 @@ bindd = $mainMod ALT, L, Move window to the right in the group, moveintogroup, r
 {{ if .isPersonal -}}
 # ======= Personal Apps =======
 
-bindd = $mainMod, B, Battle.net, exec, bottles-cli run -p Battle.net -b 'Battle.netv3'
-bindd = $mainMod, D, Diablo 4, exec, bottles-cli run -p 'Diablo 4' -b 'Battle.netv3'
+# ======= Bottles Submap =======
+
+bindd = $mainMod, B, Activates Bottles game launcher mode, submap, bottles
+submap = bottles
+bindd = , B, Launch Battle.net, exec, bottles-cli run -p Battle.net -b 'Battle.netv3'
+bindd = , D, Launch Diablo 4, exec, bottles-cli run -p 'Diablo 4' -b 'Battle.netv3'
+bindd = , W, Launch World of Warcraft, exec, bottles-cli run -p 'World of Warcraft' -b 'Battle.netv3'
+bindd = , escape, Exit Bottles mode, submap, reset
+submap = reset
+
 bindn = ,CTRL_R,pass,class:discord
 {{ end -}}
 
