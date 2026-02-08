@@ -1,0 +1,24 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                    Autostart Configuration                  ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+source = ~/.config/hypr/config/defaults.conf
+
+exec-once = qs -c noctalia-shell
+exec-once = udiskie &
+exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
+
+{{ if .isPersonal -}}
+exec-once = hypridle &
+exec-once = env ELECTRON_OZONE_PLATFORM_HINT= /usr/bin/discord &
+exec-once = zen-browser &
+{{ end -}}
+
+{{ if .isWork -}}
+exec-once = /usr/bin/slack --disable-gpu-compositing --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime --enable-features=WebRTCPipeWireCapturer --enable-features=WaylandWindowDecorations --disable-features=WaylandFractionalScaleV1 -s &
+exec-once = kanshi &
+exec-once = fcitx5 -d &
+exec-once = systemctl --user import-environment &
+exec-once = hash dbus-update-activation-environment 2>/dev/null &
+exec-once = dbus-update-activation-environment --systemd &
+{{ end -}}

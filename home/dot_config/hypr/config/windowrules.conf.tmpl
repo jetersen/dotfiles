@@ -1,0 +1,93 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                    Windowrules Configuration                ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+# Ignore maximize requests from apps
+windowrule {
+  name = windowrule-suppress-maximize
+  suppress_event = maximize
+  match:class = .*
+}
+
+# Fix some dragging issues with XWayland
+windowrule {
+  name = windowrule-xwayland-drag
+  no_focus = on
+  match:class = ^$
+  match:title = ^$
+  match:xwayland = 1
+  match:float = 1
+  match:fullscreen = 0
+  match:pin = 0
+}
+
+# Bitwarden
+windowrule {
+  name = windowrule-bitwarden
+  float = on
+  center = on
+  size = (monitor_w*0.3) (monitor_h*0.6)
+  no_screen_share = on
+  match:title = (Extension:(Bitwarden Password Manager) - Bitwarden - Zen Browser)
+}
+
+{{ if .isPersonal -}}
+# ======= Personal Window Rules =======
+
+# BattleNet
+windowrule {
+  name = windowrule-battlenet
+  float = on
+  center = on
+  fullscreen_state = 0
+  opacity = 1 1
+  match:title = ^Battle.net.*
+}
+
+windowrule {
+  name = windowrule-explorer
+  float = on
+  size = 64px 64px
+  match:class = (explorer.exe)
+}
+
+# WoW
+windowrule {
+  name = windowrule-wow-tag
+  tag = +game
+  match:class = ^(steam_proton)$
+  match:title = ^(World of Warcraft)$
+}
+
+windowrule {
+  name = windowrule-game
+  render_unfocused = on
+  workspace = 4
+  fullscreen = on
+  content = game
+  match:tag = game
+}
+
+# Diablo 4
+windowrule {
+  name = windowrule-diablo4
+  tag = +game
+  match:class = ^(steam_proton)$
+  match:title = ^(Diablo IV)$
+}
+{{ end -}}
+
+# YouTube Music
+windowrule {
+  name = windowrule-youtube-music
+  workspace = 6
+  match:class = com.github.th_ch.youtube_music
+  match:initial_title = com.github.th_ch.youtube_music
+}
+
+{{ if .isPersonal -}}
+# ======= Personal Workspace Assignments =======
+
+workspace = 4,monitor:$primaryMonitor
+workspace = 6,monitor:$secondaryMonitor
+{{ end -}}

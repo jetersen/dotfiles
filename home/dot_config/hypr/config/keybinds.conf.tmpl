@@ -1,0 +1,165 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                         Keybinds                            ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+source = ~/.config/hypr/config/defaults.conf
+
+# ======= Screenshots =======
+
+bindd = , PRINT, Creates a screenshot of an area, exec, cmd-screenshot area
+bindd = SHIFT, PRINT, Creates a screenshot of the current active window, exec, cmd-screenshot active
+bindd = CTRL, PRINT, Creates a screenshot of the active screen, exec, cmd-screenshot output
+bindd = ALT, PRINT, Creates a screenshot of the all screens, exec, cmd-screenshot screen
+
+# ======= General =======
+
+bind = $mainMod, RETURN, exec, $terminal
+bindd = $mainMod SHIFT, RETURN, Open terminal in horizontal split, exec, hyprctl dispatch layoutmsg preselect d && $terminal
+bind = $mainMod, SPACE, exec, qs -c noctalia-shell ipc call launcher toggle
+bind = $mainMod, Q, killactive,
+bind = $mainMod, E, exec, $fileManager
+bind = $mainMod SHIFT, V, togglefloating,
+bind = $mainMod, P, pseudo, # dwindle
+bindd = $mainMod, L, Lock Computer, exec, qs -c noctalia-shell ipc call lockScreen lock
+bindd = $mainMod, M, YouTube Music, exec, youtube-music
+bindd = $mainMod SHIFT, B, Zen-Browser, exec, zen-browser
+bindd = $mainMod CTRL, B, Private Zen-Browser, exec, zen-browser --private-window
+bindd = $mainMod, C, Universal copy, sendshortcut, CTRL, Insert,
+bindd = $mainMod, V, Universal paste, sendshortcut, SHIFT, Insert,
+bindd = $mainMod, X, Universal cut, sendshortcut, CTRL, X,
+bindd = $mainMod CTRL, V, Clipboard history, exec, qs -c noctalia-shell ipc call launcher clipboard
+bindd = $mainMod, period, Emoji picker, exec, qs -c noctalia-shell ipc call launcher emoji
+bindd = $mainMod, escape, Session Menu, exec, qs -c noctalia-shell ipc call sessionMenu toggle
+bindd = $mainMod SHIFT, C, Calculator, exec, qs -c noctalia-shell ipc call launcher calculator
+bindd = $mainMod, F, Toggles current window fullscreen mode, fullscreen
+bindd = $mainMod, Y, Pin current window (on all workspaces), pin
+bindd = $mainMod, J, Toggle split/unsplit in dwindle layout, togglesplit
+bindd = $mainMod, K, Toggle current window group mode (ungroup all related), togglegroup
+bindd = $mainMod, Tab, Switches to the next window in the group, changegroupactive, f
+bindd = $mainMod ALT, H, Move window to the left in the group, moveintogroup, l
+bindd = $mainMod ALT, L, Move window to the right in the group, moveintogroup, r
+
+{{ if .isPersonal -}}
+# ======= Personal Apps =======
+
+bindd = $mainMod, B, Battle.net, exec, bottles-cli run -p Battle.net -b 'Battle.netv3'
+bindd = $mainMod, D, Diablo 4, exec, bottles-cli run -p 'Diablo 4' -b 'Battle.netv3'
+bindn = ,CTRL_R,pass,class:discord
+{{ end -}}
+
+# ======= Window Focus =======
+
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+# ======= Move Windows =======
+
+bindd = $mainMod SHIFT, left, Move window left, movewindow, l
+bindd = $mainMod SHIFT, right, Move window right, movewindow, r
+bindd = $mainMod SHIFT, up, Move window up, movewindow, u
+bindd = $mainMod SHIFT, down, Move window down, movewindow, d
+
+# ======= Move Workspaces Between Monitors =======
+
+bind = $mainMod CTRL, left, movecurrentworkspacetomonitor, l
+bind = $mainMod CTRL, right, movecurrentworkspacetomonitor, r
+
+# ======= Move Window to Adjacent Workspace =======
+
+bind = $mainMod CTRL, up, movetoworkspace, +1
+bind = $mainMod CTRL, down, movetoworkspace, -1
+
+# ======= Switch Workspaces =======
+
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+bind = $mainMod, 9, workspace, 9
+bind = $mainMod, 0, workspace, 10
+
+# ======= Move Window to Workspace =======
+
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bind = $mainMod SHIFT, 6, movetoworkspace, 6
+bind = $mainMod SHIFT, 7, movetoworkspace, 7
+bind = $mainMod SHIFT, 8, movetoworkspace, 8
+bind = $mainMod SHIFT, 9, movetoworkspace, 9
+bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+# ======= Move Window Silently to Workspace =======
+
+bind = $mainMod CTRL, 1, movetoworkspacesilent, 1
+bind = $mainMod CTRL, 2, movetoworkspacesilent, 2
+bind = $mainMod CTRL, 3, movetoworkspacesilent, 3
+bind = $mainMod CTRL, 4, movetoworkspacesilent, 4
+bind = $mainMod CTRL, 5, movetoworkspacesilent, 5
+bind = $mainMod CTRL, 6, movetoworkspacesilent, 6
+bind = $mainMod CTRL, 7, movetoworkspacesilent, 7
+bind = $mainMod CTRL, 8, movetoworkspacesilent, 8
+bind = $mainMod CTRL, 9, movetoworkspacesilent, 9
+bind = $mainMod CTRL, 0, movetoworkspacesilent, 10
+
+# ======= Special Workspaces =======
+
+bind = $mainMod, S, togglespecialworkspace, magic
+bind = $mainMod SHIFT, S, movetoworkspace, special:magic
+
+# ======= Mouse =======
+
+bind = $mainMod, mouse_down, workspace, e+1
+bind = $mainMod, mouse_up, workspace, e-1
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+
+# ======= Resize Submap =======
+
+bindd = $mainMod, R, Activates window resizing mode, submap, resize
+submap = resize
+bindd = , right, Resize to the right (resizing mode), resizeactive, 15 0
+bindd = , left, Resize to the left (resizing mode), resizeactive, -15 0
+bindd = , up, Resize upwards (resizing mode), resizeactive, 0 -15
+bindd = , down, Resize downwards (resizing mode), resizeactive, 0 15
+bindd = , l, Resize to the right (resizing mode), resizeactive, 15 0
+bindd = , h, Resize to the left (resizing mode), resizeactive, -15 0
+bindd = , k, Resize upwards (resizing mode), resizeactive, 0 -15
+bindd = , j, Resize downwards (resizing mode), resizeactive, 0 15
+bindd = , escape, Ends window resizing mode, submap, reset
+submap = reset
+
+# ======= Quick Resize =======
+
+bindd = $mainMod CTRL SHIFT, right, Resize to the right, resizeactive, 15 0
+bindd = $mainMod CTRL SHIFT, left, Resize to the left, resizeactive, -15 0
+bindd = $mainMod CTRL SHIFT, up, Resize upwards, resizeactive, 0 -15
+bindd = $mainMod CTRL SHIFT, down, Resize downwards, resizeactive, 0 15
+bindd = $mainMod CTRL SHIFT, l, Resize to the right, resizeactive, 15 0
+bindd = $mainMod CTRL SHIFT, h, Resize to the left, resizeactive, -15 0
+bindd = $mainMod CTRL SHIFT, k, Resize upwards, resizeactive, 0 -15
+bindd = $mainMod CTRL SHIFT, j, Resize downwards, resizeactive, 0 15
+
+# ======= Media Keys =======
+
+bindel = , XF86AudioRaiseVolume, exec, qs -c noctalia-shell ipc call volume increase
+bindel = , XF86AudioLowerVolume, exec, qs -c noctalia-shell ipc call volume decrease
+bindel = , XF86AudioMute, exec, qs -c noctalia-shell ipc call volume muteOutput
+bindel = ,XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+bindel = ,XF86MonBrightnessUp, exec, brightnessctl -e4 -n2 set 5%+
+bindel = ,XF86MonBrightnessDown, exec, brightnessctl -e4 -n2 set 5%-
+
+# ======= Playback Control =======
+
+bindl = , XF86AudioNext, exec, playerctl next
+bindl = , XF86AudioPause, exec, playerctl play-pause
+bindl = , XF86AudioPlay, exec, playerctl play-pause
+bindl = , XF86AudioPrev, exec, playerctl previous

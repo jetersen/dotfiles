@@ -1,0 +1,6 @@
+{{- if .isPersonal }}
+listener {
+  timeout = 3600 # 1 hour
+  on-timeout = systemctl poweroff --ignore-inhibitors
+}
+{{- end }}

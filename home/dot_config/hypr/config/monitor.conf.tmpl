@@ -1,0 +1,10 @@
+# ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+# ┃                     Monitor Configuration                   ┃
+# ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+monitor=,preferred,auto,auto
+
+{{ if .isPersonal -}}
+$primaryMonitor=DP-1
+$secondaryMonitor=DP-2
+{{ end -}}
