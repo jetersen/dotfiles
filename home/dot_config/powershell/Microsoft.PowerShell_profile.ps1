@@ -136,6 +136,37 @@ function Get-ContainerIPAddress {
   )
   & docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $id
 }
+function git {
+  $gitExe = (Get-Command git -CommandType Application).Source
+  if ($args[0] -eq 'clone') {
+    $output = & $gitExe @args 2>&1 | Out-String
+    Write-Host $output.TrimEnd()
+    if ($LASTEXITCODE -eq 0 -and $output -match "Cloning into '(.+?)'") {
+      $dirName = $Matches[1]
+      if (Test-Path $dirName -PathType Container) {
+        Set-Location $dirName
+      }
+    }
+  } else {
+    & $gitExe @args
+  }
+}
+
+function gh {
+  $ghExe = (Get-Command gh -CommandType Application).Source
+  if ($args[0] -eq 'repo' -and $args[1] -eq 'clone') {
+    $output = & $ghExe @args 2>&1 | Out-String
+    Write-Host $output.TrimEnd()
+    if ($LASTEXITCODE -eq 0 -and $output -match "Cloning into '(.+?)'") {
+      $dirName = $Matches[1]
+      if (Test-Path $dirName -PathType Container) {
+        Set-Location $dirName
+      }
+    }
+  } else {
+    & $ghExe @args
+  }
+}
 # END of functions
 
 $__modules = (
@@ -373,6 +404,11 @@ Set-Alias d docker
 Set-Alias g git
 Set-Alias vim nvim
 Set-Alias vi nvim
+
+if ($IsLinux -or $IsMacOS) {
+  Set-Alias pip pip3
+  Set-Alias python python3
+}
 
 # clear variables
 Remove-Variable -Name "__*" -ErrorAction SilentlyContinue

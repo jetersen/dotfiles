@@ -90,8 +90,40 @@ end
 function cws
   cd ~/git/code
 end
+function dotfile
+  xdg-open https://github.com/jetersen/dotfiles
+end
 function clean-sln
   fd -HI -t d '^(\.vs|bin|obj)$' -x rm -rf
+end
+function hostfile
+  code /etc/hosts
+end
+function dcid
+  docker ps -l -q
+end
+function drm
+  for id in (docker ps -a -q)
+    docker rm -f $id
+  end
+end
+function drmi
+  for id in (docker images -q -f 'dangling=true')
+    docker rmi $id
+  end
+end
+function drmi-all
+  for id in (docker images -a -q)
+    docker rmi -f $id
+  end
+end
+function drmv
+  for id in (docker volume ls -q -f 'dangling=true')
+    docker volume rm $id
+  end
+end
+function dip
+  docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $argv[1]
 end
 function dotenv
   set -l env_file .env
