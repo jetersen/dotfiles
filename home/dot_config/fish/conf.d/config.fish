@@ -25,6 +25,9 @@ alias open="xdg-open"
 alias myip="curl -sSfL -w '\n' https://api.ipify.org"
 alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
 alias github-auto-merge="gh pr list --json number -;-jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"
+alias g="git"
+alias d="docker"
+alias dc="docker compose"
 function ride
   for ext in slnx sln csproj
     set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension $ext . $argv[1])
@@ -81,6 +84,32 @@ function gh
     return $status_code
   else
     command gh $argv
+  end
+end
+
+function cws
+  cd ~/git/code
+end
+function clean-sln
+  fd -HI -t d '^(\.vs|bin|obj)$' -x rm -rf
+end
+function dotenv
+  set -l env_file .env
+  if test (count $argv) -gt 0
+    set env_file $argv[1]
+  end
+  if not test -f $env_file
+    echo "No .env file found"
+    return 1
+  end
+  for line in (string split \n -- (cat $env_file))
+    if test -z "$line"; or string match -q '#*' -- $line
+      continue
+    end
+    set -l kv (string split -m 1 '=' -- $line)
+    if test (count $kv) -eq 2
+      set -gx (string trim -- $kv[1]) (string trim -- $kv[2])
+    end
   end
 end
 

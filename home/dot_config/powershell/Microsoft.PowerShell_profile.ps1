@@ -285,10 +285,8 @@ function Update-ScreenResolution {
   ChangeScreenResolution.exe /d=2 /w=$width /h=$height /f=100 | Out-Null
 }
 
-function Get-MyIp {
-  $ip = Invoke-RestMethod -Uri 'https://ifconfig.me/ip'
-  $ip
-}
+function myip { Invoke-RestMethod -Uri 'https://api.ipify.org' }
+function myip6 { Invoke-RestMethod -Uri 'https://api6.ipify.org' }
 
 function DotEnv {
   [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
@@ -368,11 +366,13 @@ Set-Alias drmv Remove-DanglingVolumes
 
 Set-Alias dip Get-ContainerIPAddress
 
-Set-Alias dc docker-compose
+function dc { docker compose @args }
 
 Set-Alias d docker
 
 Set-Alias g git
+Set-Alias vim nvim
+Set-Alias vi nvim
 
 # clear variables
 Remove-Variable -Name "__*" -ErrorAction SilentlyContinue
