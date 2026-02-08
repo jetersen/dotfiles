@@ -1,12 +1,12 @@
 {{ if not .isLinux }}
-.chezmoiscripts/linux
+.chezmoiscripts/linux/**
 {{ end }}
 {{ if not .isMacOS }}
-.chezmoiscripts/macos
+.chezmoiscripts/macos/**
 {{ end }}
 {{ if not .isWindows }}
 Documents
-.chezmoiscripts/windows
+.chezmoiscripts/windows/**
 {{ end }}
 {{ if .isWindows }}
 dot_config/fish
