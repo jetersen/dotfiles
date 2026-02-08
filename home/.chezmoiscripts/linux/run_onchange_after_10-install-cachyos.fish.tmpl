@@ -11,25 +11,25 @@ end
 
 # Install official repo packages
 echo "Installing pacman packages..."
-sudo pacman -Sq --needed --noconfirm {{ .packages.arch.pacman | join " " }}
+sudo pacman -Sq --needed --noconfirm --ask 4 {{ .packages.arch.pacman | join " " }}
 
 # Install AUR packages
 echo "Installing AUR packages..."
-paru -Sq --needed --noconfirm --overwrite="*" {{ .packages.arch.aur | join " " }}
+paru -Sq --needed --noconfirm --ask 4 --overwrite="*" {{ .packages.arch.aur | join " " }}
 
 {{ if .isPersonal -}}
 # Install personal pacman packages
 echo "Installing personal pacman packages..."
-sudo pacman -Sq --needed --noconfirm {{ .packages.arch.personal.pacman | join " " }}
+sudo pacman -Sq --needed --noconfirm --ask 4 {{ .packages.arch.personal.pacman | join " " }}
 
 # Install personal AUR packages
 echo "Installing personal AUR packages..."
-paru -Sq --needed --noconfirm --overwrite="*" {{ .packages.arch.personal.aur | join " " }}
+paru -Sq --needed --noconfirm --ask 4 --overwrite="*" {{ .packages.arch.personal.aur | join " " }}
 
 {{ end -}}
 # Update all packages
 echo "Updating all packages..."
-paru -Syu --noconfirm
+paru -Syu --noconfirm --ask 4
 
 # Create sensitive directories
 echo "Creating sensitive directories..."
