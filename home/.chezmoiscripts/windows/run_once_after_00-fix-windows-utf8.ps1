@@ -4,11 +4,13 @@
 # How can we not figure out how to do UTF-8 correctly in 2026 but whyyyyyy
 # not like it's a new thing, it's been around for decades but whyyyyyy
 
-$CodePageProperties = @{
-  ACP   = 65001
-  MACCP = 65001
-  OEMCP = 65001
-}
-foreach ($Item in $CodePageProperties.Keys) {
-  gsudo New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\CodePage' -Name $Item -PropertyType String -Value $CodePageProperties[$Item] -Force
+gsudo cache on
+gsudo {
+  $CodePageProperties = @{
+    ACP   = 65001
+    MACCP = 65001
+    OEMCP = 65001
+  }
+  foreach ($Item in $CodePageProperties.Keys) {
+    New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\CodePage' -Name $Item -PropertyType String -Value $CodePageProperties[$Item] -Force  }
 }
