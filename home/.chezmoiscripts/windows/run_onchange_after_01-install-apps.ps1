@@ -66,6 +66,7 @@ Install-WingetApp -Id "SlackTechnologies.Slack"
 Install-WingetApp -Id "UderzoSoftware.SpaceSniffer"
 Install-WingetApp -Id "WinSCP.WinSCP"
 Install-WingetApp -Id "Yubico.Authenticator"
+Install-WingetApp -Id "Zen-Team.Zen-Browser"
 
 # Re-enable UAC
 gsudo Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 1
