@@ -18,13 +18,12 @@ function Install-WingetApp {
 
   Write-Host "📦 Installing $Id..."
 
-  $params = @{
-    Id = $Id
-    Mode = 'Silent'
-    Source = $Source
-  }
-
-  Install-WinGetPackage @params -AcceptPackageAgreements -AcceptSourceAgreements
+  Install-WinGetPackage `
+    -Id $Id `
+    -Mode Silent `
+    -Source $Source `
+    -AcceptPackageAgreements `
+    -AcceptSourceAgreements
 
   Write-Host "✅ $Id installed!"
 }
