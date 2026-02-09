@@ -1,7 +1,7 @@
 #Requires -Version 7
 
 # Get list of installed packages once
-$installedPackages = Get-WinGetPackage -Source winget | Select-Object -ExpandProperty Id
+$installedPackages = winget list --source winget --accept-source-agreements | Out-String
 
 function Install-WingetApp {
   param(
@@ -11,21 +11,34 @@ function Install-WingetApp {
   )
 
   # Check if package is already installed
-  if ($installedPackages -contains $Id) {
+  if ($installedPackages -match [regex]::Escape($Id)) {
     Write-Host "⏭️ $Id already installed, skipping..."
     return
   }
 
   Write-Host "📦 Installing $Id..."
 
-  Install-WinGetPackage `
-    -Id $Id `
-    -Mode Silent `
-    -Source $Source `
-    -AcceptPackageAgreements `
-    -AcceptSourceAgreements
+  $wingetArgs = @(
+    "install"
+    "--id", $Id
+    "--silent"
+    "--source", $Source
+    "--accept-package-agreements"
+    "--accept-source-agreements"
+  )
 
-  Write-Host "✅ $Id installed!"
+  if ($CustomArgs -ne "") {
+    $wingetArgs += "--custom"
+    $wingetArgs += $CustomArgs
+  }
+
+  winget @wingetArgs
+
+  if ($LASTEXITCODE -eq 0) {
+    Write-Host "✅ $Id installed!"
+  } else {
+    Write-Host "❌ $Id failed to install (exit code: $LASTEXITCODE)"
+  }
 }
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
