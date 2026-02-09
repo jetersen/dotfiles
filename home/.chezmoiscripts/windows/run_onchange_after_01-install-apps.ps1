@@ -1,5 +1,10 @@
 #Requires -Version 7
 
+# Disable UAC to prevent prompts during installations
+gsudo cache on
+gsudo Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 0
+Write-Host "🔓 UAC temporarily disabled for installations"
+
 # Get list of installed packages once
 $installedPackages = winget list --source winget --accept-source-agreements | Out-String
 
@@ -61,3 +66,7 @@ Install-WingetApp -Id "SlackTechnologies.Slack"
 Install-WingetApp -Id "UderzoSoftware.SpaceSniffer"
 Install-WingetApp -Id "WinSCP.WinSCP"
 Install-WingetApp -Id "Yubico.Authenticator"
+
+# Re-enable UAC
+gsudo Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 1
+Write-Host "🔒 UAC re-enabled"
