@@ -1,39 +1,11 @@
 #Requires -Version 7
 
 # =============================================================================
-# System Configuration
+# User-level Configuration (no elevation required)
 # =============================================================================
-
-#--- Enable developer mode ---
-gsudo Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock' -Name 'AllowDevelopmentWithoutDevLicense' -Value 1
-
-#--- Enable TLS 1.2 on 64 bit .Net Framework ---
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v2.0.50727' -Name 'SchUseStrongCrypto' -Value 1
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.0.30319' -Name 'SchUseStrongCrypto' -Value 1
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v2.0.50727' -Name 'SystemDefaultTlsVersions' -Value 1
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.0.30319' -Name 'SystemDefaultTlsVersions' -Value 1
-
-#--- Enable TLS 1.2 on 32 bit .Net Framework ---
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NETFramework\v2.0.50727' -Name 'SchUseStrongCrypto' -Value 1
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NetFramework\v4.0.30319' -Name 'SchUseStrongCrypto' -Value 1
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NETFramework\v2.0.50727' -Name 'SystemDefaultTlsVersions' -Value 1
-gsudo Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NetFramework\v4.0.30319' -Name 'SystemDefaultTlsVersions' -Value 1
 
 #--- Keyboard languages ---
 Set-WinUserLanguageList -LanguageList en-US, da -Force
-
-#--- UTF-8 ---
-$CodePageProperties = @{
-  ACP   = 65001
-  MACCP = 65001
-  OEMCP = 65001
-}
-foreach ($Item in $CodePageProperties.Keys) {
-  gsudo New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\CodePage' -Name $Item -PropertyType String -Value $CodePageProperties[$Item] -Force
-}
-
-#--- Set execution policy ---
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
 #--- Explorer settings ---
 # Show hidden files, protected OS files, file extensions
@@ -51,19 +23,32 @@ New-Item -Path 'HKCU:\Software\Policies\Microsoft\Windows\Explorer' -Force | Out
 Set-ItemProperty -Path 'HKCU:\Software\Policies\Microsoft\Windows\Explorer' -Name 'DisableSearchBoxSuggestions' -Value 1
 Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Search' -Name 'BingSearchEnabled' -Value 0
 
-#--- SSH agent ---
-gsudo Set-Service ssh-agent -StartupType Automatic
+# Mixed Reality Portal
+$Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"
+if (Test-Path $Holo) {
+  Set-ItemProperty $Holo FirstRunSucceeded -Value 0
+}
 
-# =============================================================================
-# Windows Features
-# =============================================================================
+# Disable live tiles
+$Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
+if (!(Test-Path $Live)) { New-Item $Live }
+Set-ItemProperty $Live NoTileApplicationNotification -Value 1
 
-$features = @(
-  'Microsoft-Windows-Subsystem-Linux',
-  'VirtualMachinePlatform',
-  'Containers'
-)
-gsudo Enable-WindowsOptionalFeature -FeatureName $features -Online -All -NoRestart | Out-Null
+# Disable People icon on Taskbar
+$People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
+if (Test-Path $People) {
+  Set-ItemProperty $People -Name PeopleBand -Value 0
+}
+
+# Content Delivery Manager
+$registryOEM = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
+if (!(Test-Path $registryOEM)) { New-Item $registryOEM }
+Set-ItemProperty $registryOEM ContentDeliveryAllowed -Value 0
+Set-ItemProperty $registryOEM OemPreInstalledAppsEnabled -Value 0
+Set-ItemProperty $registryOEM PreInstalledAppsEnabled -Value 0
+Set-ItemProperty $registryOEM PreInstalledAppsEverEnabled -Value 0
+Set-ItemProperty $registryOEM SilentInstalledAppsEnabled -Value 0
+Set-ItemProperty $registryOEM SystemPaneSuggestionsEnabled -Value 0
 
 # =============================================================================
 # Remove Default Apps
@@ -143,84 +128,84 @@ if ((Get-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -
   foreach ($app in $applicationList) {
     removeApp $app
   }
+}
 
-  # Disable Windows Feedback Experience
+# =============================================================================
+# Elevated Configuration (single gsudo block)
+# =============================================================================
+
+gsudo {
+  #--- Enable developer mode ---
+  Set-ItemProperty -Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\AppModelUnlock' -Name 'AllowDevelopmentWithoutDevLicense' -Value 1
+
+  #--- Enable TLS 1.2 on 64 bit .Net Framework ---
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v2.0.50727' -Name 'SchUseStrongCrypto' -Value 1
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.0.30319' -Name 'SchUseStrongCrypto' -Value 1
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v2.0.50727' -Name 'SystemDefaultTlsVersions' -Value 1
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.0.30319' -Name 'SystemDefaultTlsVersions' -Value 1
+
+  #--- Enable TLS 1.2 on 32 bit .Net Framework ---
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NETFramework\v2.0.50727' -Name 'SchUseStrongCrypto' -Value 1
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NetFramework\v4.0.30319' -Name 'SchUseStrongCrypto' -Value 1
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NETFramework\v2.0.50727' -Name 'SystemDefaultTlsVersions' -Value 1
+  Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\.NetFramework\v4.0.30319' -Name 'SystemDefaultTlsVersions' -Value 1
+
+  #--- SSH agent ---
+  Set-Service ssh-agent -StartupType Automatic
+
+  #--- Windows Features ---
+  $features = @(
+    'Microsoft-Windows-Subsystem-Linux',
+    'VirtualMachinePlatform',
+    'Containers'
+  )
+  Enable-WindowsOptionalFeature -FeatureName $features -Online -All -NoRestart | Out-Null
+
+  #--- Disable Windows Feedback Experience ---
   $Advertising = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo"
   if (Test-Path $Advertising) {
-    gsudo Set-ItemProperty $Advertising Enabled -Value 0
+    Set-ItemProperty $Advertising Enabled -Value 0
   }
 
-  # Stop Cortana from being used in Windows Search
+  #--- Stop Cortana from being used in Windows Search ---
   $Search = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
   if (Test-Path $Search) {
-    gsudo Set-ItemProperty $Search AllowCortana -Value 0
+    Set-ItemProperty $Search AllowCortana -Value 0
   }
 
-  # Disable Web Search in Start Menu
+  #--- Disable Web Search in Start Menu ---
   $WebSearch = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
-  Set-ItemProperty "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" BingSearchEnabled -Value 0
   if (!(Test-Path $WebSearch)) {
-    gsudo New-Item $WebSearch
+    New-Item $WebSearch
   }
-  gsudo Set-ItemProperty $WebSearch DisableWebSearch -Value 1
+  Set-ItemProperty $WebSearch DisableWebSearch -Value 1
 
-  # Mixed Reality Portal
-  $Holo = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Holographic"
-  if (Test-Path $Holo) {
-    Set-ItemProperty $Holo FirstRunSucceeded -Value 0
-  }
-
-  # Disable Wi-Fi Sense
+  #--- Disable Wi-Fi Sense ---
   $WifiSense1 = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowWiFiHotSpotReporting"
   $WifiSense2 = "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\WiFi\AllowAutoConnectToWiFiSenseHotspots"
   $WifiSense3 = "HKLM:\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config"
-  if (!(Test-Path $WifiSense1)) { gsudo New-Item $WifiSense1 }
-  gsudo Set-ItemProperty $WifiSense1 Value -Value 0
-  if (!(Test-Path $WifiSense2)) { gsudo New-Item $WifiSense2 }
-  gsudo Set-ItemProperty $WifiSense2 Value -Value 0
-  gsudo Set-ItemProperty $WifiSense3 AutoConnectAllowedOEM -Value 0
+  if (!(Test-Path $WifiSense1)) { New-Item $WifiSense1 }
+  Set-ItemProperty $WifiSense1 Value -Value 0
+  if (!(Test-Path $WifiSense2)) { New-Item $WifiSense2 }
+  Set-ItemProperty $WifiSense2 Value -Value 0
+  Set-ItemProperty $WifiSense3 AutoConnectAllowedOEM -Value 0
 
-  # Disable live tiles
-  $Live = "HKCU:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications"
-  if (!(Test-Path $Live)) { New-Item $Live }
-  Set-ItemProperty $Live NoTileApplicationNotification -Value 1
-
-  # Disable Location Tracking
+  #--- Disable Location Tracking ---
   $SensorState = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Sensor\Overrides\{BFA794E4-F964-4FDB-90F6-51056BFE4B44}"
   $LocationConfig = "HKLM:\SYSTEM\CurrentControlSet\Services\lfsvc\Service\Configuration"
-  if (!(Test-Path $SensorState)) { gsudo New-Item $SensorState }
-  gsudo Set-ItemProperty $SensorState SensorPermissionState -Value 0
-  if (!(Test-Path $LocationConfig)) { gsudo New-Item $LocationConfig }
-  gsudo Set-ItemProperty $LocationConfig Status -Value 0
+  if (!(Test-Path $SensorState)) { New-Item $SensorState }
+  Set-ItemProperty $SensorState SensorPermissionState -Value 0
+  if (!(Test-Path $LocationConfig)) { New-Item $LocationConfig }
+  Set-ItemProperty $LocationConfig Status -Value 0
 
-  # Disable People icon on Taskbar
-  $People = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced\People'
-  if (Test-Path $People) {
-    Set-ItemProperty $People -Name PeopleBand -Value 0
-  }
+  #--- Disable unnecessary scheduled tasks ---
+  $tasksToDisable = @("XblGameSaveTaskLogon", "XblGameSaveTask", "Consolidator", "UsbCeip", "DmClient", "DmClientOnScenarioDownload")
+  Get-ScheduledTask | Where-Object { $_.TaskName -in $tasksToDisable } | Disable-ScheduledTask
 
-  # Disable unnecessary scheduled tasks
-  $tasks = gsudo Get-ScheduledTask
-  $tasks | Where-Object TaskName -eq "XblGameSaveTaskLogon" | ForEach-Object { gsudo Disable-ScheduledTask -TaskName $_.TaskName }
-  $tasks | Where-Object TaskName -eq "XblGameSaveTask" | ForEach-Object { gsudo Disable-ScheduledTask -TaskName $_.TaskName }
-  $tasks | Where-Object TaskName -eq "Consolidator" | ForEach-Object { gsudo Disable-ScheduledTask -TaskName $_.TaskName }
-  $tasks | Where-Object TaskName -eq "UsbCeip" | ForEach-Object { gsudo Disable-ScheduledTask -TaskName $_.TaskName }
-  $tasks | Where-Object TaskName -eq "DmClient" | ForEach-Object { gsudo Disable-ScheduledTask -TaskName $_.TaskName }
-  $tasks | Where-Object TaskName -eq "DmClientOnScenarioDownload" | ForEach-Object { gsudo Disable-ScheduledTask -TaskName $_.TaskName }
-
-  # Prevent bloatware from returning
+  #--- Prevent bloatware from returning ---
   $registryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent"
-  $registryOEM = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-  if (!(Test-Path $registryPath)) { gsudo New-Item $registryPath }
-  gsudo Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
-
-  if (!(Test-Path $registryOEM)) { New-Item $registryOEM }
-  Set-ItemProperty $registryOEM ContentDeliveryAllowed -Value 0
-  Set-ItemProperty $registryOEM OemPreInstalledAppsEnabled -Value 0
-  Set-ItemProperty $registryOEM PreInstalledAppsEnabled -Value 0
-  Set-ItemProperty $registryOEM PreInstalledAppsEverEnabled -Value 0
-  Set-ItemProperty $registryOEM SilentInstalledAppsEnabled -Value 0
-  Set-ItemProperty $registryOEM SystemPaneSuggestionsEnabled -Value 0
+  if (!(Test-Path $registryPath)) { New-Item $registryPath }
+  Set-ItemProperty $registryPath DisableWindowsConsumerFeatures -Value 1
 }
 
 # =============================================================================
