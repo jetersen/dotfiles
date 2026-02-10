@@ -1,6 +1,7 @@
 exec-once = qs -c noctalia-shell
 exec-once = udiskie &
 exec-once = /usr/lib/polkit-kde-authentication-agent-1 &
+exec-once = wl-paste --primary --watch wl-copy &
 
 {{ if .isPersonal -}}
 exec-once = hypridle &
