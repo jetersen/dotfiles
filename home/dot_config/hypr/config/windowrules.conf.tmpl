@@ -81,9 +81,7 @@ windowrule {
   match:initial_title = com.github.th_ch.youtube_music
 }
 
-{{ if .isPersonal -}}
-# ======= Personal Workspace Assignments =======
-
+{{ if or .isPersonal .isWork -}}
 workspace = 4,monitor:$primaryMonitor
 workspace = 6,monitor:$secondaryMonitor
 {{ end -}}
