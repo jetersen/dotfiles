@@ -5,14 +5,14 @@ output "eDP-1" {
   alias $INTERNAL
 }
 
-output "Dell Inc. DELL P2725D 24CRZ64" {
+output "Dell Inc. DELL P2725D 3S5S864" {
   mode 2560x1440@99.95Hz
   position 0,0
   scale 1
   alias $WORK_1
 }
 
-output "Dell Inc. DELL P2725D 3S5S864" {
+output "Dell Inc. DELL P2725D 24CRZ64" {
   mode 2560x1440@99.95Hz
   position 2560,0
   scale 1
@@ -25,6 +25,6 @@ profile docked {
   output $WORK_2 enable
 }
 
-profile undocked {
-  output $INTERNAL enable
+profile fallback {
+  output * enable
 }
