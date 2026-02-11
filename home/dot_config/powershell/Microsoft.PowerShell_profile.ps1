@@ -237,9 +237,13 @@ function rimraf {
 }
 
 function Invoke-GitHubAutoMerge {
-  [int[]](gh pr list --json number --jq .[].number) `
-    | Sort-Object `
-    | ForEach-Object { gh pr review $_ --approve; gh pr merge $_ --squash }
+  param([string] $Login)
+  if ($Login) {
+    $prs = [int[]](gh pr list --author $Login --json number --jq '.[].number')
+  } else {
+    $prs = [int[]](gh pr list --json number,author --jq '[.[] | select(.author.is_bot)] | .[].number')
+  }
+  $prs | Sort-Object | ForEach-Object { gh pr review $_ --approve; gh pr merge $_ --squash --auto }
 }
 
 function myip { Invoke-RestMethod -Uri 'https://api.ipify.org' }

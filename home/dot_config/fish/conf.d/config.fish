@@ -24,7 +24,17 @@ alias rimraf="rm -rf"
 alias open="xdg-open"
 alias myip="curl -sSfL -w '\n' https://api.ipify.org"
 alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
-alias github-auto-merge="gh pr list --json number -;-jq .[].number | xargs -I{} sh -c 'gh pr review {} --approve; gh pr merge {} --squash'"
+function github-auto-merge
+  if test (count $argv) -gt 0
+    set prs (command gh pr list --author $argv[1] --json number --jq '.[].number')
+  else
+    set prs (command gh pr list --json number,author --jq '[.[] | select(.author.is_bot)] | .[].number')
+  end
+  for pr in $prs
+    command gh pr review $pr --approve
+    command gh pr merge $pr --squash --auto
+  end
+end
 alias g="git"
 alias d="docker"
 alias dc="docker compose"
