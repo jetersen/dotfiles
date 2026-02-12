@@ -25,14 +25,27 @@ alias open="xdg-open"
 alias myip="curl -sSfL -w '\n' https://api.ipify.org"
 alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
 function github-auto-merge
+  set fields number,autoMergeRequest,reviewDecision
   if test (count $argv) -gt 0
-    set prs (command gh pr list --author $argv[1] --json number --jq '.[].number')
+    set prs (command gh pr list --author $argv[1] --json $fields --jq '.[] | [.number, .reviewDecision, (.autoMergeRequest | length)] | @tsv')
   else
-    set prs (command gh pr list --json number,author --jq '[.[] | select(.author.is_bot)] | .[].number')
+    set prs (command gh pr list --json "$fields,author" --jq '[.[] | select(.author.is_bot)] | .[] | [.number, .reviewDecision, (.autoMergeRequest | length)] | @tsv')
   end
-  for pr in $prs
-    command gh pr review $pr --approve
-    command gh pr merge $pr --squash --auto
+  set my_login (command gh api user --jq '.login')
+  for line in $prs
+    set parts (string split \t $line)
+    set pr $parts[1]
+    set review_decision $parts[2]
+    set has_auto_merge $parts[3]
+    if test "$review_decision" != "APPROVED"
+      set approved (command gh api repos/{owner}/{repo}/pulls/$pr/reviews --jq "[.[] | select(.user.login == \"$my_login\" and .state == \"APPROVED\")] | length")
+      if test "$approved" -eq 0
+        command gh pr review $pr --approve
+      end
+    end
+    if test "$has_auto_merge" -eq 0
+      command gh pr merge $pr --squash --auto
+    end
   end
 end
 alias g="git"

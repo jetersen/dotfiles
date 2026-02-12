@@ -238,12 +238,20 @@ function rimraf {
 
 function Invoke-GitHubAutoMerge {
   param([string] $Login)
+  $fields = 'number,autoMergeRequest,reviewDecision'
   if ($Login) {
-    $prs = [int[]](gh pr list --author $Login --json number --jq '.[].number')
+    $prs = (gh pr list --author $Login --json $fields) | ConvertFrom-Json
   } else {
-    $prs = [int[]](gh pr list --json number,author --jq '[.[] | select(.author.is_bot)] | .[].number')
+    $prs = (gh pr list --json "$fields,author" --jq '[.[] | select(.author.is_bot)]') | ConvertFrom-Json
   }
-  $prs | Sort-Object | ForEach-Object { gh pr review $_ --approve; gh pr merge $_ --squash --auto }
+  $myLogin = (gh api user --jq '.login')
+  foreach ($pr in $prs | Sort-Object number) {
+    if ($pr.reviewDecision -ne 'APPROVED') {
+      $approved = (gh api "repos/{owner}/{repo}/pulls/$($pr.number)/reviews" --jq "[.[] | select(.user.login == `"$myLogin`" and .state == `"APPROVED`")] | length")
+      if ($approved -eq 0) { gh pr review $pr.number --approve }
+    }
+    if (-not $pr.autoMergeRequest) { gh pr merge $pr.number --squash --auto }
+  }
 }
 
 function myip { Invoke-RestMethod -Uri 'https://api.ipify.org' }
