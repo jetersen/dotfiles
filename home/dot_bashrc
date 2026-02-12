@@ -1,0 +1,182 @@
+# Source system bashrc
+if [[ -f /etc/bash.bashrc ]]; then
+  source /etc/bash.bashrc
+elif [[ -f /etc/bashrc ]]; then
+  source /etc/bashrc
+fi
+
+# Environment variables
+export BROWSER="zen-browser"
+export SESSIONDEFAULTUSER="$USER"
+export EDITOR="code --wait"
+export CDPATH="$HOME/git/code:$HOME/git/work"
+export PACKAGEOUTPUTPATH="$HOME/.nuget/local"
+
+# PATH
+prepend_path() {
+  [[ -d "$1" ]] && PATH="$1:${PATH}"
+}
+prepend_path "$HOME/go/bin"
+prepend_path "$HOME/.aspire/bin"
+prepend_path "$HOME/.krew/bin"
+prepend_path "$HOME/.cargo/bin"
+prepend_path "$HOME/.npm-global/bin"
+prepend_path "$HOME/.local/bin"
+prepend_path "$HOME/.dotnet/tools"
+export PATH
+
+# Aliases
+alias g="git"
+alias d="docker"
+alias dc="docker compose"
+alias vim="nvim"
+alias vi="nvim"
+alias l="eza -1 --color=always --group-directories-first --all"
+alias ll="eza --binary --group --header --all --long --links --classify --group-directories-first"
+alias ls="eza --color=always --group-directories-first"
+alias pip="pip3"
+alias python="python3"
+alias rimraf="rm -rf"
+alias open="xdg-open"
+alias myip="curl -sSfL -w '\n' https://api.ipify.org"
+alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
+
+# Functions
+
+ride() {
+  local file dir="${1:-.}"
+  for ext in slnx sln csproj; do
+    file=$(fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension "$ext" . "$dir")
+    [[ -n "$file" ]] && break
+  done
+  if [[ -n "$file" ]]; then
+    echo "$file"
+    nohup rider "$file" >/dev/null 2>&1 &
+  else
+    echo "No .slnx, .sln, or .csproj file found."
+  fi
+}
+
+rider-eap() {
+  local file dir="${1:-.}"
+  for ext in slnx sln csproj; do
+    file=$(fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension "$ext" . "$dir")
+    [[ -n "$file" ]] && break
+  done
+  if [[ -n "$file" ]]; then
+    echo "$file"
+    nohup rider-eap "$file" >/dev/null 2>&1 &
+  else
+    echo "No .slnx, .sln, or .csproj file found."
+  fi
+}
+
+github-auto-merge() {
+  local fields="number,autoMergeRequest,reviewDecision"
+  local prs
+  if [[ $# -gt 0 ]]; then
+    prs=$(command gh pr list --author "$1" --json "$fields" --jq '.[] | [.number, .reviewDecision, (.autoMergeRequest | length)] | @tsv')
+  else
+    prs=$(command gh pr list --json "$fields,author" --jq '[.[] | select(.author.is_bot)] | .[] | [.number, .reviewDecision, (.autoMergeRequest | length)] | @tsv')
+  fi
+  local my_login
+  my_login=$(command gh api user --jq '.login')
+  while IFS=$'\t' read -r pr review_decision has_auto_merge; do
+    [[ -z "$pr" ]] && continue
+    if [[ "$review_decision" != "APPROVED" ]]; then
+      local approved
+      approved=$(command gh api "repos/{owner}/{repo}/pulls/$pr/reviews" --jq "[.[] | select(.user.login == \"$my_login\" and .state == \"APPROVED\")] | length")
+      if [[ "$approved" -eq 0 ]]; then
+        command gh pr review "$pr" --approve
+      fi
+    fi
+    if [[ "$has_auto_merge" -eq 0 ]]; then
+      command gh pr merge "$pr" --squash --auto
+    fi
+  done <<< "$prs"
+}
+
+git() {
+  if [[ "$1" == "clone" ]]; then
+    local clone_output status_code
+    clone_output=$(command git "$@" 2>&1)
+    status_code=$?
+    echo "$clone_output"
+    if [[ $status_code -eq 0 ]]; then
+      local dir_name
+      dir_name=$(echo "$clone_output" | grep -oP "Cloning into '\\K[^']+")
+      if [[ -n "$dir_name" && -d "$dir_name" ]]; then
+        cd "./$dir_name" || return
+      fi
+    fi
+    return $status_code
+  else
+    command git "$@"
+  fi
+}
+
+gh() {
+  if [[ "$1" == "repo" && "$2" == "clone" ]]; then
+    local clone_output status_code
+    clone_output=$(command gh "$@" 2>&1)
+    status_code=$?
+    echo "$clone_output"
+    if [[ $status_code -eq 0 ]]; then
+      local dir_name
+      dir_name=$(echo "$clone_output" | grep -oP "Cloning into '\\K[^']+")
+      if [[ -n "$dir_name" && -d "$dir_name" ]]; then
+        cd "./$dir_name" || return
+      fi
+    fi
+    return $status_code
+  else
+    command gh "$@"
+  fi
+}
+
+cws() {
+  cd ~/git/code || return
+}
+
+dotfile() {
+  xdg-open https://github.com/jetersen/dotfiles
+}
+
+clean-sln() {
+  fd -HI -t d '^(\.vs|bin|obj)$' -x rm -rf
+}
+
+hostfile() {
+  sudoedit /etc/hosts
+}
+
+dcid() {
+  docker ps -l -q
+}
+
+dprune() {
+  docker system prune "$@"
+}
+
+dip() {
+  docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' "$1"
+}
+
+dotenv() {
+  local env_file="${1:-.env}"
+  if [[ ! -f "$env_file" ]]; then
+    echo "No .env file found"
+    return 1
+  fi
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    local key="${line%%=*}"
+    local value="${line#*=}"
+    export "$(echo "$key" | xargs)=$(echo "$value" | xargs)"
+  done < "$env_file"
+}
+
+# Prompt
+if command -v oh-my-posh &>/dev/null; then
+  eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/jetersen.omp.json)"
+fi

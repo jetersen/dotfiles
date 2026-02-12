@@ -33,6 +33,7 @@ chezmoi update
 ```text
 home/
 ├── .chezmoiignore                          # Platform-specific filtering
+├── dot_bashrc                              # → ~/.bashrc
 ├── dot_config/
 │   ├── git/
 │   │   ├── config.tmpl                    # → ~/.config/git/config (template: Windows sshCommand)
@@ -69,7 +70,7 @@ home/
 ### Platform Filtering (`.chezmoiignore`)
 
 - **Linux/macOS**: `Documents/` is ignored (no Windows PS symlinks needed)
-- **Windows**: `.config/fish/` is ignored (fish not used on Windows)
+- **Windows**: `.config/fish/` and `.bashrc` are ignored (fish/bash not used on Windows)
 
 ### Git Config Hierarchy
 
@@ -83,7 +84,15 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 
 ### Shell Configs
 
-**Fish** (`dot_config/fish/conf.d/config.fish`): Primary shell on Linux/macOS. Has custom `git clone`/`gh repo clone` wrappers that auto-cd into cloned directories, eza aliases, Oh My Posh prompt.
+**These three shell profiles must be kept in sync.** They share the same aliases, environment variables, functions, and PATH entries. When adding or changing a function/alias in one, apply the equivalent change to the other two.
+
+- `dot_bashrc` — Bash (Linux/macOS, used by Claude Code)
+- `dot_config/fish/conf.d/config.fish` — Fish (primary interactive shell on Linux/macOS)
+- `dot_config/powershell/Microsoft.PowerShell_profile.ps1` — PowerShell (Windows, cross-platform)
+
+**Fish** (`dot_config/fish/conf.d/config.fish`): Primary interactive shell on Linux/macOS. Has custom `git clone`/`gh repo clone` wrappers that auto-cd into cloned directories, eza aliases, Oh My Posh prompt.
+
+**Bash** (`dot_bashrc`): Bash equivalent of the Fish config, deployed to `~/.bashrc`. Provides the same aliases, functions, and environment so that tools running bash (e.g. Claude Code) have feature parity.
 
 **PowerShell** (`dot_config/powershell/Microsoft.PowerShell_profile.ps1`): Cross-platform profile with module management and Docker helpers. On Windows, `Documents/PowerShell/` and `Documents/WindowsPowerShell/` contain symlinks pointing to this canonical location.
 
@@ -98,6 +107,7 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 | `dot_config/git/ignore` | `~/.config/git/ignore` |
 | `dot_githooks/executable_commit-msg` | `~/.githooks/commit-msg` |
 | `private_dot_ssh/config` | `~/.ssh/config` |
+| `dot_bashrc` | `~/.bashrc` |
 | `dot_config/fish/conf.d/config.fish` | `~/.config/fish/conf.d/config.fish` |
 | `dot_config/powershell/Microsoft.PowerShell_profile.ps1` | `~/.config/powershell/Microsoft.PowerShell_profile.ps1` |
 | `dot_config/oh-my-posh/jetersen.omp.json` | `~/.config/oh-my-posh/jetersen.omp.json` |
