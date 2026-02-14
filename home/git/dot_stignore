@@ -1,0 +1,77 @@
+// .NET
+bin
+obj
+.vs
+packages
+BenchmarkDotNet.Artifacts
+nupkgs
+
+// Node
+node_modules
+dist
+coverage
+
+// Java / Gradle / Maven
+target
+build
+.gradle
+.mvn
+
+// Python
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+pip-cache
+
+// Rust
+// (Rust 'target' already covered above)
+
+// Go
+.modcache
+.cache
+
+// IDE
+.idea
+.ionide
+
+// Git internals
+.git
+
+// Secrets and env files
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+credentials.json
+secrets.json
+**/secret/**
+**/secrets/**
+
+// OS
+.DS_Store
+Thumbs.db
+
+// Docusaurus
+.docusaurus
+
+// Archives
+*.zip
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tar.xz
+*.rar
+*.7z
+
+// Helm dependency charts
+**/charts/*.tgz
+**/charts/*/charts
+Chart.lock
+
+// Misc output
+output
+out
+boboutput
