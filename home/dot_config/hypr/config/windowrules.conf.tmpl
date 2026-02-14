@@ -47,29 +47,19 @@ windowrule {
   match:class = (explorer.exe)
 }
 
-# WoW
 windowrule {
-  name = windowrule-wow-tag
+  name = windowrule-steam-proton-tag
   tag = +game
   match:class = ^(steam_proton)$
-  match:title = ^(World of Warcraft)$
 }
 
 windowrule {
   name = windowrule-game
   render_unfocused = on
   workspace = 4
-  fullscreen = on
+  fullscreen = 0
   content = game
   match:tag = game
-}
-
-# Diablo 4
-windowrule {
-  name = windowrule-diablo4
-  tag = +game
-  match:class = ^(steam_proton)$
-  match:title = ^(Diablo IV)$
 }
 {{ end -}}
 
