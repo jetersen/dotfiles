@@ -37,6 +37,7 @@ pacman = [
   "localsend",
   "maven",
   "meld",
+  "mise",
   "mpv",
   "pulumi",
   "ripgrep",
