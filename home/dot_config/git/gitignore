@@ -26,3 +26,7 @@ Desktop.ini
 .Trash-*
 
 **/.claude/settings.local.json
+
+# Syncthing
+*.sync-conflict-*
+*.syncthing.*.tmp
