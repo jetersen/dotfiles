@@ -30,3 +30,6 @@ Desktop.ini
 # Syncthing
 *.sync-conflict-*
 *.syncthing.*.tmp
+.stignore
+.stfolder
+.rsync-exclude
