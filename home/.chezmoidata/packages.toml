@@ -43,6 +43,7 @@ pacman = [
   "rustup",
   "satty",
   "sops",
+  "syncthing",
   "ttf-jetbrains-mono",
   "ttf-jetbrains-mono-nerd",
   "virt-manager",
