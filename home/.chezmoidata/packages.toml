@@ -34,6 +34,7 @@ pacman = [
   "kubectl",
   "kubectx",
   "kustomize",
+  "localsend",
   "maven",
   "meld",
   "mpv",
