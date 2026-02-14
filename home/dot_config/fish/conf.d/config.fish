@@ -151,4 +151,8 @@ function dotenv
   end
 end
 
+if command -q mise
+  mise activate fish | source
+end
+
 oh-my-posh init fish --config ~/.config/oh-my-posh/jetersen.omp.json | source

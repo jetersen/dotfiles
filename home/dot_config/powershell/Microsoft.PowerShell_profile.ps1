@@ -350,6 +350,10 @@ if ("$ENV:PATH" -notlike "*$HOME/bin*") {
   $ENV:PATH += [IO.Path]::PathSeparator + "$HOME/bin"
 }
 
+if (Get-Command "mise" -ErrorAction SilentlyContinue) {
+  (mise activate pwsh) | Out-String | Invoke-Expression
+}
+
 if (Get-Command "oh-my-posh" -ErrorAction SilentlyContinue) {
   oh-my-posh init pwsh --config "$HOME/.config/oh-my-posh/jetersen.omp.json" | Invoke-Expression
 }
