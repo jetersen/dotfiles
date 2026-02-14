@@ -55,6 +55,7 @@ Install-WingetApp -Id "gerardog.gsudo"
 Install-WingetApp -Id "Git.Git" -CustomArgs '/components="gitlfs" /o:EditorOption=VisualStudioCode /o:CURLOption=WinSSL'
 Install-WingetApp -Id "GitHub.cli"
 Install-WingetApp -Id "JanDeDobbeleer.OhMyPosh"
+Install-WingetApp -Id "jdx.mise"
 Install-WingetApp -Id "Microsoft.DotNet.SDK.10"
 Install-WingetApp -Id "Microsoft.PowerShell"
 Install-WingetApp -Id "Microsoft.VisualStudioCode"
