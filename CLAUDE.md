@@ -35,6 +35,8 @@ home/
 ├── .chezmoiignore                          # Platform-specific filtering
 ├── dot_bashrc                              # → ~/.bashrc
 ├── dot_zshrc                               # → ~/.zshrc (sources ~/.bashrc)
+├── git/
+│   └── dot_stignore                       # → ~/git/.stignore (Syncthing ignore patterns)
 ├── dot_config/
 │   ├── git/
 │   │   ├── config.tmpl                    # → ~/.config/git/config (template: Windows sshCommand)
@@ -83,6 +85,16 @@ home/
 
 A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from branch names.
 
+### Syncthing Ignore Patterns
+
+`git/dot_stignore` is deployed to `~/git/.stignore` and defines patterns for files/directories that Syncthing should not synchronize across devices. This prevents syncing:
+
+- Build artifacts (bin, obj, node_modules, target, etc.)
+- IDE metadata (.idea, .vs, .ionide)
+- Secrets and credentials (.env, *.pem, *.key, credentials.json)
+- Archives and compressed files (*.zip, *.tar.gz, *.json.gz)
+- Large temporary outputs
+
 ### Shell Configs
 
 **These three shell profiles must be kept in sync.** They share the same aliases, environment variables, functions, and PATH entries. When adding or changing a function/alias in one, apply the equivalent change to the other two.
@@ -108,6 +120,7 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 | `dot_config/git/ignore` | `~/.config/git/ignore` |
 | `dot_githooks/executable_commit-msg` | `~/.githooks/commit-msg` |
 | `private_dot_ssh/config` | `~/.ssh/config` |
+| `git/dot_stignore` | `~/git/.stignore` |
 | `dot_bashrc` | `~/.bashrc` |
 | `dot_zshrc` | `~/.zshrc` |
 | `dot_config/fish/conf.d/config.fish` | `~/.config/fish/conf.d/config.fish` |

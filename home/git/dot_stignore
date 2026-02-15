@@ -68,6 +68,7 @@ Thumbs.db
 *.tar.xz
 *.rar
 *.7z
+*.json.gz
 
 // Helm dependency charts
 **/charts/*.tgz
