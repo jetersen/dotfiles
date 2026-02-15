@@ -66,6 +66,7 @@ Thumbs.db
 *.tgz
 *.tar.bz2
 *.tar.xz
+*.tar.zst
 *.rar
 *.7z
 *.json.gz
