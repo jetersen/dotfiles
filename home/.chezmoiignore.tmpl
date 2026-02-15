@@ -17,6 +17,9 @@ Pictures
 {{ if not .isHyprland }}
 dot_config/hypr
 {{ end }}
+{{ if not .isNiri }}
+dot_config/niri
+{{ end }}
 {{ if not .isWork }}
 dot_config/kanshi
 {{ end }}

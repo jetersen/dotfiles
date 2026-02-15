@@ -48,6 +48,18 @@ home/
 │   │   └── config.fish                    # → ~/.config/fish/conf.d/config.fish
 │   ├── oh-my-posh/
 │   │   └── jetersen.omp.json              # → ~/.config/oh-my-posh/jetersen.omp.json
+│   ├── niri/
+│   │   ├── config.kdl                    # → ~/.config/niri/config.kdl (main config, includes cfg/*.kdl)
+│   │   ├── noctalia.kdl                  # → ~/.config/niri/noctalia.kdl (Noctalia theme colors)
+│   │   └── cfg/                          # → ~/.config/niri/cfg/ (split config modules)
+│   │       ├── animation.kdl
+│   │       ├── autostart.kdl
+│   │       ├── display.kdl
+│   │       ├── input.kdl
+│   │       ├── keybinds.kdl
+│   │       ├── layout.kdl
+│   │       ├── misc.kdl
+│   │       └── rules.kdl
 │   └── powershell/
 │       └── Microsoft.PowerShell_profile.ps1  # → canonical pwsh profile
 ├── dot_githooks/
@@ -74,6 +86,8 @@ home/
 
 - **Linux/macOS**: `Documents/` is ignored (no Windows PS symlinks needed)
 - **Windows**: `.config/fish/`, `.bashrc`, and `.zshrc` are ignored (fish/bash/zsh not used on Windows)
+- **Non-Hyprland**: `.config/hypr/` is ignored
+- **Non-niri**: `.config/niri/` is ignored
 
 ### Git Config Hierarchy
 
@@ -125,6 +139,9 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 | `dot_zshrc` | `~/.zshrc` |
 | `dot_config/fish/conf.d/config.fish` | `~/.config/fish/conf.d/config.fish` |
 | `dot_config/powershell/Microsoft.PowerShell_profile.ps1` | `~/.config/powershell/Microsoft.PowerShell_profile.ps1` |
+| `dot_config/niri/config.kdl` | `~/.config/niri/config.kdl` |
+| `dot_config/niri/noctalia.kdl` | `~/.config/niri/noctalia.kdl` |
+| `dot_config/niri/cfg/*.kdl` | `~/.config/niri/cfg/*.kdl` |
 | `dot_config/oh-my-posh/jetersen.omp.json` | `~/.config/oh-my-posh/jetersen.omp.json` |
 
 ## Code Style
@@ -133,4 +150,4 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 - 2-space indentation (tabs for gitconfig files)
 - Trim trailing whitespace, insert final newline
 
-Every text file **must** end with a final newline (enforced by `.editorconfig`). Some tools — notably Hyprland's config parser — fail to process the last line of a file if it isn't followed by a newline. Always ensure new and edited files have one.
+Every text file **must** end with a final newline (enforced by `.editorconfig`). Some tools — notably Hyprland's and niri's config parsers — fail to process the last line of a file if it isn't followed by a newline. Always ensure new and edited files have one.

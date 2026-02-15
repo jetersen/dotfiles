@@ -15,6 +15,7 @@
 {{- $isMacOS := eq .chezmoi.os "darwin" -}}
 {{- $isCodespaces := eq (env "CODESPACES") "true" -}}
 {{- $isHyprland := eq (env "XDG_CURRENT_DESKTOP") "Hyprland" -}}
+{{- $isNiri := eq (env "XDG_CURRENT_DESKTOP") "niri" -}}
 
 {{- $firstname := "Joseph" -}}
 {{- $lastname := "Petersen" -}}
@@ -45,6 +46,7 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
   isMacOS = {{ $isMacOS }}
   isCodespaces = {{ $isCodespaces }}
   isHyprland = {{ $isHyprland }}
+  isNiri = {{ $isNiri }}
   passUriPrefix = "pass://Personal"
 
 [interpreters.ps1]

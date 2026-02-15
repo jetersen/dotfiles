@@ -1,0 +1,13 @@
+// ────────────── Startup Applications ──────────────
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
+
+spawn-sh-at-startup "qs -c noctalia-shell"
+spawn-sh-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
+spawn-sh-at-startup "udiskie"
+spawn-sh-at-startup "wl-paste --watch wl-copy --primary"
+
+{{ if .isWork -}}
+spawn-sh-at-startup "/usr/bin/slack --disable-gpu-compositing --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime --enable-features=WebRTCPipeWireCapturer --enable-features=WaylandWindowDecorations --disable-features=WaylandFractionalScaleV1"
+spawn-sh-at-startup "systemctl --user import-environment"
+spawn-sh-at-startup "dbus-update-activation-environment --systemd"
+{{ end -}}
