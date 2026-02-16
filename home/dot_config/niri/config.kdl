@@ -8,3 +8,4 @@ include "./cfg/rules.kdl"
 include "./cfg/misc.kdl"
 
 include "./noctalia.kdl"
+include "./cfg/decorations.kdl"

@@ -1,0 +1,13 @@
+layout {
+  focus-ring {
+    off
+  }
+
+  border {
+    off
+  }
+
+  shadow {
+    off
+  }
+}
