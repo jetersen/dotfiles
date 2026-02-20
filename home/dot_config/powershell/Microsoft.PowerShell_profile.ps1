@@ -333,6 +333,7 @@ Set-Alias d docker
 Set-Alias g git
 Set-Alias vim nvim
 Set-Alias vi nvim
+function cc { claude --dangerously-skip-permissions @args }
 
 if ($IsLinux -or $IsMacOS) {
   Set-Alias pip pip3
