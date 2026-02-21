@@ -5,6 +5,7 @@ input {
   keyboard {
     xkb {
       layout "us,dk"
+      options "grp:alt_space_toggle"
     }
     //numlock // Enable numlock on startup
   }
