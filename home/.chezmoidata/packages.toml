@@ -2,6 +2,7 @@
 pacman = [
   "age",
   "alacritty",
+  "argocd",
   "aspnet-runtime-bin",
   "aspnet-targeting-pack-bin",
   "bitwarden",
