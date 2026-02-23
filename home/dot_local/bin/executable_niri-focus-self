@@ -1,0 +1,11 @@
+#!/bin/bash
+command -v niri >/dev/null || exit 0
+windows=$(niri msg -j windows)
+pid=$$
+while [ "$pid" -gt 1 ]; do
+  id=$(echo "$windows" | jq -r --argjson p "$pid" '.[] | select(.pid == $p) | .id // empty')
+  if [ -n "$id" ]; then
+    exec niri msg action focus-window --id "$id"
+  fi
+  pid=$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')
+done
