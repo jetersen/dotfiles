@@ -1,5 +1,16 @@
 Include local.config
 
+{{- $vps := protonPassJSON (printf "%s/VPS" .passUriPrefix) -}}
+{{- $vpsIP := "" -}}
+{{- $vpsUser := "" -}}
+{{- range $vps.item.content.extra_fields -}}
+{{-   if eq .name "IP Address" }}{{- $vpsIP = .content.Text -}}{{- end -}}
+{{-   if eq .name "Username" }}{{- $vpsUser = .content.Text -}}{{- end -}}
+{{- end }}
+Host vps
+  HostName {{ $vpsIP }}
+  User {{ $vpsUser }}
+
 {{- if .isPersonal }}
 Host worklaptop
   HostName 192.168.1.132
