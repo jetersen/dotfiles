@@ -18,3 +18,9 @@ debug {
 hotkey-overlay {
   skip-at-startup
 }
+
+gestures {
+  hot-corners {
+    off
+  }
+}
