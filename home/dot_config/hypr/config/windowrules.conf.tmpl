@@ -71,6 +71,13 @@ windowrule {
   match:initial_title = com.github.th_ch.youtube_music
 }
 
+# Satty (annotation tool)
+windowrule {
+  name = windowrule-satty
+  workspace = 10
+  match:class = ^(satty)$
+}
+
 {{ if or .isPersonal .isWork -}}
 workspace = 4,monitor:$primaryMonitor
 workspace = 6,monitor:$secondaryMonitor
