@@ -94,6 +94,8 @@
 [includeIf "gitdir/i:/workspaces/"]
 	path = ~/.config/git/config.codespaces
 {{- end }}
+[url "git@github.com:"]
+	insteadOf = https://github.com/
 [credential "https://github.com"]
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
