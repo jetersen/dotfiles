@@ -30,14 +30,15 @@ windowrule {
 {{ if .isPersonal -}}
 # ======= Personal Window Rules =======
 
-# BattleNet
+# Battle.net launcher
 windowrule {
   name = windowrule-battlenet
   float = on
   center = on
   fullscreen_state = 0
   opacity = 1 1
-  match:title = ^Battle.net.*
+  match:class = ^(steam_proton)$
+  match:title = ^Battle\.net.*
 }
 
 windowrule {
@@ -47,19 +48,24 @@ windowrule {
   match:class = (explorer.exe)
 }
 
+# World of Warcraft — fullscreen on workspace 4, keep rendering when unfocused
 windowrule {
-  name = windowrule-steam-proton-tag
-  tag = +game
-  match:class = ^(steam_proton)$
-}
-
-windowrule {
-  name = windowrule-game
+  name = windowrule-wow
   render_unfocused = on
   workspace = 4
   fullscreen = on
   content = game
-  match:tag = game
+  match:class = ^(steam_proton)$
+  match:title = ^World of Warcraft$
+}
+
+# WoW Voice Proxy windows — hide and suppress focus; the close script will close them
+windowrule {
+  name = windowrule-wow-voice-proxy
+  workspace = special:wowvoice
+  no_focus = on
+  match:class = ^(steam_proton)$
+  match:title = ^(World of Warcraft Voice Proxy|Fatal Error - WowVoiceProxy\.exe)$
 }
 {{ end -}}
 
