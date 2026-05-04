@@ -59,10 +59,10 @@ windowrule {
   match:title = ^World of Warcraft$
 }
 
-# WoW Voice Proxy windows — hide and suppress focus; the close script will close them
+# WoW Voice Proxy windows — send silently to workspace 11, suppress focus
 windowrule {
   name = windowrule-wow-voice-proxy
-  workspace = special:wowvoice
+  workspace = 11 silent
   no_focus = on
   match:class = ^(steam_proton)$
   match:title = ^(World of Warcraft Voice Proxy|Fatal Error - WowVoiceProxy\.exe)$
