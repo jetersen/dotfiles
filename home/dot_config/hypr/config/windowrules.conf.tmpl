@@ -67,6 +67,17 @@ windowrule {
   match:class = ^(steam_proton)$
   match:title = ^(World of Warcraft Voice Proxy|Fatal Error - WowVoiceProxy\.exe)$
 }
+
+# Diablo IV — fullscreen on workspace 4, keep rendering when unfocused
+windowrule {
+  name = windowrule-diablo4
+  render_unfocused = on
+  workspace = 4
+  fullscreen = on
+  content = game
+  match:class = ^(steam_proton)$
+  match:title = ^Diablo IV$
+}
 {{ end -}}
 
 # YouTube Music
