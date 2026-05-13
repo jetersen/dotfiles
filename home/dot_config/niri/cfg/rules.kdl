@@ -3,6 +3,16 @@ window-rule {
   clip-to-geometry true
 }
 
+window-rule {
+  match app-id="zen"
+  open-on-workspace "browser"
+}
+
+window-rule {
+  match app-id="Slack"
+  open-on-workspace "chat"
+}
+
 layer-rule {
   match namespace="^noctalia-wallpaper*"
   place-within-backdrop true

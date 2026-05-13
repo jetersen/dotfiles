@@ -1,3 +1,6 @@
+workspace "browser"
+workspace "chat"
+
 layout {
   gaps 0 // Gap between windows
   center-focused-column "never" // Don't auto-center focused column
