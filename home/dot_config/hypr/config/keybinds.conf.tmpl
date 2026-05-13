@@ -32,7 +32,7 @@ bindd = $mainMod SHIFT, C, Calculator, exec, qs -c noctalia-shell ipc call launc
 bindd = $mainMod, F, Toggles current window maximized fullscreen, fullscreen, 1
 bindd = $mainMod SHIFT, F, Toggles current window true fullscreen, fullscreen, 0
 bindd = $mainMod, Y, Pin current window (on all workspaces), pin
-bindd = $mainMod, J, Toggle split/unsplit in dwindle layout, togglesplit
+bindd = $mainMod, J, Toggle split/unsplit in dwindle layout, layoutmsg, togglesplit
 bindd = $mainMod, K, Toggle current window group mode (ungroup all related), togglegroup
 bindd = $mainMod, Tab, Switches to the next window in the group, changegroupactive, f
 bindd = $mainMod ALT, H, Move window to the left in the group, moveintogroup, l
@@ -41,16 +41,16 @@ bindd = $mainMod ALT, L, Move window to the right in the group, moveintogroup, r
 {{ if .isPersonal -}}
 # ======= Personal Apps =======
 
-# ======= Bottles Submap =======
+# ======= Lutris Submap =======
 
-bindd = $mainMod, B, Activates Bottles game launcher mode, submap, bottles
-submap = bottles
-bindd = , B, Launch Battle.net, exec, bottles-cli run -p Battle.net -b 'Battle.netv4'
-bindd = , D, Launch Diablo 4, exec, bottles-cli run -p 'Diablo 4' -b 'Battle.netv4'
+bindd = $mainMod, B, Activates Lutris game launcher mode, submap, lutris
+submap = lutris
+bindd = , B, Launch Battle.net, exec, lutris lutris:rungame/battlenet
+bindd = , D, Launch Diablo IV, exec, lutris lutris:rungame/diablo-iv
 bind = , D, submap, reset
-bindd = , W, Launch World of Warcraft, exec, bottles-cli run -p 'World of Warcraft' -b 'Battle.netv4'
+bindd = , W, Launch World of Warcraft, exec, lutris lutris:rungame/wow
 bind = , W, submap, reset
-bindd = , escape, Exit Bottles mode, submap, reset
+bindd = , escape, Exit Lutris mode, submap, reset
 submap = reset
 
 bindn = ,CTRL_R,pass,class:discord
