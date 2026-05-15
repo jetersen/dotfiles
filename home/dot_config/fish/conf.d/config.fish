@@ -49,7 +49,6 @@ function github-auto-merge
     end
   end
 end
-alias g="git"
 alias d="docker"
 alias dc="docker compose"
 function ride
