@@ -7,6 +7,12 @@
         }
     ],
     "states": {
+{{- if .isPersonal }}
+        "hassio": {
+            "enabled": true,
+            "sourceUrl": "https://github.com/noctalia-dev/noctalia-plugins"
+        }
+{{- end }}
     },
-    "version": 1
+    "version": 2
 }
