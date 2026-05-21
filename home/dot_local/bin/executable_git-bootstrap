@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Re-attach .git to working trees synced via Syncthing.
+#
+# Usage: git-bootstrap [ROOT]
+#
+# Walks ROOT (default: ~/git) and for every directory containing a
+# .git-remote sidecar file but no .git directory, runs:
+#   git init && git remote add origin <url> && git fetch && git reset --mixed
+# leaving the working tree untouched.
+#
+# .git-remote is written automatically by the git/gh clone wrappers in
+# bashrc / config.fish / powershell profile.
+
+set -euo pipefail
+
+root="${1:-$HOME/git}"
+
+if [[ ! -d "$root" ]]; then
+    echo "git-bootstrap: $root does not exist" >&2
+    exit 1
+fi
+
+bootstrap_one() {
+    local dir="$1"
+    local url
+    url=$(<"$dir/.git-remote")
+    url="${url//$'\n'/}"
+    url="${url//$'\r'/}"
+
+    if [[ -z "$url" ]]; then
+        echo "skip $dir: empty .git-remote" >&2
+        return
+    fi
+
+    echo "==> $dir <- $url"
+    (
+        cd "$dir"
+        git init -q
+        git remote add origin "$url"
+        git fetch -q origin
+
+        local default
+        default=$(git remote show origin | awk '/HEAD branch/ {print $NF}')
+        if [[ -z "$default" || "$default" == "(unknown)" ]]; then
+            echo "  ! could not determine default branch, leaving repo unattached" >&2
+            return
+        fi
+
+        if git show-ref --verify --quiet "refs/heads/$default"; then
+            git reset --mixed "origin/$default"
+        else
+            git checkout -b "$default" --track "origin/$default"
+            git reset --mixed "origin/$default"
+        fi
+    )
+}
+
+found=0
+while IFS= read -r -d '' marker; do
+    dir="$(dirname "$marker")"
+    if [[ -d "$dir/.git" ]]; then
+        continue
+    fi
+    found=1
+    bootstrap_one "$dir" || echo "  ! failed: $dir" >&2
+done < <(find "$root" -type f -name .git-remote -print0)
+
+if (( ! found )); then
+    echo "Nothing to bootstrap under $root."
+fi

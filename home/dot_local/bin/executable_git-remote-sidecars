@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Backfill .git-remote sidecar files for every git repo under a root.
+#
+# Walks ROOT (default: ~/git) for directories containing a .git entry,
+# reads the `origin` remote URL, and writes it to a .git-remote file in
+# the repo's working tree. Syncthing carries that sidecar so a sibling
+# machine can later run `git bootstrap` to re-attach .git without
+# needing the bare .git directory itself.
+#
+# Usage: git-remote-sidecars [ROOT] [--force]
+#
+#   --force   Overwrite existing .git-remote files.
+
+set -euo pipefail
+
+root="$HOME/git"
+force=0
+for arg in "$@"; do
+    case "$arg" in
+        --force) force=1 ;;
+        -h|--help)
+            sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *) root="$arg" ;;
+    esac
+done
+
+if [[ ! -d "$root" ]]; then
+    echo "git-remote-sidecars: $root does not exist" >&2
+    exit 1
+fi
+
+wrote=0 skipped=0 missing=0
+
+# -name .git matches both directories (normal repos) and files (worktrees,
+# submodules where .git is a gitfile pointing to the real gitdir).
+while IFS= read -r -d '' gitentry; do
+    repo="$(dirname "$gitentry")"
+    sidecar="$repo/.git-remote"
+
+    if [[ -f "$sidecar" && $force -eq 0 ]]; then
+        skipped=$((skipped + 1))
+        continue
+    fi
+
+    url="$(git -C "$repo" remote get-url origin 2>/dev/null || true)"
+
+    if [[ -z "$url" ]]; then
+        echo "  ! no origin: $repo" >&2
+        missing=$((missing + 1))
+        continue
+    fi
+
+    printf '%s\n' "$url" > "$sidecar"
+    echo "  + $repo <- $url"
+    wrote=$((wrote + 1))
+done < <(find "$root" -name .git -prune -print0)
+
+echo
+echo "wrote=$wrote skipped=$skipped missing-origin=$missing"

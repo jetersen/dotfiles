@@ -107,16 +107,43 @@ function dip {
   param ([string] $id)
   & docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $id
 }
+function __Get-CloneDest {
+  param([Parameter(ValueFromRemainingArguments = $true)][string[]]$Arguments)
+  $valueFlags = @('-b','--branch','-o','--origin','-c','--config','-u','--upload-pack','-j','--jobs','--depth','--reference','--reference-if-able','--template','--separate-git-dir','--filter','--revision','--server-option','--shallow-since','--shallow-exclude','--ref-format','--bundle-uri','--upstream-remote-name')
+  $positionals = @()
+  $skip = $false
+  foreach ($a in $Arguments) {
+    if ($a -eq '--') { break }
+    if ($skip) { $skip = $false; continue }
+    if ($valueFlags -contains $a) { $skip = $true; continue }
+    if ($a -like '-*') { continue }
+    $positionals += $a
+  }
+  if ($positionals.Count -ge 2) { return $positionals[1] }
+  if ($positionals.Count -ge 1) {
+    $name = Split-Path -Leaf $positionals[0]
+    return ($name -replace '\.git$','')
+  }
+  return $null
+}
+
+function __Write-GitRemote {
+  $gitExe = (Get-Command git -CommandType Application).Source
+  $url = (& $gitExe remote get-url origin 2>$null)
+  if ($url) {
+    Set-Content -Path .git-remote -Value $url -Encoding utf8
+  }
+}
+
 function git {
   $gitExe = (Get-Command git -CommandType Application).Source
   if ($args[0] -eq 'clone') {
-    $output = & $gitExe @args 2>&1 | Out-String
-    Write-Host $output.TrimEnd()
-    if ($LASTEXITCODE -eq 0 -and $output -match "Cloning into '(.+?)'") {
-      $dirName = $Matches[1]
-      if (Test-Path $dirName -PathType Container) {
-        Set-Location $dirName
-      }
+    $rest = @($args | Select-Object -Skip 1)
+    $dest = __Get-CloneDest @rest
+    & $gitExe @args
+    if ($LASTEXITCODE -eq 0 -and $dest -and (Test-Path $dest -PathType Container)) {
+      Set-Location $dest
+      __Write-GitRemote
     }
   } else {
     & $gitExe @args
@@ -126,13 +153,12 @@ function git {
 function gh {
   $ghExe = (Get-Command gh -CommandType Application).Source
   if ($args[0] -eq 'repo' -and $args[1] -eq 'clone') {
-    $output = & $ghExe @args 2>&1 | Out-String
-    Write-Host $output.TrimEnd()
-    if ($LASTEXITCODE -eq 0 -and $output -match "Cloning into '(.+?)'") {
-      $dirName = $Matches[1]
-      if (Test-Path $dirName -PathType Container) {
-        Set-Location $dirName
-      }
+    $rest = @($args | Select-Object -Skip 2)
+    $dest = __Get-CloneDest @rest
+    & $ghExe @args
+    if ($LASTEXITCODE -eq 0 -and $dest -and (Test-Path $dest -PathType Container)) {
+      Set-Location $dest
+      __Write-GitRemote
     }
   } else {
     & $ghExe @args

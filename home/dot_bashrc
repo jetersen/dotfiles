@@ -96,20 +96,53 @@ github-auto-merge() {
   done <<< "$prs"
 }
 
+__clone_dest_from_args() {
+  local value_flags=" -b --branch -o --origin -c --config -u --upload-pack -j --jobs --depth --reference --reference-if-able --template --separate-git-dir --filter --revision --server-option --shallow-since --shallow-exclude --ref-format --bundle-uri --upstream-remote-name "
+  local positionals=()
+  local skip=0
+  local a
+  for a in "$@"; do
+    if [[ "$a" == "--" ]]; then
+      break
+    fi
+    if (( skip )); then
+      skip=0
+      continue
+    fi
+    if [[ "$value_flags" == *" $a "* ]]; then
+      skip=1
+      continue
+    fi
+    if [[ "$a" == -* ]]; then
+      continue
+    fi
+    positionals+=("$a")
+  done
+  if (( ${#positionals[@]} >= 2 )); then
+    printf '%s\n' "${positionals[1]}"
+  elif (( ${#positionals[@]} >= 1 )); then
+    local name="${positionals[0]##*/}"
+    printf '%s\n' "${name%.git}"
+  fi
+}
+
+__write_git_remote() {
+  local url
+  url=$(command git remote get-url origin 2>/dev/null) || return 0
+  [[ -n "$url" ]] && printf '%s\n' "$url" > .git-remote
+}
+
 git() {
   if [[ "$1" == "clone" ]]; then
-    local clone_output status_code
-    clone_output=$(command git "$@" 2>&1)
-    status_code=$?
-    echo "$clone_output"
-    if [[ $status_code -eq 0 ]]; then
-      local dir_name
-      dir_name=$(echo "$clone_output" | grep -oP "Cloning into '\\K[^']+")
-      if [[ -n "$dir_name" && -d "$dir_name" ]]; then
-        cd "./$dir_name" || return
-      fi
+    local dest
+    dest=$(__clone_dest_from_args "${@:2}")
+    command git "$@"
+    local rc=$?
+    if (( rc == 0 )) && [[ -n "$dest" && -d "$dest" ]]; then
+      cd "./$dest" || return $rc
+      __write_git_remote
     fi
-    return $status_code
+    return $rc
   else
     command git "$@"
   fi
@@ -117,18 +150,15 @@ git() {
 
 gh() {
   if [[ "$1" == "repo" && "$2" == "clone" ]]; then
-    local clone_output status_code
-    clone_output=$(command gh "$@" 2>&1)
-    status_code=$?
-    echo "$clone_output"
-    if [[ $status_code -eq 0 ]]; then
-      local dir_name
-      dir_name=$(echo "$clone_output" | grep -oP "Cloning into '\\K[^']+")
-      if [[ -n "$dir_name" && -d "$dir_name" ]]; then
-        cd "./$dir_name" || return
-      fi
+    local dest
+    dest=$(__clone_dest_from_args "${@:3}")
+    command gh "$@"
+    local rc=$?
+    if (( rc == 0 )) && [[ -n "$dest" && -d "$dest" ]]; then
+      cd "./$dest" || return $rc
+      __write_git_remote
     fi
-    return $status_code
+    return $rc
   else
     command gh "$@"
   fi

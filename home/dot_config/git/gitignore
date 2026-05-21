@@ -33,3 +33,6 @@ Desktop.ini
 .stignore
 .stfolder
 .rsync-exclude
+
+# Bootstrap marker for syncthing-cloned repos (see ~/.local/bin/git-bootstrap)
+.git-remote

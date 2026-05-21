@@ -77,34 +77,66 @@ function rider-eap
     echo "No .slnx, .sln, or .csproj file found."
   end
 end
+function __clone_dest_from_args
+  set -l value_flags -b --branch -o --origin -c --config -u --upload-pack -j --jobs --depth --reference --reference-if-able --template --separate-git-dir --filter --revision --server-option --shallow-since --shallow-exclude --ref-format --bundle-uri --upstream-remote-name
+  set -l positionals
+  set -l skip 0
+  for a in $argv
+    if test "$a" = "--"
+      break
+    end
+    if test $skip -eq 1
+      set skip 0
+      continue
+    end
+    if contains -- "$a" $value_flags
+      set skip 1
+      continue
+    end
+    if string match -q -- "-*" "$a"
+      continue
+    end
+    set positionals $positionals $a
+  end
+  if test (count $positionals) -ge 2
+    echo $positionals[2]
+  else if test (count $positionals) -ge 1
+    set -l name (basename $positionals[1])
+    string replace -r '\.git$' '' -- $name
+  end
+end
+
+function __write_git_remote
+  set -l url (command git remote get-url origin 2>/dev/null)
+  if test -n "$url"
+    echo $url > .git-remote
+  end
+end
+
 function git
   if test "$argv[1]" = "clone"
-    set clone_output (command git $argv 2>&1)
-    set status_code $status
-    echo $clone_output
-    if test $status_code -eq 0
-      set dir_name (string match -r "Cloning into '(.+)'" $clone_output | tail -n 1)
-      if test -n "$dir_name" -a -d "$dir_name"
-        cd "./$dir_name"
-      end
+    set -l dest (__clone_dest_from_args $argv[2..])
+    command git $argv
+    set -l rc $status
+    if test $rc -eq 0 -a -n "$dest" -a -d "$dest"
+      cd $dest
+      __write_git_remote
     end
-    return $status_code
+    return $rc
   else
     command git $argv
   end
 end
 function gh
   if test "$argv[1]" = "repo" -a "$argv[2]" = "clone"
-    set clone_output (command gh $argv 2>&1)
-    set status_code $status
-    echo $clone_output
-    if test $status_code -eq 0
-      set dir_name (string match -r "Cloning into '(.+)'" $clone_output | tail -n 1)
-      if test -n "$dir_name" -a -d "$dir_name"
-        cd "./$dir_name"
-      end
+    set -l dest (__clone_dest_from_args $argv[3..])
+    command gh $argv
+    set -l rc $status
+    if test $rc -eq 0 -a -n "$dest" -a -d "$dest"
+      cd $dest
+      __write_git_remote
     end
-    return $status_code
+    return $rc
   else
     command gh $argv
   end
