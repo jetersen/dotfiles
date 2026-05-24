@@ -1,3 +1,4 @@
+{{/* Patterns match TARGET paths (.config/...), not source names (dot_config/...). */}}
 {{ if not .isLinux }}
 .chezmoiscripts/linux/**
 {{ end }}
@@ -9,18 +10,18 @@ Documents
 .chezmoiscripts/windows/**
 {{ end }}
 {{ if .isWindows }}
-dot_bashrc
-dot_zshrc
-dot_config/fish
+.bashrc
+.zshrc
+.config/fish
 Pictures
 {{ end }}
 {{ if not .isHyprland }}
-dot_config/hypr
+.config/hypr
 {{ end }}
 {{ if not .isNiri }}
-dot_config/niri
-dot_local/bin/executable_niri-focus-self
+.config/niri
+.local/bin/niri-focus-self
 {{ end }}
 {{ if not .isWork }}
-dot_config/kanshi
+.config/kanshi
 {{ end }}
