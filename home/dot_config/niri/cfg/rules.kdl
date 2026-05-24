@@ -1,3 +1,6 @@
+// ────────────── Window & Layer Rules ──────────────
+// https://github.com/YaLTeR/niri/wiki/Configuration:-Window-Rules
+
 window-rule {
   geometry-corner-radius 0
   clip-to-geometry true
@@ -13,7 +16,22 @@ window-rule {
   open-on-workspace "chat"
 }
 
+// Float transient/utility windows.
+window-rule {
+  match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+  match app-id="zoom"
+  open-floating true
+}
+
+// Float DMS / quickshell windows by default.
+window-rule {
+  match app-id=r#"org.quickshell$"#
+  match app-id=r#"com.danklinux.dms$"#
+  open-floating true
+}
+
+// Let the shell draw the wallpaper behind windows.
 layer-rule {
-  match namespace="^noctalia-wallpaper*"
+  match namespace="^quickshell$"
   place-within-backdrop true
 }

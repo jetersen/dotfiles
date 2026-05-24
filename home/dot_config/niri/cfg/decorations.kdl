@@ -1,4 +1,8 @@
+// Included LAST in config.kdl so these win over DMS-generated layout/colors.
+// Your preference: flat, gapless, no border/ring/shadow.
 layout {
+  gaps 0
+
   focus-ring {
     off
   }

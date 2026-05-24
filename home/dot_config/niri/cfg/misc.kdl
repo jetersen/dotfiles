@@ -1,5 +1,9 @@
+config-notification {
+  disable-failed
+}
+
 prefer-no-csd
-screenshot-path null
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 environment {
   ELECTRON_OZONE_PLATFORM_HINT "auto"
@@ -11,12 +15,18 @@ environment {
 }
 
 debug {
-  // Allows notification actions and window activation from Noctalia.
+  // Allows notification actions and window activation from the shell.
   honor-xdg-activation-with-invalid-serial
 }
 
 hotkey-overlay {
   skip-at-startup
+}
+
+overview {
+  workspace-shadow {
+    off
+  }
 }
 
 gestures {

@@ -1,7 +1,7 @@
 // ────────────── Startup Applications ──────────────
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
 
-spawn-sh-at-startup "qs -c noctalia-shell"
+// DankMaterialShell starts via the dms.service user unit (graphical-session.target).
 spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
 spawn-at-startup "udiskie"
 spawn-sh-at-startup "wl-paste --watch wl-copy --primary"

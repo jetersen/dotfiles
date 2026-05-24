@@ -1,11 +1,25 @@
-include "./cfg/animation.kdl"
-include "./cfg/autostart.kdl"
-include "./cfg/keybinds.kdl"
+// niri config — modular split. Shell: DankMaterialShell (DMS).
+// DMS auto-generates dms/*.kdl per-machine ("DO NOT EDIT" headers); those are
+// NOT committed to this repo. DMS recreates them on each machine.
+// Include order matters: niri merges repeated sections, last value wins.
+
+// ── base (hand-managed) ──
 include "./cfg/input.kdl"
 include "./cfg/display.kdl"
 include "./cfg/layout.kdl"
 include "./cfg/rules.kdl"
+include "./cfg/autostart.kdl"
 include "./cfg/misc.kdl"
 
-include "./noctalia.kdl"
+// ── DMS-generated (theme, keybinds, layout, cursor) ──
+include "./dms/colors.kdl"
+include "./dms/layout.kdl"
+include "./dms/alttab.kdl"
+include "./dms/binds.kdl"
+include "./dms/outputs.kdl"
+include "./dms/cursor.kdl"
+
+// ── overrides that must beat DMS-generated config ──
+include "./cfg/keybinds.kdl"
+include "./cfg/animation.kdl"
 include "./cfg/decorations.kdl"
