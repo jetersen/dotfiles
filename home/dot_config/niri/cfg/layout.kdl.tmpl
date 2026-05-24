@@ -1,5 +1,8 @@
 workspace "browser"
 workspace "chat"
+workspace "music" {
+  open-on-output "{{ .musicOutput }}"
+}
 
 layout {
   gaps 0 // Gap between windows

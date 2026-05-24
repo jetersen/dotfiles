@@ -28,6 +28,14 @@
 {{-   $email = $workEmail -}}
 {{- end -}}
 
+{{/* preferred output for Pear Desktop's dedicated workspace (niri).
+     Descriptive "make model serial" survives DP connector renumbering.
+     Undocked laptop: this output is absent, so the launcher falls back. */}}
+{{- $musicOutput := "Lenovo Group Limited LEN P27h-10 0x344D3533" -}}
+{{- if $isWork -}}
+{{-   $musicOutput = "Dell Inc. DELL P2725D 3S5S864" -}}
+{{- end -}}
+
 sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
 
 [data]
@@ -38,6 +46,7 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
   workEmail = {{ $workEmail | quote }}
   personalEmail = {{ $personalEmail | quote }}
   hostname = {{ $hostname | quote }}
+  musicOutput = {{ $musicOutput | quote }}
   githubUsername = {{ $githubUsername | quote }}
   isPersonal = {{ $isPersonal }}
   isWork = {{ $isWork }}

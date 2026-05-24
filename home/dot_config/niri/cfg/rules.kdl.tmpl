@@ -16,6 +16,13 @@ window-rule {
   open-on-workspace "chat"
 }
 
+// Pear Desktop opens on the "music" workspace (pinned to its output in
+// layout.kdl). Undocked laptop: that output is absent, so niri falls back.
+window-rule {
+  match app-id=r#"^com\.github\.th_ch\.youtube_music$"#
+  open-on-workspace "music"
+}
+
 // Float transient/utility windows.
 window-rule {
   match app-id=r#"firefox$"# title="^Picture-in-Picture$"
