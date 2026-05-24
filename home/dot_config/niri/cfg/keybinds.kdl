@@ -16,7 +16,7 @@ binds {
   Mod+L                               hotkey-overlay-title="Lock Screen: noctalia lock" { spawn-sh "qs -c noctalia-shell ipc call lockScreen lock"; }
   Mod+Shift+Q                         hotkey-overlay-title="Session Menu: noctalia sessionMenu" { spawn-sh "qs -c noctalia-shell ipc call sessionMenu toggle"; }
 
-  Mod+M                               hotkey-overlay-title="YouTube Music" { spawn "youtube-music"; }
+  Mod+M                               hotkey-overlay-title="Pear Desktop" { spawn "pear-desktop"; }
 
   // Please choose your own file manager.
   Mod+E                               hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
