@@ -5,6 +5,7 @@ pacman = [
   "argocd",
   "aspnet-runtime-bin",
   "aspnet-targeting-pack-bin",
+  "aws-cli-v2",
   "bitwarden",
   "bitwarden-cli",
   "btop",
@@ -57,7 +58,6 @@ pacman = [
 ]
 
 aur = [
-  "aws-cli-bin",
   "freelens-bin",
   "github-copilot-cli",
   "lens-bin",
