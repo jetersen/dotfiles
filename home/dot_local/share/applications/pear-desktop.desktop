@@ -1,0 +1,13 @@
+[Desktop Entry]
+# Overrides /usr/share/applications/pear-desktop.desktop.
+# Upstream sets StartupWMClass=com.github.th_ch.pear_music, but the window
+# actually reports app-id com.github.th_ch.youtube_music, so bars (DMS) fail
+# to resolve it and show the raw app-id. Fix the class and name it nicely.
+Name=YouTube Music
+Exec=pear-desktop
+Terminal=false
+Type=Application
+Icon=pear-desktop
+StartupWMClass=com.github.th_ch.youtube_music
+Comment=Pear is extension for music player
+Categories=AudioVideo;
