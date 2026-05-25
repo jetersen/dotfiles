@@ -30,6 +30,17 @@ window-rule {
   open-floating true
 }
 
+// Battle.net (Wine) spawns a blank "explorer.exe" helper window. niri can't
+// hide it, so shrink it to 1x1 and park it in a corner without stealing focus.
+window-rule {
+  match app-id="explorer.exe"
+  open-floating true
+  open-focused false
+  default-column-width { fixed 1; }
+  default-window-height { fixed 1; }
+  default-floating-position x=0 y=0 relative-to="bottom-right"
+}
+
 // Float DMS / quickshell windows by default.
 window-rule {
   match app-id=r#"org.quickshell$"#
