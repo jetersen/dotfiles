@@ -41,6 +41,11 @@ window-rule {
   default-floating-position x=0 y=0 relative-to="bottom-right"
 }
 
+window-rule {
+  match app-id="sc2_x64.exe"
+  open-on-output "DP-1"
+}
+
 // Float DMS / quickshell windows by default.
 window-rule {
   match app-id=r#"org.quickshell$"#
