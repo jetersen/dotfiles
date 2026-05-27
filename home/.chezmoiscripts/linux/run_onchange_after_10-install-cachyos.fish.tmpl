@@ -26,6 +26,13 @@ sudo pacman -Sq --needed --noconfirm --ask 4 {{ .packages.arch.personal.pacman |
 echo "Installing personal AUR packages..."
 paru -Sq --needed --noconfirm --ask 4 --overwrite="*" {{ .packages.arch.personal.aur | join " " }}
 
+# Remove packages no longer wanted
+set packages_to_remove (pacman -Qq {{ .packages.arch.remove | join " " }} 2>/dev/null)
+if test (count $packages_to_remove) -gt 0
+  echo "Removing unwanted packages..."
+  paru -Rns --noconfirm $packages_to_remove
+end
+
 {{ end -}}
 # Update all packages
 echo "Updating all packages..."

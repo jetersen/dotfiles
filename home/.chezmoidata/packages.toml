@@ -73,6 +73,13 @@ aur = [
   "visual-studio-code-bin",
 ]
 
+remove = [
+  "bottles",
+  "raiderio-client",
+  "warcraftlogsuploader",
+  "wowup-cf-bin",
+]
+
 [packages.arch.personal]
 pacman = [
   "talhelper",
@@ -80,11 +87,7 @@ pacman = [
 ]
 
 aur = [
-  "bottles",
-  "raiderio-client",
-  "warcraftlogsuploader",
   "whisper.cpp-model-large-v3-turbo",
   "whisper.cpp-vulkan",
   "whispering-bin",
-  "wowup-cf-bin",
 ]
