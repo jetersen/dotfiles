@@ -36,6 +36,13 @@
 {{-   $musicOutput = "Dell Inc. DELL P2725D 3S5S864" -}}
 {{- end -}}
 
+{{/* preferred output for browser/chat workspaces (niri).
+     Undocked laptop: absent, niri falls back to any available output. */}}
+{{- $dockOutput := "" -}}
+{{- if $isWork -}}
+{{-   $dockOutput = "Dell Inc. DELL P2725D 24CRZ64" -}}
+{{- end -}}
+
 sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
 
 [data]
@@ -47,6 +54,7 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
   personalEmail = {{ $personalEmail | quote }}
   hostname = {{ $hostname | quote }}
   musicOutput = {{ $musicOutput | quote }}
+  dockOutput = {{ $dockOutput | quote }}
   githubUsername = {{ $githubUsername | quote }}
   isPersonal = {{ $isPersonal }}
   isWork = {{ $isWork }}

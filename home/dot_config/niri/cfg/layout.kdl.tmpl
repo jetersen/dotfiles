@@ -1,5 +1,14 @@
+{{ if .dockOutput -}}
+workspace "browser" {
+  open-on-output "{{ .dockOutput }}"
+}
+workspace "chat" {
+  open-on-output "{{ .dockOutput }}"
+}
+{{ else -}}
 workspace "browser"
 workspace "chat"
+{{ end -}}
 workspace "music" {
   open-on-output "{{ .musicOutput }}"
 }
