@@ -73,12 +73,7 @@ aur = [
   "visual-studio-code-bin",
 ]
 
-remove = [
-  "bottles",
-  "raiderio-client",
-  "warcraftlogsuploader",
-  "wowup-cf-bin",
-]
+remove = []
 
 [packages.arch.personal]
 pacman = [
