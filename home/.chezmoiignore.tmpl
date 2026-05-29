@@ -16,7 +16,12 @@ Documents
 Pictures
 {{ end }}
 {{ if not .isHyprland }}
-.config/hypr
+.config/hypr/config
+.config/hypr/hyprland.conf
+.config/hypr/noctalia
+{{ end }}
+{{ if or (not .isLinux) (not .isPersonal) }}
+.config/hypr/hypridle.conf
 {{ end }}
 {{ if not .isNiri }}
 .config/niri
