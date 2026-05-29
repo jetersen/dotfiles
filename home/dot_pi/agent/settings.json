@@ -6,5 +6,6 @@
   "packages": [
     "npm:@howaboua/pi-auto-reasoning-tool",
     "npm:context-mode"
-  ]
+  ],
+  "hideThinkingBlock": true
 }
