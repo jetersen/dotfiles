@@ -43,20 +43,6 @@ alias cc="claude --dangerously-skip-permissions"
 
 # Functions
 
-ride() {
-  local file dir="${1:-.}"
-  for ext in slnx sln csproj; do
-    file=$(fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension "$ext" . "$dir")
-    [[ -n "$file" ]] && break
-  done
-  if [[ -n "$file" ]]; then
-    echo "$file"
-    nohup rider "$file" >/dev/null 2>&1 &
-  else
-    echo "No .slnx, .sln, or .csproj file found."
-  fi
-}
-
 rider-eap() {
   local file dir="${1:-.}"
   for ext in slnx sln csproj; do

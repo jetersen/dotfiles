@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+dir="${1:-.}"
+file=""
+
+for ext in slnx sln csproj; do
+  file=$(fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension "$ext" . "$dir")
+  [[ -n "$file" ]] && break
+done
+
+target="${file:-.}"
+echo "$target"
+nohup rider "$target" >/dev/null 2>&1 &

@@ -208,11 +208,13 @@ function ride {
   param (
     [string] $path = "."
   )
-  $project = Get-ChildItem -Path $path -Filter "*.sln" -Recurse | Select-Object -First 1
-  if (!$project) {
-    $project = Get-ChildItem -Path $path -Filter "*.csproj" -Recurse | Select-Object -First 1
+  $project = $null
+  foreach ($extension in @("*.slnx", "*.sln", "*.csproj")) {
+    $project = Get-ChildItem -Path $path -Filter $extension -File -Recurse -Depth 3 | Select-Object -First 1
+    if ($project) { break }
   }
   $target = if ($project) { $project.FullName } else { "." }
+  Write-Output $target
   if ($IsLinux -or $IsMacOS) {
     open $target
   } else {

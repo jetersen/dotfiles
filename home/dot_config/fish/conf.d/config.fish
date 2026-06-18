@@ -51,19 +51,6 @@ function github-auto-merge
 end
 alias d="docker"
 alias dc="docker compose"
-function ride
-  for ext in slnx sln csproj
-    set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension $ext . $argv[1])
-    test -n "$file" && break
-  end
-
-  if test -n "$file"
-    echo "$file"
-    nohup rider "$file" >/dev/null 2>&1 &
-  else
-    echo "No .slnx, .sln, or .csproj file found."
-  end
-end
 function rider-eap
   for ext in slnx sln csproj
     set file (fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension $ext . $argv[1])
