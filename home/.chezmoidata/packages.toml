@@ -59,7 +59,6 @@ pacman = [
 aur = [
   "freelens-bin",
   "github-copilot-cli",
-  "lens-bin",
   "oh-my-posh-bin",
   "openvpn3",
   "powershell-bin",
