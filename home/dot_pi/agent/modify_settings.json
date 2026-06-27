@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+import json
+import sys
+
+try:
+    settings = json.load(sys.stdin)
+except Exception:
+    settings = {}
+
+settings.update({
+    "defaultProvider": "openai-codex",
+    "defaultModel": "gpt-5.5",
+    "packages": [
+        "npm:@howaboua/pi-auto-reasoning-tool",
+        "npm:context-mode",
+        "git:github.com/DietrichGebert/ponytail",
+    ],
+    "hideThinkingBlock": True,
+    "theme": "dark",
+})
+
+json.dump(settings, sys.stdout, indent=2)
