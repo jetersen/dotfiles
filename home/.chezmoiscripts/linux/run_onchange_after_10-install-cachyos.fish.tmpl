@@ -9,36 +9,39 @@ else
   exit 1
 end
 
-# Install official repo packages
-echo "Installing pacman packages..."
-sudo pacman -Sq --needed --noconfirm --ask 4 {{ .packages.arch.pacman | join " " }}
-
-# Install AUR packages
-echo "Installing AUR packages..."
-paru -Sq --needed --noconfirm --ask 4 --overwrite="*" {{ .packages.arch.aur | join " " }}
-
-{{ if .isPersonal -}}
-# Install personal pacman packages
-echo "Installing personal pacman packages..."
-sudo pacman -Sq --needed --noconfirm --ask 4 {{ .packages.arch.personal.pacman | join " " }}
-
-# Install personal AUR packages
-echo "Installing personal AUR packages..."
-paru -Sq --needed --noconfirm --ask 4 --overwrite="*" {{ .packages.arch.personal.aur | join " " }}
+if not command -q yay
+  echo "Installing yay..."
+  sudo pacman -Sq --needed --noconfirm yay
+end
 
 {{ if .packages.arch.remove -}}
-# Remove packages no longer wanted
+# Remove packages no longer wanted before installing replacements
 set packages_to_remove (pacman -Qq {{ .packages.arch.remove | join " " }} 2>/dev/null)
 if test (count $packages_to_remove) -gt 0
   echo "Removing unwanted packages..."
-  paru -Rns --noconfirm $packages_to_remove
+  yay -Rns --noconfirm $packages_to_remove
 end
-{{ end -}}
 
 {{ end -}}
+# Install pacman packages
+set pacman_packages {{ .packages.arch.pacman | join " " }}
+{{ if .isPersonal -}}
+set pacman_packages $pacman_packages {{ .packages.arch.personal.pacman | join " " }}
+{{ end -}}
+echo "Installing pacman packages..."
+sudo pacman -Sq --needed --noconfirm --ask 4 $pacman_packages
+
+# Install AUR packages
+set aur_packages {{ .packages.arch.aur | join " " }}
+{{ if .isPersonal -}}
+set aur_packages $aur_packages {{ .packages.arch.personal.aur | join " " }}
+{{ end -}}
+echo "Installing AUR packages..."
+yay -Sq --needed --noconfirm --overwrite="*" $aur_packages
+
 # Update all packages
 echo "Updating all packages..."
-paru -Syu --noconfirm --ask 4
+yay -Syu --noconfirm
 
 # Create sensitive directories
 echo "Creating sensitive directories..."
