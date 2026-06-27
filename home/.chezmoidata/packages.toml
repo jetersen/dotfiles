@@ -9,8 +9,10 @@ pacman = [
   "bitwarden-cli",
   "bitwarden",
   "btop",
+  "bun",
   "chezmoi",
   "claude-code",
+  "cliphist",
   "discord",
   "docker-compose",
   "docker",
@@ -48,17 +50,20 @@ pacman = [
   "satty",
   "sops",
   "syncthing",
+  "tailscale",
   "ttf-jetbrains-mono-nerd",
   "ttf-jetbrains-mono",
   "virt-manager",
   "wl-clipboard",
   "yt-dlp",
+  "zed",
   "zen-browser-bin",
 ]
 
 aur = [
   "freelens-bin",
   "github-copilot-cli",
+  "greetd-dms-greeter-git",
   "oh-my-posh-bin",
   "openvpn3",
   "powershell-bin",
@@ -68,6 +73,9 @@ aur = [
   "rider",
   "rustdesk-bin",
   "slack-desktop-wayland",
+  "t3code-bin",
+  "tiny-rdm-bin",
+  "topgrade",
   "virtio-win",
   "visual-studio-code-bin",
 ]
@@ -78,10 +86,10 @@ remove = []
 pacman = [
   "talhelper",
   "talosctl",
+  "whisper-cpp-vulkan",
 ]
 
 aur = [
   "whisper.cpp-model-large-v3-turbo",
-  "whisper.cpp-vulkan",
-  "whispering-bin",
+  "input-remapper-bin",
 ]
