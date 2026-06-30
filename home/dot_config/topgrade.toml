@@ -28,7 +28,7 @@
 # sudo_command = "sudo"
 
 # Disable specific steps - same options as the command line flag
-disable = ["system", "emacs"]
+disable = ["system", "emacs", "git", "docker"]
 
 # Run these steps before all others
 # first = ["chezmoi"]

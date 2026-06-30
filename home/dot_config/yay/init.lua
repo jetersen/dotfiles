@@ -15,7 +15,7 @@ local approved_aur = {
   ["slack-desktop-wayland"] = true,
   ["t3code-bin"] = true,
   ["tiny-rdm-bin"] = true,
-  ["topgrade"] = true,
+  ["topgrade-bin"] = true,
   ["visual-studio-code-bin"] = true,
   ["whisper.cpp-model-large-v3-turbo"] = true,
 }

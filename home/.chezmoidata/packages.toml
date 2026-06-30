@@ -75,12 +75,12 @@ aur = [
   "slack-desktop-wayland",
   "t3code-bin",
   "tiny-rdm-bin",
-  "topgrade",
+  "topgrade-bin",
   "virtio-win",
   "visual-studio-code-bin",
 ]
 
-remove = []
+remove = ["topgrade"]
 
 [packages.arch.personal]
 pacman = [
