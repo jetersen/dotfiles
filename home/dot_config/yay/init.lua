@@ -56,7 +56,7 @@ local function is_safe_pkgbuild_line(line)
     or line:match("^pkgrel=")
     or line:match("^epoch=")
     or line:match("^[a-z0-9]+sums=")
-    or line:match("^[a-z0-9]+sums_%w+=")
+    or line:match("^[a-z0-9]+sums_[%w_]+=")
     or line:match("^[%s'\"]*[a-fA-F0-9]+[%s'\"]*$")
     or line:match("^[%)%(]%s*$")
 end
