@@ -1,0 +1,50 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "agent": {
+    "commit_message_model": {
+      "provider": "anthropic",
+      "model": "claude-4-5-haiku",
+    },
+    "commit_message_instructions": "Write a concise imperative commit subject. Add a body only when it clarifies non-obvious context.",
+  },
+  "agent_servers": {
+    "pi-acp": {
+      "default_config_options": {
+        "thought_level": "low",
+      },
+      "type": "registry",
+    },
+  },
+  "cli_default_open_behavior": "existing_window",
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "theme": {
+    "mode": "system",
+    "light": "One Light",
+    "dark": "One Dark",
+  },
+  "languages": {
+    "PowerShell": {
+      "formatter": "language_server",
+      "format_on_save": "on",
+    },
+  },
+  "lsp": {
+    "powershell-es": {
+      "settings": {
+        "powershell": {
+          "codeFormatting": {
+            "preset": "OTBS",
+          },
+        },
+      },
+    },
+  },
+}
