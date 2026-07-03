@@ -1,6 +1,6 @@
 {{- if .isPersonal }}
 listener {
   timeout = 3600 # 1 hour
-  on-timeout = systemctl poweroff --ignore-inhibitors
+  on-timeout = {{ .chezmoi.homeDir }}/.local/bin/hypridle-poweroff-if-no-ssh
 }
 {{- end }}
