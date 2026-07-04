@@ -8,10 +8,6 @@ spawn-sh-at-startup "wl-paste --watch wl-copy --primary"
 
 spawn-at-startup "/usr/bin/zen-browser"
 
-{{ if .isPersonal -}}
-spawn-at-startup "hypridle"
-{{ end -}}
-
 {{ if .isWork -}}
 spawn-sh-at-startup "/usr/bin/slack --disable-gpu-compositing --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime --enable-features=WebRTCPipeWireCapturer --enable-features=WaylandWindowDecorations --disable-features=WaylandFractionalScaleV1"
 spawn-sh-at-startup "systemctl --user import-environment"

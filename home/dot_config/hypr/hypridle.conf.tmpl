@@ -1,6 +1,0 @@
-{{- if .isPersonal }}
-listener {
-  timeout = 3600 # 1 hour
-  on-timeout = {{ .chezmoi.homeDir }}/.local/bin/hypridle-poweroff-if-no-ssh
-}
-{{- end }}
