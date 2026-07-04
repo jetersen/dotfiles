@@ -8,8 +8,8 @@
 #                                no .git entry.
 #
 # For each target the script runs:
-#   git init && git remote add origin <url> && git fetch && git reset --mixed
-# leaving the working tree untouched.
+#   git init && git remote add origin <url> && git fetch && git reset --mixed origin/<default>
+# leaving the working tree files untouched.
 #
 # .git-remote is written automatically by the git/gh clone wrappers in
 # bashrc / config.fish / powershell profile, and can be backfilled with
@@ -63,11 +63,18 @@ bootstrap_one() {
             return 1
         fi
 
-        # Resolve default branch without another network round-trip when
-        # possible: prefer a local origin/HEAD symref, then fall back to
-        # the conventional names, then to `git remote show origin`.
+        # Resolve the remote's real default branch. Prefer a local
+        # origin/HEAD symref if fetch populated it; otherwise ask the
+        # remote HEAD symref directly. Conventional names are only a
+        # fallback because renamed repos can keep stale main/master refs.
         local default=""
         default=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+        if [[ -z "$default" ]]; then
+            default=$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=true SSH_ASKPASS=true \
+                      timeout 30 git ls-remote --symref origin HEAD 2>/dev/null \
+                      | awk '$1 == "ref:" {sub("^refs/heads/", "", $2); print $2; exit}')
+            [[ -n "$default" ]] && git remote set-head origin "$default" >/dev/null 2>&1 || true
+        fi
         if [[ -z "$default" ]]; then
             for b in main master trunk develop; do
                 if git show-ref --verify --quiet "refs/remotes/origin/$b"; then
@@ -75,11 +82,6 @@ bootstrap_one() {
                     break
                 fi
             done
-        fi
-        if [[ -z "$default" ]]; then
-            default=$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=true SSH_ASKPASS=true \
-                      timeout 30 git remote show origin 2>/dev/null \
-                      | awk '/HEAD branch/ {print $NF}')
         fi
         if [[ -z "$default" || "$default" == "(unknown)" ]]; then
             echo "  ! could not determine default branch, leaving repo unattached" >&2
