@@ -1,3 +1,6 @@
+yay.opt.clean_menu = false
+yay.opt.diff_menu = false
+
 local approved_aur = {
   ["freelens-bin"] = true,
   ["gdbuspp"] = true,
