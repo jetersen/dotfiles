@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 WAVFILE="/tmp/whisper-recording.wav"
-MODEL="/usr/share/whisper.cpp-model-large-v3-turbo/ggml-large-v3-turbo.bin"
+MODEL="${WHISPER_MODEL:-/usr/share/whisper.cpp-model-large-v3-turbo/ggml-large-v3-turbo.bin}"
 LOCKFILE="/tmp/whisper-recording.lock"
 
 # Prevent multiple instances
