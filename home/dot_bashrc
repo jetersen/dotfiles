@@ -11,6 +11,7 @@ export SESSIONDEFAULTUSER="$USER"
 export EDITOR="code --wait"
 export CDPATH="$HOME/git/code:$HOME/git/work"
 export PACKAGEOUTPUTPATH="$HOME/.nuget/local"
+export DOTNET_ROOT="$HOME/.dotnet"
 
 # PATH
 prepend_path() {
@@ -22,6 +23,7 @@ prepend_path "$HOME/.krew/bin"
 prepend_path "$HOME/.cargo/bin"
 prepend_path "$HOME/.npm-global/bin"
 prepend_path "$HOME/.local/bin"
+prepend_path "$HOME/.dotnet"
 prepend_path "$HOME/.dotnet/tools"
 export PATH
 

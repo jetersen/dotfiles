@@ -3,9 +3,11 @@ set -x SESSIONDEFAULTUSER $USER
 set -x EDITOR "code --wait"
 set -x CDPATH $HOME/git/code $HOME/git/work
 set -x PACKAGEOUTPUTPATH "$HOME/.nuget/local"
+set -x DOTNET_ROOT "$HOME/.dotnet"
 
 fish_add_path --path --prepend --move --global \
   ~/.dotnet/tools \
+  ~/.dotnet \
   ~/.local/bin \
   ~/.npm-global/bin \
   ~/.cargo/bin \
