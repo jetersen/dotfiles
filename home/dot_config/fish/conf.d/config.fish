@@ -28,6 +28,7 @@ alias open="xdg-open"
 alias myip="curl -sSfL -w '\n' https://api.ipify.org"
 alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
 alias cc="claude --dangerously-skip-permissions"
+alias cx="codex --dangerously-bypass-approvals-and-sandbox"
 function github-auto-merge
   set fields number,autoMergeRequest,reviewDecision
   if test (count $argv) -gt 0
