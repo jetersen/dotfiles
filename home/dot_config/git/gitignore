@@ -25,6 +25,7 @@ Desktop.ini
 # Linux
 .Trash-*
 
+.codegraph/
 **/.claude/settings.local.json
 
 # Syncthing
