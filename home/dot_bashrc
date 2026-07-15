@@ -9,6 +9,7 @@ fi
 export BROWSER="zen-browser"
 export SESSIONDEFAULTUSER="$USER"
 export EDITOR="code --wait"
+export SUDO_EDITOR="vim"
 export CDPATH="$HOME/git/code:$HOME/git/work"
 export PACKAGEOUTPUTPATH="$HOME/.nuget/local"
 export DOTNET_ROOT="$HOME/.dotnet"

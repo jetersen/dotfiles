@@ -1,6 +1,7 @@
 set -x BROWSER "zen-browser"
 set -x SESSIONDEFAULTUSER $USER
 set -x EDITOR "code --wait"
+set -x SUDO_EDITOR "vim"
 set -x CDPATH $HOME/git/code $HOME/git/work
 set -x PACKAGEOUTPUTPATH "$HOME/.nuget/local"
 set -x DOTNET_ROOT "$HOME/.dotnet"
