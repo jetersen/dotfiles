@@ -7,14 +7,24 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "autosave": "on_focus_change",
+  "edit_predictions": {
+    "provider": "copilot",
+  },
   "agent": {
     "commit_message_model": {
-      "provider": "anthropic",
-      "model": "claude-4-5-haiku",
+      "provider": "copilot_chat",
+      "model": "gpt-5-mini",
     },
     "commit_message_instructions": "Write a concise imperative commit subject. Add a body only when it clarifies non-obvious context.",
   },
   "agent_servers": {
+    "github-copilot-cli": {
+      "type": "registry",
+    },
+    "claude-acp": {
+      "type": "registry",
+    },
     "pi-acp": {
       "default_config_options": {
         "thought_level": "low",
