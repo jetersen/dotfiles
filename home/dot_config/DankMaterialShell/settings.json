@@ -431,11 +431,7 @@
   "fadeToDpmsGracePeriod": 5,
   "launchPrefix": "",
   "brightnessDevicePins": {},
-  "wifiNetworkPins": {
-    "preferredWifi": [
-      "joseph"
-    ]
-  },
+  "wifiNetworkPins": {},
   "bluetoothDevicePins": {},
   "audioInputDevicePins": {},
   "audioOutputDevicePins": {},
@@ -649,6 +645,10 @@
         },
         {
           "id": "systemUpdate",
+          "enabled": true
+        },
+        {
+          "id": "openvpn3",
           "enabled": true
         },
         {

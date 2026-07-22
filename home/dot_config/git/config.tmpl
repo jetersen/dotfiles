@@ -100,3 +100,16 @@
 	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
 	helper = !gh auth git-credential
+{{- if eq .chezmoi.os "windows" }}
+{{- $coderabbitMachineID := output "cmd.exe" "/d" "/s" "/c" "git config --global --get coderabbit.machineId 2>NUL || exit /b 0" | trim }}
+{{- if $coderabbitMachineID }}
+[coderabbit]
+	machineId = {{ $coderabbitMachineID }}
+{{- end }}
+{{- else }}
+{{- $coderabbitMachineID := output "sh" "-c" "git config --global --get coderabbit.machineId 2>/dev/null || true" | trim }}
+{{- if $coderabbitMachineID }}
+[coderabbit]
+	machineId = {{ $coderabbitMachineID }}
+{{- end }}
+{{- end }}
