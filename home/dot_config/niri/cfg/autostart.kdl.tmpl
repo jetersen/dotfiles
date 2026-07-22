@@ -12,5 +12,4 @@ spawn-at-startup "/usr/bin/zen-browser"
 spawn-sh-at-startup "/usr/bin/slack --disable-gpu-compositing --enable-features=UseOzonePlatform --ozone-platform=wayland --enable-wayland-ime --enable-features=WebRTCPipeWireCapturer --enable-features=WaylandWindowDecorations --disable-features=WaylandFractionalScaleV1"
 spawn-sh-at-startup "systemctl --user import-environment"
 spawn-sh-at-startup "dbus-update-activation-environment --systemd"
-spawn-at-startup "kanshi"
 {{ end -}}

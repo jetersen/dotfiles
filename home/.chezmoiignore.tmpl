@@ -29,9 +29,6 @@ Pictures
 .config/DankMaterialShell
 .local/bin/niri-focus-self
 {{ end }}
-{{ if not .isWork }}
-.config/kanshi
-{{ end }}
 {{/* hardware-specific audio device disables — only the rocket desktop */}}
 {{ if ne .hostname "rocket" }}
 .config/wireplumber
