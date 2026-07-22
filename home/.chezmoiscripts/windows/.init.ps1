@@ -26,5 +26,9 @@ if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
 pass-cli test >$null 2>&1
 if ($LASTEXITCODE -ne 0) {
   Write-Host "Please log in to Proton Pass CLI..."
-  pass-cli login
+  $loginOutput = pass-cli login 2>&1
+  if ($LASTEXITCODE -ne 0 -and ($loginOutput -join "`n") -notmatch 'Already authenticated') {
+    Write-Error ($loginOutput -join "`n")
+    exit 1
+  }
 }
