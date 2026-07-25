@@ -131,7 +131,7 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 | `dot_config/git/config.home` | `~/.config/git/config.home` |
 | `dot_config/git/config.work` | `~/.config/git/config.work` |
 | `dot_config/git/config.codespaces` | `~/.config/git/config.codespaces` |
-| `dot_config/git/ignore` | `~/.config/git/ignore` |
+| `dot_config/git/gitignore` | `~/.config/git/gitignore` (global `core.excludesfile`) |
 | `dot_githooks/executable_commit-msg` | `~/.githooks/commit-msg` |
 | `private_dot_ssh/config` | `~/.ssh/config` |
 | `git/dot_stignore` | `~/git/.stignore` |

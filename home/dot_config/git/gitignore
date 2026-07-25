@@ -27,6 +27,7 @@ Desktop.ini
 
 .codegraph/
 **/.claude/settings.local.json
+**/.claude/worktrees/
 
 # Syncthing
 *.sync-conflict-*
