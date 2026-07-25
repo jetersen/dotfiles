@@ -116,6 +116,13 @@ Caveats:
 - `appIdSubstitutions` is the exception: DMS ships its own rules in that array and extends them between releases, so it is handled outside the overlay and *appended* to whatever DMS currently ships (skipping patterns already present). On a fresh machine the key is left absent so DMS materialises its five defaults; the next `chezmoi apply` appends ours.
 - Output deliberately omits a trailing newline to match how DMS writes the file, otherwise chezmoi reports a one-byte diff forever. This is the one place the repo's final-newline rule does not apply to the *generated* output — the script source itself still ends with a newline.
 - Requires `jq` on PATH.
+- `customThemeFile` pins a path into `dot_config/DankMaterialShell/themes/catppuccin/`, so that theme is version-controlled alongside it (see below). Without it, the five theme-related overlay keys would point at a missing file on a new machine.
+
+**`dot_config/DankMaterialShell/themes/catppuccin/theme.json`** → `~/.config/DankMaterialShell/themes/catppuccin/theme.json`
+
+Vendored, not app-managed. DMS registry themes are installed *manually* via Settings → Theme Browser, which copies them out of a throwaway clone at `/tmp/dankdots-plugin-registry/`; nothing re-fetches them automatically. So a new machine would otherwise show the stock purple theme until the theme was re-installed by hand, leaving `currentThemeName`, `currentThemeCategory`, `customThemeFile`, `registryThemeVariants` and `matugenScheme` pinned to a file that does not exist.
+
+Unlike `settings.json`, DMS only writes this file at install time, so tracking it verbatim causes no diff churn. It is 15 KB of pure colour data — no absolute paths, hostnames, or secrets. The two `preview-*.svg` files next to it are theme-browser gallery art only and are deliberately left untracked.
 
 ### Syncthing Ignore Patterns
 
@@ -162,6 +169,7 @@ Caveats:
 | `dot_config/niri/cfg/*.kdl` | `~/.config/niri/cfg/*.kdl` |
 | `dot_config/oh-my-posh/jetersen.omp.json` | `~/.config/oh-my-posh/jetersen.omp.json` |
 | `dot_config/DankMaterialShell/modify_settings.json.tmpl` | `~/.config/DankMaterialShell/settings.json` (partial merge) |
+| `dot_config/DankMaterialShell/themes/catppuccin/theme.json` | `~/.config/DankMaterialShell/themes/catppuccin/theme.json` |
 
 ## Code Style
 
