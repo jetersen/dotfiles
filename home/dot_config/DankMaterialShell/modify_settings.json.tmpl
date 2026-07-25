@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+# chezmoi `modify_` script -> ~/.config/DankMaterialShell/settings.json
+#
+# DankMaterialShell owns this file: it rewrites it on every settings change and
+# adds/renames keys on every release. Version-controlling all ~535 keys meant
+# carrying hundreds of app-owned defaults that went stale on each upgrade, so
+# `chezmoi diff` was permanently noisy and `apply` would revert DMS's own schema
+# migrations.
+#
+# Instead chezmoi pipes the machine's current settings.json in on stdin and this
+# script merges the overlay below over it. The overlay holds only the settings
+# that actually differ from DMS's shipped defaults — everything else is left to
+# the local app, including anything machine-specific (wallpapers, display
+# profiles, device pins, battery/AC timeouts).
+#
+# The defaults live in the DMS package, so the overlay can be re-audited:
+#
+#   node -e 'const f=require("fs");let s=f.readFileSync("/usr/share/quickshell/dms/Common/settings/SettingsSpec.js","utf8").replace(/^\s*\.pragma library\s*/m,"");const m={};new Function("module","exports",s+";module.exports=SPEC;")(m,{});const d={};for(const[k,v]of Object.entries(m.exports))d[k]=v.def;process.stdout.write(JSON.stringify(d))' > /tmp/dms-defaults.json
+#   jq -n --slurpfile d /tmp/dms-defaults.json --slurpfile l ~/.config/DankMaterialShell/settings.json \
+#     '$l[0] | to_entries | map(select($d[0][.key] != null and $d[0][.key] != .value)) | from_entries | keys'
+#
+# Any key that prints there and is not in the overlay is an unshared choice; any
+# overlay key that stops printing has become the default and can be dropped.
+# Deliberately NOT pinned despite differing from the defaults:
+#   cursorSettings           - ours merely lacks the newer "mango" sub-key
+#   desktopClockCustomColor  - app materialised "#ffffff" into a QColor object
+#   systemMonitorCustomColor - likewise
+#   niriOutputSettings       - machine-specific (eDP-1 laptop panel), and empty
+set -euo pipefail
+
+overlay=$(cat <<'JSON'
+{
+  "barConfigs": [
+    {
+      "id": "default",
+      "name": "Main Bar",
+      "enabled": true,
+      "position": 0,
+      "screenPreferences": [
+        "all"
+      ],
+      "showOnLastDisplay": true,
+      "leftWidgets": [
+        "launcherButton",
+        "workspaceSwitcher",
+        "focusedWindow"
+      ],
+      "centerWidgets": [
+        "music",
+        "clock",
+        "weather"
+      ],
+      "rightWidgets": [
+        {
+          "id": "systemTray",
+          "enabled": true
+        },
+        {
+          "id": "clipboard",
+          "enabled": true
+        },
+        {
+          "id": "cpuUsage",
+          "enabled": true
+        },
+        {
+          "id": "memUsage",
+          "enabled": true
+        },
+        {
+          "id": "notificationButton",
+          "enabled": true
+        },
+        {
+          "id": "systemUpdate",
+          "enabled": true
+        },
+        {
+          "id": "privacyIndicator",
+          "enabled": true
+        },
+        {
+          "id": "controlCenterButton",
+          "enabled": true
+        },
+        {
+          "id": "openvpn3",
+          "enabled": true
+        }
+      ],
+      "spacing": 0,
+      "innerPadding": 0,
+      "bottomGap": 0,
+      "transparency": 1,
+      "widgetTransparency": 1,
+      "squareCorners": false,
+      "noBackground": false,
+      "gothCornersEnabled": false,
+      "gothCornerRadiusOverride": false,
+      "gothCornerRadiusValue": 12,
+      "borderEnabled": false,
+      "borderColor": "surfaceText",
+      "borderOpacity": 1,
+      "borderThickness": 1,
+      "fontScale": 1,
+      "autoHide": false,
+      "autoHideDelay": 250,
+      "openOnOverview": false,
+      "visible": true,
+      "popupGapsAuto": true,
+      "popupGapsManual": 4,
+      "removeWidgetPadding": false,
+      "widgetPadding": 8
+    }
+  ],
+  "barElevationEnabled": false,
+  "showOccupiedWorkspacesOnly": true,
+  "workspaceNameIcons": {
+    "chat": {
+      "type": "icon",
+      "value": "chat"
+    },
+    "music": {
+      "type": "icon",
+      "value": "music_note"
+    },
+    "browser": {
+      "type": "icon",
+      "value": "home"
+    }
+  },
+  "updaterHideWidget": true,
+  "currentThemeCategory": "registry",
+  "currentThemeName": "custom",
+  "customThemeFile": "{{ .chezmoi.homeDir }}/.config/DankMaterialShell/themes/catppuccin/theme.json",
+  "registryThemeVariants": {
+    "catppuccin": {
+      "dark": {
+        "flavor": "mocha",
+        "accent": "mauve"
+      }
+    }
+  },
+  "matugenScheme": "scheme-fidelity",
+  "cornerRadius": 0,
+  "monoFontFamily": "JetBrainsMono Nerd Font",
+  "animationSpeed": 0,
+  "modalAnimationSpeed": 0,
+  "popoutAnimationSpeed": 0,
+  "syncComponentAnimationSpeeds": false,
+  "enableRippleEffects": false,
+  "niriLayoutGapsOverride": 0,
+  "niriLayoutRadiusOverride": 0,
+  "niriLayoutBorderSize": 0,
+  "builtInPluginSettings": {
+    "dms_settings_search": {
+      "trigger": "?"
+    }
+  },
+  "soundNewNotification": false
+}
+JSON
+)
+
+# appIdSubstitutions is NOT in the overlay: DMS ships its own rules in that array
+# and extends them between releases, so replacing it wholesale would suppress new
+# upstream entries. These are appended to whatever DMS currently ships instead,
+# skipping any whose pattern is already present.
+extra_app_id_substitutions=$(cat <<'JSON'
+[
+  {
+    "pattern": "com.github.th_ch.youtube_music",
+    "replacement": "pear-desktop",
+    "type": "exact"
+  }
+]
+JSON
+)
+
+current=$(cat)
+# A fresh machine has no settings.json yet; DMS fills in its defaults on start.
+[ -n "$current" ] || current='{}'
+
+# jq's `*` recurses into objects, so unlisted keys survive; arrays and scalars
+# from the overlay replace theirs outright. Key order follows the existing file,
+# with any overlay-only keys appended.
+#
+# NOTE: barConfigs IS replaced wholesale, including the per-bar
+# `screenPreferences` — fine while both machines use ["all"], but if one ever
+# needs monitor-specific bars, drop barConfigs from the overlay.
+merged=$(printf '%s' "$current" | jq \
+    --argjson overlay "$overlay" \
+    --argjson extraAppIds "$extra_app_id_substitutions" '
+  (. * $overlay) as $m
+  # On a fresh machine there is no appIdSubstitutions yet, and DMS ships five
+  # rules of its own. Emitting only our extras would suppress those, so leave the
+  # key absent and let DMS materialise its defaults; the next `chezmoi apply`
+  # appends ours to them.
+  | if ($m | has("appIdSubstitutions")) | not then $m
+    else
+      $m.appIdSubstitutions as $base
+      | $m
+      | .appIdSubstitutions = (
+          $base + [
+            $extraAppIds[]
+            | select(.pattern as $p | ($base | map(.pattern) | index($p)) | not)
+          ]
+        )
+    end
+')
+
+# DMS writes 2-space indent with no trailing newline; match it so chezmoi does
+# not report a one-byte diff forever. Command substitution strips the newline.
+printf '%s' "$merged"

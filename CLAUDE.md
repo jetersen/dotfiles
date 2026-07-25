@@ -79,6 +79,7 @@ home/
 - `executable_` prefix → file gets executable permission
 - `private_` prefix → directory gets 0700 permissions
 - `symlink_` prefix → file content is the symlink target path
+- `modify_` prefix → source file is an executable script; chezmoi pipes the current target file to it on stdin and the script's stdout becomes the new target (see [Partially Managed Config](#partially-managed-config))
 - `.tmpl` suffix → processed as a Go template by chezmoi
 - Files without `.tmpl` are copied verbatim (safe for `{{ }}` in oh-my-posh JSON / PowerShell)
 
@@ -87,7 +88,7 @@ home/
 - **Linux/macOS**: `Documents/` is ignored (no Windows PS symlinks needed)
 - **Windows**: `.config/fish/`, `.bashrc`, and `.zshrc` are ignored (fish/bash/zsh not used on Windows)
 - **Non-Hyprland**: `.config/hypr/` is ignored
-- **Non-niri**: `.config/niri/` is ignored
+- **Non-niri**: `.config/niri/`, `.config/DankMaterialShell/`, and `.local/bin/niri-focus-self` are ignored
 
 ### Git Config Hierarchy
 
@@ -98,6 +99,23 @@ home/
 - `config.codespaces` — when in `/workspaces/`
 
 A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from branch names.
+
+### Partially Managed Config
+
+Some apps own their own config file — they rewrite it whenever a setting changes and add or rename keys on every release. Version-controlling such a file wholesale makes `chezmoi diff` permanently noisy and lets `apply` revert the app's own schema migrations. For these, use a `modify_` script that pins only the keys worth sharing between machines and leaves the rest to the local app.
+
+**`dot_config/DankMaterialShell/modify_settings.json.tmpl`** → `~/.config/DankMaterialShell/settings.json`
+
+DankMaterialShell's `settings.json` has ~535 keys, but only ~27 differ from the values DMS ships. The script merges a 22-key overlay over whatever the machine currently has (plus one appended `appIdSubstitutions` rule, see caveats), using `jq`'s `*` operator so unlisted keys survive untouched. **The selection rule is "differs from the DMS default"** — pinning a key that already equals the default buys nothing and just creates upgrade churn. Machine-specific settings (wallpapers, display profiles, device pins, battery/AC timeouts) are left to the local app.
+
+The defaults are readable from the installed package at `/usr/share/quickshell/dms/Common/settings/SettingsSpec.js`, so the overlay can be re-audited against a DMS upgrade — the script header carries a copy-pasteable snippet that lists every currently non-default key. Keys that differ from the default but are deliberately *not* pinned are listed there too, with reasons (schema-drift artefacts and the machine-specific `niriOutputSettings`).
+
+Caveats:
+
+- Arrays are replaced wholesale, not merged. `barConfigs` therefore overwrites each bar's `screenPreferences`; that is safe only while every machine uses `["all"]`.
+- `appIdSubstitutions` is the exception: DMS ships its own rules in that array and extends them between releases, so it is handled outside the overlay and *appended* to whatever DMS currently ships (skipping patterns already present). On a fresh machine the key is left absent so DMS materialises its five defaults; the next `chezmoi apply` appends ours.
+- Output deliberately omits a trailing newline to match how DMS writes the file, otherwise chezmoi reports a one-byte diff forever. This is the one place the repo's final-newline rule does not apply to the *generated* output — the script source itself still ends with a newline.
+- Requires `jq` on PATH.
 
 ### Syncthing Ignore Patterns
 
@@ -143,6 +161,7 @@ A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from br
 | `dot_config/niri/noctalia.kdl` | `~/.config/niri/noctalia.kdl` |
 | `dot_config/niri/cfg/*.kdl` | `~/.config/niri/cfg/*.kdl` |
 | `dot_config/oh-my-posh/jetersen.omp.json` | `~/.config/oh-my-posh/jetersen.omp.json` |
+| `dot_config/DankMaterialShell/modify_settings.json.tmpl` | `~/.config/DankMaterialShell/settings.json` (partial merge) |
 
 ## Code Style
 
