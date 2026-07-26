@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_id="com.github.th-ch.youtube-music"
+window_id=$(niri msg -j windows 2>/dev/null | jq -r --arg app_id "$app_id" \
+  'first(.[] | select(.app_id == $app_id) | .id) // empty')
+
+if [[ -n "$window_id" ]]; then
+  exec niri msg action focus-window --id "$window_id"
+fi
+
+exec pear-desktop

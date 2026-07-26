@@ -10,7 +10,7 @@ binds {
   Mod+Return hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
   Mod+B      hotkey-overlay-title="Open Browser: Zen Browser" { spawn "zen-browser"; }
   Mod+E      hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
-  Mod+M      hotkey-overlay-title="Pear Desktop" { spawn "pear-desktop"; }
+  Mod+M      hotkey-overlay-title="Focus or Open YouTube Music" { spawn "youtube-music"; }
 
   // Annotate a clipboard screenshot with Satty (DMS uses bare Print).
   Mod+Print  hotkey-overlay-title="Annotate Clipboard Screenshot: Satty" { spawn-sh "wl-paste --type image/png | satty -f - --copy-command wl-copy --early-exit"; }
