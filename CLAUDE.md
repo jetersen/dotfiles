@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Cross-platform dotfiles repository managing configurations for Fish, PowerShell, Git, SSH, and Oh My Posh. Targets Linux (CachyOS), macOS, Windows, and GitHub Codespaces. Managed with [chezmoi](https://www.chezmoi.io/).
 
+## Git Workflow
+
+Work directly on `main` by default. Do not create a branch or worktree unless the user explicitly asks for one.
+
 ## Build & Deploy
 
 Dotfiles are deployed via chezmoi — a single static binary with no dependencies.
