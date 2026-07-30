@@ -11,11 +11,27 @@ Host vps
   HostName {{ $vpsIP }}
   User {{ $vpsUser }}
 
-{{- if .isPersonal }}
+{{- /* Tailnet suffix is read from the local tailscaled so it stays out of this public repo. */}}
+{{- $tailnet := "" -}}
+{{- if and (not .isWindows) (lookPath "tailscale") -}}
+{{-   $tailnet = output "sh" "-c" "tailscale status --json 2>/dev/null | jq -r '.MagicDNSSuffix // empty'" | trim -}}
+{{- end -}}
+{{- if $tailnet }}{{ $tailnet = printf ".%s" $tailnet }}{{ end }}
+
+Host rocket
+  HostName rocket{{ $tailnet }}
+  HostKeyAlias rocket
+  User {{ .chezmoi.username }}
+
 Host worklaptop
+  HostName worklaptop{{ $tailnet }}
+  HostKeyAlias worklaptop
+  User {{ .chezmoi.username }}
+
+Host worklaptop-lan
   HostName 192.168.1.132
-  User joseph
-{{- end }}
+  HostKeyAlias worklaptop
+  User {{ .chezmoi.username }}
 
 Host truenasadmin
   HostName 192.168.1.2
