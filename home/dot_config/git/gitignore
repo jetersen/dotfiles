@@ -26,6 +26,7 @@ Desktop.ini
 .Trash-*
 
 .codegraph/
+.jcode-evidence/
 CLAUDE.local.md
 **/.claude/settings.local.json
 **/.claude/worktrees/
