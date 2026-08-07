@@ -2,10 +2,18 @@
 # Pull the image currently on the work laptop's clipboard over Tailscale, save
 # it locally, and put it on this machine's clipboard.
 #
+# By default it lands on a stable scratch path that each run overwrites, so
+# repeated grabs (an agent asking "what is on my work clipboard?") do not
+# litter. Pass -o to keep a copy.
+#
 # Usage:
-#   worklaptop-clip             Save to ~/Pictures/Screenshots and copy locally.
-#   worklaptop-clip -o FILE     Save to FILE instead ("-" writes to stdout).
-#   worklaptop-clip --no-copy   Skip putting the image on the local clipboard.
+#   worklaptop-clip                            Save to the scratch path, copy locally.
+#   worklaptop-clip -o DIR/                    Save a timestamped file in DIR.
+#   worklaptop-clip -o FILE                    Save to exactly FILE.
+#   worklaptop-clip -o -                       Write the PNG to stdout.
+#   worklaptop-clip --no-copy                  Skip the local clipboard.
+#
+# The path written is printed on stdout (except with -o -).
 
 set -euo pipefail
 
@@ -46,7 +54,9 @@ for command in tailscale base64; do
 done
 
 if [[ -z "$output" ]]; then
-  output="$HOME/Pictures/Screenshots/worklaptop-$(date +'%Y-%m-%d_%H-%M-%S').png"
+  output="${XDG_RUNTIME_DIR:-/tmp}/worklaptop-clip.png"
+elif [[ "$output" != "-" && ( "$output" == */ || -d "$output" ) ]]; then
+  output="${output%/}/worklaptop-$(date +'%Y-%m-%d_%H-%M-%S').png"
 fi
 
 # wl-paste needs the graphical session's environment, which a Tailscale SSH
