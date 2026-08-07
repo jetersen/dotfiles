@@ -2,12 +2,13 @@
 # Pull the image currently on the work laptop's clipboard over Tailscale, save
 # it locally, and put it on this machine's clipboard.
 #
-# By default it lands on a stable scratch path that each run overwrites, so
-# repeated grabs (an agent asking "what is on my work clipboard?") do not
-# litter. Pass -o to keep a copy.
+# By default each grab is a timestamped file under $XDG_RUNTIME_DIR, which the
+# session owns privately and the OS clears at logout — so repeated grabs (an
+# agent asking "what is on my work clipboard?") stay distinct without littering
+# anywhere permanent. Pass -o to keep a copy.
 #
 # Usage:
-#   worklaptop-clip                            Save to the scratch path, copy locally.
+#   worklaptop-clip                            Save under $XDG_RUNTIME_DIR, copy locally.
 #   worklaptop-clip -o DIR/                    Save a timestamped file in DIR.
 #   worklaptop-clip -o FILE                    Save to exactly FILE.
 #   worklaptop-clip -o -                       Write the PNG to stdout.
@@ -54,7 +55,9 @@ for command in tailscale base64; do
 done
 
 if [[ -z "$output" ]]; then
-  output="${XDG_RUNTIME_DIR:-/tmp}/worklaptop-clip.png"
+  # $XDG_RUNTIME_DIR is a private tmpfs the session owns and the OS clears at
+  # logout, so grabs stay distinct without accumulating anywhere permanent.
+  output="${XDG_RUNTIME_DIR:-/tmp}/worklaptop-clip/worklaptop-$(date +'%Y-%m-%d_%H-%M-%S').png"
 elif [[ "$output" != "-" && ( "$output" == */ || -d "$output" ) ]]; then
   output="${output%/}/worklaptop-$(date +'%Y-%m-%d_%H-%M-%S').png"
 fi
