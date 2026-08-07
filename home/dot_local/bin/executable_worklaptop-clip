@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Pull the image currently on the work laptop's clipboard over Tailscale, save
+# it locally, and put it on this machine's clipboard.
+#
+# Usage:
+#   worklaptop-clip             Save to ~/Pictures/Screenshots and copy locally.
+#   worklaptop-clip -o FILE     Save to FILE instead ("-" writes to stdout).
+#   worklaptop-clip --no-copy   Skip putting the image on the local clipboard.
+
+set -euo pipefail
+
+remote_host="worklaptop"
+output=""
+copy=true
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -o|--output)
+      output="${2:-}"
+      if [[ -z "$output" ]]; then
+        echo "worklaptop-clip: -o requires a path" >&2
+        exit 2
+      fi
+      shift 2
+      ;;
+    --no-copy)
+      copy=false
+      shift
+      ;;
+    -h|--help)
+      sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      echo "usage: worklaptop-clip [-o FILE] [--no-copy]" >&2
+      exit 2
+      ;;
+  esac
+done
+
+for command in tailscale base64; do
+  if ! command -v "$command" >/dev/null; then
+    echo "worklaptop-clip: missing required command: $command" >&2
+    exit 1
+  fi
+done
+
+if [[ -z "$output" ]]; then
+  output="$HOME/Pictures/Screenshots/worklaptop-$(date +'%Y-%m-%d_%H-%M-%S').png"
+fi
+
+# wl-paste needs the graphical session's environment, which a Tailscale SSH
+# session does not inherit; systemd's user manager knows it. Base64 keeps the
+# PNG intact across the SSH channel.
+read -r -d '' remote_script <<'EOF' || true
+set -euo pipefail
+eval "$(systemctl --user show-environment | grep -E '^(WAYLAND_DISPLAY|XDG_RUNTIME_DIR|DISPLAY)=' | sed 's/^/export /')"
+if ! wl-paste --list-types 2>/dev/null | grep -q '^image/png$'; then
+  echo "no image on the clipboard" >&2
+  exit 1
+fi
+wl-paste --no-newline --type image/png | base64 -w0
+EOF
+encoded_script=$(printf '%s' "$remote_script" | base64 -w0)
+
+if [[ "$output" == "-" ]]; then
+  tailscale ssh "$remote_host" "printf %s '$encoded_script' | base64 -d | bash" | base64 -d
+  exit 0
+fi
+
+mkdir -p "$(dirname "$output")"
+tmp=$(mktemp "$(dirname "$output")/.worklaptop-clip.XXXXXX")
+trap 'rm -f "$tmp"' EXIT
+
+tailscale ssh "$remote_host" "printf %s '$encoded_script' | base64 -d | bash" | base64 -d > "$tmp"
+if [[ ! -s "$tmp" ]]; then
+  echo "worklaptop-clip: received an empty image from $remote_host" >&2
+  exit 1
+fi
+
+chmod 644 "$tmp"
+mv "$tmp" "$output"
+trap - EXIT
+
+if $copy; then
+  if command -v wl-copy >/dev/null; then
+    # Same trick locally: the script may run from a context without the
+    # graphical session's environment (a plain SSH session, a cron job).
+    if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
+      eval "$(systemctl --user show-environment |
+        grep -E '^(WAYLAND_DISPLAY|XDG_RUNTIME_DIR|DISPLAY)=' | sed 's/^/export /')"
+    fi
+    wl-copy --type image/png < "$output"
+  else
+    echo "worklaptop-clip: wl-copy not found, skipping local clipboard" >&2
+  fi
+fi
+
+echo "$output"
