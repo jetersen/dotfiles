@@ -1,0 +1,123 @@
+{{- $argocd := protonPassJSON (printf "%s/Argo CD" .passUriPrefix) -}}
+{{- $argocdURL := index $argocd.item.content.content.Login.urls 0 -}}
+#!/usr/bin/env bash
+# Log in to Argo CD using the work laptop's network and browser, then copy the
+# resulting context to this machine over Tailscale Taildrop. The local OpenVPN
+# config named "work" must be connected so the copied context is usable here.
+#
+# Usage:
+#   argocd-worklaptop-sso               Log in, open the laptop browser, and copy.
+#   argocd-worklaptop-sso --copy-only   Copy the laptop's existing context.
+
+set -euo pipefail
+umask 077
+
+argocd_url={{ $argocdURL | quote }}
+context_name="${argocd_url#*://}"
+context_name="${context_name%%/*}"
+remote_host="worklaptop"
+local_config="$HOME/.config/argocd/config"
+login=true
+
+if [[ ! "$context_name" =~ ^[a-zA-Z0-9.-]+(:[0-9]+)?$ ]]; then
+  echo "argocd-worklaptop-sso: invalid Argo CD URL in Proton Pass" >&2
+  exit 1
+fi
+
+case "${1:-}" in
+  --copy-only)
+    login=false
+    ;;
+  -h|--help)
+    sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+    exit 0
+    ;;
+  "")
+    ;;
+  *)
+    echo "usage: argocd-worklaptop-sso [--copy-only]" >&2
+    exit 2
+    ;;
+esac
+
+for command in openvpn3 tailscale timeout yq; do
+  if ! command -v "$command" >/dev/null; then
+    echo "argocd-worklaptop-sso: missing required command: $command" >&2
+    exit 1
+  fi
+done
+
+if ! openvpn3 sessions-list 2>/dev/null | awk '
+  /Config name:/ { config = $NF }
+  /Status:/ && config == "work" && /Client connected/ { connected = 1 }
+  END { exit !connected }
+'; then
+  echo "argocd-worklaptop-sso: OpenVPN config 'work' is not connected" >&2
+  echo "start it with: openvpn3 session-start --config work" >&2
+  exit 1
+fi
+
+if $login; then
+  tailscale ssh "$remote_host" \
+    "exec systemd-run --user --quiet --wait --pipe --collect -- argocd login '$context_name' --sso --sso-launch-browser --sso-port 8085 --grpc-web"
+fi
+
+local_tailnet_host=$(tailscale status --json | yq -p=json -r '.Self.HostName')
+if [[ ! "$local_tailnet_host" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+  echo "argocd-worklaptop-sso: invalid local Tailscale hostname" >&2
+  exit 1
+fi
+
+receive_dir="${XDG_CACHE_HOME:-$HOME/.cache}/argocd-worklaptop-sso/taildrop"
+mkdir -p "$receive_dir"
+chmod 700 "$receive_dir"
+bundle_name="argocd-context-$BASHPID-$RANDOM.yaml"
+bundle_path="$receive_dir/$bundle_name"
+merged_config=$(mktemp "$receive_dir/merged.XXXXXX")
+trap 'rm -f "$bundle_path" "$merged_config"' EXIT
+
+read -r -d '' remote_script <<EOF || true
+set -euo pipefail
+config="\$HOME/.config/argocd/config"
+yq -e '{
+  "context": (.contexts[] | select(.name == "$context_name")),
+  "server": (.servers[] | select(.server == "$context_name")),
+  "user": (.users[] | select(.name == "$context_name"))
+}' "\$config" | tailscale file cp --update-interval=0s --name "$bundle_name" - "$local_tailnet_host":
+EOF
+encoded_script=$(printf '%s' "$remote_script" | base64 -w0)
+tailscale ssh "$remote_host" "printf %s '$encoded_script' | base64 -d | bash"
+
+timeout 30 tailscale file get --wait --conflict=overwrite "$receive_dir"
+if [[ ! -f "$bundle_path" ]]; then
+  echo "argocd-worklaptop-sso: Taildrop did not deliver $bundle_name" >&2
+  exit 1
+fi
+if ! yq -e '.context and .server and .user and .user."auth-token"' "$bundle_path" >/dev/null; then
+  echo "argocd-worklaptop-sso: received context is incomplete" >&2
+  exit 1
+fi
+
+mkdir -p "$(dirname "$local_config")"
+if [[ -f "$local_config" ]]; then
+  base_config="$local_config"
+else
+  base_config="$receive_dir/empty-$bundle_name"
+  printf '%s\n' 'contexts: []' 'servers: []' 'users: []' > "$base_config"
+fi
+
+BUNDLE_PATH="$bundle_path" yq '
+  load(strenv(BUNDLE_PATH)) as $bundle |
+  .contexts = ((.contexts // []) | map(select(.name != $bundle.context.name)) + [$bundle.context]) |
+  .servers = ((.servers // []) | map(select(.server != $bundle.server.server)) + [$bundle.server]) |
+  .users = ((.users // []) | map(select(.name != $bundle.user.name)) + [$bundle.user]) |
+  ."current-context" = $bundle.context.name
+' "$base_config" > "$merged_config"
+chmod 600 "$merged_config"
+mv "$merged_config" "$local_config"
+
+if [[ "$base_config" != "$local_config" ]]; then
+  rm -f "$base_config"
+fi
+
+echo "Context '$context_name' copied from $remote_host to this machine."
