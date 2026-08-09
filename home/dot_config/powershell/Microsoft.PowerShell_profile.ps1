@@ -9,9 +9,16 @@ if ($null -eq $IsWindows -or $IsWindows -eq $true) {
   if ([System.IO.File]::Exists("$chocoProfile")) {
     Import-Module "$chocoProfile"
   }
-  $env:SESSIONDEFAULTUSER = $env:USERNAME
-} else {
-  $env:SESSIONDEFAULTUSER = $env:USER
+}
+
+if (!$env:PROMPT_DEFAULT_USER) {
+  if ($env:SUDO_USER) {
+    $env:PROMPT_DEFAULT_USER = $env:SUDO_USER
+  } elseif ($null -eq $IsWindows -or $IsWindows -eq $true) {
+    $env:PROMPT_DEFAULT_USER = $env:USERNAME
+  } else {
+    $env:PROMPT_DEFAULT_USER = $env:USER
+  }
 }
 
 $env:EDITOR = "code --wait"

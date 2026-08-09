@@ -12,7 +12,7 @@
           },
           "leading_diamond": "\ue0b6",
           "trailing_diamond": "\ue0b0",
-          "template": "{{ if ne .Env.SESSIONDEFAULTUSER .UserName }} {{ if .SSHSession }}\uf817 {{ end }}{{ .UserName }}@{{ .HostName }}{{ end }}",
+          "template": "{{ if .SSHSession }} \ueba9 {{ if ne .Env.PROMPT_DEFAULT_USER .UserName }}{{ .UserName }}@{{ end }}{{ .HostName }}{{ else if ne .Env.PROMPT_DEFAULT_USER .UserName }} {{ .UserName }}@{{ .HostName }}{{ end }}",
           "foreground": "#ffffff",
           "background": "#c386f1",
           "type": "session",

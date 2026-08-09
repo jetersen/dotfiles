@@ -1,5 +1,11 @@
 set -x BROWSER "zen-browser"
-set -x SESSIONDEFAULTUSER $USER
+if not set -q PROMPT_DEFAULT_USER
+  if set -q SUDO_USER
+    set -gx PROMPT_DEFAULT_USER $SUDO_USER
+  else
+    set -gx PROMPT_DEFAULT_USER $USER
+  end
+end
 set -x EDITOR "code --wait"
 set -x SUDO_EDITOR "vim"
 set -x CDPATH $HOME/git/code $HOME/git/work
