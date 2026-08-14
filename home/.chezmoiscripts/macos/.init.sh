@@ -12,7 +12,7 @@ if ! command -v pass-cli &> /dev/null; then
 fi
 
 # Check login status of Proton Pass CLI, if not logged in, prompt the user to log in
-if ! pass-cli test &> /dev/null; then
+if ! pass-cli info &> /dev/null; then
   echo "Please log in to Proton Pass CLI..."
   if ! login_output=$(pass-cli login 2>&1); then
     if [[ $login_output != *"Already authenticated"* ]]; then

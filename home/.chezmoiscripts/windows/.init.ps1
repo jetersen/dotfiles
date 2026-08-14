@@ -23,7 +23,7 @@ if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
   winget install --id gerardog.gsudo --silent --source winget --accept-package-agreements --accept-source-agreements
 }
 # Check login status of Proton Pass CLI, if not logged in, prompt the user to log in
-pass-cli test >$null 2>&1
+pass-cli info >$null 2>&1
 if ($LASTEXITCODE -ne 0) {
   Write-Host "Please log in to Proton Pass CLI..."
   $loginOutput = pass-cli login 2>&1
