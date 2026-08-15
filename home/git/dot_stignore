@@ -6,6 +6,7 @@
 // .NET build and test output
 (?d)obj
 (?d).vs
+(?d)*/packages
 (?d)BenchmarkDotNet.Artifacts
 (?d)nupkgs
 (?d)**/bin/Debug
@@ -72,6 +73,10 @@
 (?d).ipynb_checkpoints
 (?d)htmlcov
 (?d)pip-cache
+
+// Ruby and Bundler dependencies and local configuration
+(?d)**/vendor/bundle
+(?d).bundle
 
 // Go and general tool caches
 (?d).modcache
