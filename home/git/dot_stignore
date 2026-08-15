@@ -36,6 +36,7 @@
 (?d).vite
 (?d).parcel-cache
 (?d).pnpm-store
+(?d)dist
 (?d)**/.yarn/cache
 (?d)storybook-static
 (?d)playwright-report
