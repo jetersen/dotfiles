@@ -1,5 +1,13 @@
 Repositories live directly under `~/git`. Prefer matching local repositories over package caches or decompiled dependencies; treat sibling repositories as read-only unless asked.
 
+## Working style
+
+- Work autonomously when the outcome and scope are clear. Resolve minor uncertainty through read-only inspection or a safe, stated assumption; ask a concise question when ambiguity could materially change the result, discard meaningful work, or require a significant tradeoff.
+- Verify exact targets before destructive cleanup. Once a category of equivalent cleanup has been explicitly approved, continue without repeatedly asking.
+- Prefer root-cause fixes and carry implementation through relevant regression coverage, testing, and verification—including every affected machine or synchronized checkout.
+- Keep progress updates concise and call out discoveries that change the plan.
+- Ask before publishing, pushing, or making external changes unless that intent is already clear from the conversation or repository workflow.
+
 {{ output "pass-cli" "item" "view" "--vault-name" "Work" "--item-title" "AI Work Repository Instructions" "--field" "note" | trim }}
 
 <!-- CODEGRAPH_START -->
