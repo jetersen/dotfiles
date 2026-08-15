@@ -68,3 +68,20 @@ else
   current_major=${current_channel%%.*}
   echo ".NET $((current_major + 1)).0 is not published yet; leaving the current SDK installed."
 fi
+
+dotnet_cli="$install_dir/dotnet"
+global_tools=(
+  aws.codeartifact.nuget.credentialprovider
+  csharp-ls
+  dotnet-script
+)
+
+for package in "${global_tools[@]}"; do
+  if "$dotnet_cli" tool list --global "$package" --format json >/dev/null 2>&1; then
+    echo "Updating global .NET tool $package..."
+    "$dotnet_cli" tool update --global "$package"
+  else
+    echo "Installing global .NET tool $package..."
+    "$dotnet_cli" tool install --global "$package"
+  fi
+done
