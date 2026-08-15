@@ -8,7 +8,7 @@ if not set -q PROMPT_DEFAULT_USER
 end
 set -x EDITOR "code --wait"
 set -x SUDO_EDITOR "vim"
-set -x CDPATH $HOME/git/code $HOME/git/work
+set -x CDPATH $HOME/git
 set -x PACKAGEOUTPUTPATH "$HOME/.nuget/local"
 set -x DOTNET_ROOT "$HOME/.dotnet"
 
@@ -140,7 +140,7 @@ function gh
 end
 
 function cws
-  cd ~/git/code
+  cd ~/git
 end
 function dotfile
   xdg-open https://github.com/jetersen/dotfiles

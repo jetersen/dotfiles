@@ -198,13 +198,11 @@ Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
 
 $developmentWorkspace =
 if ($IsLinux -or $IsMacOS) {
-  @("~/git/code", "~/git/work")
+  @("~/git")
 } else {
   @(
-    "C:\git\code"
-    "C:\git\work"
-    "D:\git\code"
-    "D:\git\work"
+    "C:\git"
+    "D:\git"
   )
 }
 

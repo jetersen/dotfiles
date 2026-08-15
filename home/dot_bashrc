@@ -12,7 +12,7 @@ if [[ -z "${PROMPT_DEFAULT_USER:-}" ]]; then
 fi
 export EDITOR="code --wait"
 export SUDO_EDITOR="vim"
-export CDPATH="$HOME/git/code:$HOME/git/work"
+export CDPATH="$HOME/git"
 export PACKAGEOUTPUTPATH="$HOME/.nuget/local"
 export DOTNET_ROOT="$HOME/.dotnet"
 
@@ -157,7 +157,7 @@ gh() {
 }
 
 cws() {
-  cd ~/git/code || return
+  cd ~/git || return
 }
 
 dotfile() {

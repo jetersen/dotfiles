@@ -271,8 +271,7 @@ max_concurrency = 5
 
 # Additional git repositories to pull or fetch
 repos = [
-    "~/git/code/*/",
-    "~/git/work/*/"
+    "~/git/*/"
 ]
 
 # Set to `false` to skip pulling/fetching the predefined git repos

@@ -98,9 +98,10 @@ home/
 
 `dot_config/git/config.tmpl` is the main config (XDG location: `~/.config/git/config`), which conditionally includes:
 
-- `config.home` — when working in `~/git/code/` (personal, jetersen.dev email)
-- `config.work` — when working in `~/git/work/` (work email)
+- `config.work` — for repositories whose remote belongs to a MovieStarPlanet GitHub organization
 - `config.codespaces` — when in `/workspaces/`
+
+The default identity is personal. The `git home` and `git work` aliases set an explicit repository-local email when a remote does not identify the intended context.
 
 A `commit-msg` hook is deployed to `~/.githooks/` that prepends JIRA IDs from branch names.
 

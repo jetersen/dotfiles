@@ -24,9 +24,6 @@
 {{- $personalEmail := "me@jetersen.dev" -}}
 {{- $workEmail := "jop@moviestarplanet.com" -}}
 {{- $email := $personalEmail -}}
-{{- if $isWork -}}
-{{-   $email = $workEmail -}}
-{{- end -}}
 
 {{/* preferred output for Pear Desktop's dedicated workspace (niri).
      Descriptive "make model serial" survives DP connector renumbering.
@@ -43,7 +40,7 @@
 {{-   $dockOutput = "Dell Inc. DELL P2725D 24CRZ64" -}}
 {{- end -}}
 
-sourceDir = "{{ .chezmoi.homeDir}}/git/code/dotfiles/home"
+sourceDir = "{{ .chezmoi.homeDir}}/git/dotfiles/home"
 
 [data]
   firstname = {{ $firstname | quote }}

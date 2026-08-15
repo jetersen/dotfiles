@@ -1,85 +1,136 @@
-// Exceptions
-!**/dot_local/bin
+// Version control and local code indexes
+(?d).git
+(?d).codegraph
+(?d)**/.claude/worktrees
 
-// .NET
-bin
-obj
-.vs
-packages
-BenchmarkDotNet.Artifacts
-nupkgs
-*.nupkg
-*.exe
-*.AppImage
+// .NET build and test output
+(?d)obj
+(?d).vs
+(?d)BenchmarkDotNet.Artifacts
+(?d)nupkgs
+(?d)**/bin/Debug
+(?d)**/bin/Release
+(?d)**/bin/**/Debug
+(?d)**/bin/**/Release
+(?d)TestResults
+(?d)artifacts
+(?d).sonarqube
+(?d)*.trx
+(?d)*.coverage
+(?d)*.coveragexml
+(?d)coverage.cobertura.xml
+(?d)coverage.opencover.xml
+(?d)*.nupkg
+(?d)*.exe
+(?d)*.AppImage
 
-// Node
-node_modules
-dist
-coverage
+// Node and frontend caches
+(?d)node_modules
+(?d).next
+(?d).nuxt
+(?d).turbo
+(?d).svelte-kit
+(?d).astro
+(?d).angular
+(?d).vite
+(?d).parcel-cache
+(?d).pnpm-store
+(?d)**/.yarn/cache
+(?d)storybook-static
+(?d)playwright-report
+(?d)test-results
+(?d)*.tsbuildinfo
+(?d).eslintcache
+(?d).stylelintcache
 
-// Java / Gradle / Maven
-target
-build
-.gradle
-.mvn
+// Java, Gradle, and Maven output
+(?d)target
+(?d).gradle
+(?d).mvn
+(?d)**/build/classes
+(?d)**/build/generated
+(?d)**/build/intermediates
+(?d)**/build/kotlin
+(?d)**/build/libs
+(?d)**/build/outputs
+(?d)**/build/reports
+(?d)**/build/resources
+(?d)**/build/test-results
+(?d)**/build/tmp
 
-// Python
-.venv
-__pycache__
-*.pyc
-.pytest_cache
-pip-cache
+// Python caches and environments
+(?d).venv
+(?d)venv
+(?d)__pycache__
+(?d)*.pyc
+(?d).pytest_cache
+(?d).mypy_cache
+(?d).ruff_cache
+(?d).tox
+(?d).nox
+(?d).hypothesis
+(?d).ipynb_checkpoints
+(?d)htmlcov
+(?d)pip-cache
 
-// Rust
-// (Rust 'target' already covered above)
+// Go and general tool caches
+(?d).modcache
+(?d).cache
 
-// Go
-.modcache
-.cache
+// Infrastructure tool state and caches
+(?d).terraform
+(?d).terragrunt-cache
+(?d).pulumi
+(?d).serverless
+(?d).aws-sam
+(?d)cdk.out
+terraform.tfstate
+terraform.tfstate.*
+*.tfstate
+*.tfstate.*
 
-// IDE
-.idea
-.ionide
+// IDE metadata
+(?d).idea
+(?d).ionide
 
-// Git internals
-.git
-
-// Secrets and env files
+// Secrets and machine-local environment files
 .env
-.env.*
+.env.local
+.env.*.local
 *.pem
 *.key
 *.pfx
 *.p12
 credentials.json
 secrets.json
-**/secret/**
-**/secrets/**
 
-// OS
-.DS_Store
-Thumbs.db
+// OS metadata
+(?d).DS_Store
+(?d)Thumbs.db
 
-// Docusaurus
-.docusaurus
+// Documentation build caches
+(?d).docusaurus
 
-// Archives
-*.zip
-*.tar.gz
-*.tgz
-*.tar.bz2
-*.tar.xz
-*.zst
-*.rar
-*.7z
-*.json.gz
+// Archives and packaged output
+(?d)*.zip
+(?d)*.tar.gz
+(?d)*.tgz
+(?d)*.tar.bz2
+(?d)*.tar.xz
+(?d)*.zst
+(?d)*.rar
+(?d)*.7z
+(?d)*.json.gz
 
-// Helm dependency charts
-**/charts/*.tgz
-**/charts/*/charts
-Chart.lock
+// Helm dependency charts; Chart.lock remains synchronized
+(?d)**/charts/*.tgz
+(?d)**/charts/*/charts
 
-// Misc output
-output
-out
-boboutput
+// Nix build result symlinks
+(?d)result
+(?d)result-*
+
+// Known generated output directories
+(?d)output
+(?d)out
+(?d)boboutput
