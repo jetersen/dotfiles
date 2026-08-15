@@ -1,4 +1,7 @@
 {{/* Patterns match TARGET paths (.config/...), not source names (dot_config/...). */}}
+{{/* Never deploy Syncthing conflict copies found in the source tree. */}}
+**/*sync-conflict-*
+
 {{ if not .isLinux }}
 .chezmoiscripts/linux/**
 {{ end }}
