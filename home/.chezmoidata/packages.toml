@@ -3,8 +3,6 @@ pacman = [
   "age",
   "alacritty",
   "argocd",
-  "aspnet-runtime-bin",
-  "aspnet-targeting-pack-bin",
   "aws-cli-v2",
   "bitwarden-cli",
   "bitwarden",
@@ -16,10 +14,6 @@ pacman = [
   "discord",
   "docker-compose",
   "docker",
-  "dotnet-host-bin",
-  "dotnet-runtime-bin",
-  "dotnet-sdk-bin",
-  "dotnet-targeting-pack-bin",
   "fastfetch",
   "fluxcd",
   "freerdp",
@@ -80,7 +74,15 @@ aur = [
   "visual-studio-code-bin",
 ]
 
-remove = ["topgrade"]
+remove = [
+  "aspnet-runtime-bin",
+  "aspnet-targeting-pack-bin",
+  "dotnet-host-bin",
+  "dotnet-runtime-bin",
+  "dotnet-sdk-bin",
+  "dotnet-targeting-pack-bin",
+  "topgrade",
+]
 
 [packages.arch.personal]
 pacman = [
