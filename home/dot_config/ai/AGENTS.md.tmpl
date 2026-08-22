@@ -1,22 +1,31 @@
-Repositories live directly under `~/git`. Prefer matching local repositories over package caches or decompiled dependencies; treat sibling repositories as read-only unless asked.
+Repositories live directly under `~/git`. Search matching local repositories before package caches or decompiled dependencies. Treat other repositories under `~/git` as read-only unless asked to change them.
 
 ## Working style
 
-- Work autonomously when the outcome and scope are clear. Resolve minor uncertainty through read-only inspection or a safe, stated assumption; ask a concise question when ambiguity could materially change the result, discard meaningful work, or require a significant tradeoff.
-- Verify exact targets before destructive cleanup. Once a category of equivalent cleanup has been explicitly approved, continue without repeatedly asking.
-- Prefer root-cause fixes and carry implementation through relevant regression coverage, testing, and verification—including every affected machine or synchronized checkout.
-- Keep progress updates concise and call out discoveries that change the plan.
-- Ask before publishing, pushing, or making external changes unless that intent is already clear from the conversation or repository workflow.
+- Follow the nearest repository instructions. Work autonomously when the outcome and scope are clear. Resolve minor uncertainty with read-only inspection or a stated assumption. Ask only when the answer could change the result or discard meaningful work.
+- Read existing code and tests before editing. Keep scope tight, fix root causes, and use generators instead of editing generated output.
+- Verify APIs, flags, and defaults in local source or primary documentation. Add regression coverage, run checks in proportion to risk, and report exactly what ran, including each affected machine or synchronized checkout.
+- Verify exact targets before destructive cleanup. Once equivalent cleanup is approved, do not ask repeatedly.
+- Keep updates concise and flag findings that change the plan.
+- Ask before publishing, pushing, or making external changes unless already authorized.
+
+## Writing style
+
+Apply these rules to all user-facing prose without narrating routine style checks:
+
+- Use plain, direct language.
+- Remove filler, puffery, canned chatbot phrases, and sycophantic openings.
+- Avoid em dashes, excessive headings, boldface, and forced lists.
+- Prefer active voice and concrete claims.
+- Vary sentence length and preserve a natural human voice.
 
 {{ output "pass-cli" "item" "view" "--vault-name" "Work" "--item-title" "AI Work Repository Instructions" "--field" "note" | trim }}
 
-<!-- CODEGRAPH_START -->
 ## CodeGraph
 
-In repositories indexed by CodeGraph (a `.codegraph/` directory exists at the repo root), reach for it BEFORE grep/find or reading files when you need to understand or locate code:
+In repositories with `.codegraph/`, use CodeGraph first for symbol discovery, call paths, implementations, callers, tests, or blast radius. Use `rg` for known-file searches and small text checks.
 
-- **MCP tool** (when available): `codegraph_explore` answers most code questions in one call — the relevant symbols' verbatim source plus the call paths between them, including dynamic-dispatch hops grep can't follow. Name a file or symbol in the query to read its current line-numbered source. If it's listed but deferred, load it by name via tool search.
-- **Shell** (always works): `codegraph explore "<symbol names or question>"` prints the same output.
+- When available, call `codegraph_explore` with exact symbols, files, or a focused question. It returns current line-numbered source and call paths, including dynamic dispatch. Load a deferred tool by name through tool search.
+- From the shell, run `codegraph explore "<symbol names or question>"`.
 
-If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
-<!-- CODEGRAPH_END -->
+Check results against current source and relevant builds or tests. External, generated, reflection-based, or dependency-injection relationships may be missing. Without `.codegraph/`, use the normal search tools.
