@@ -30,11 +30,14 @@ alias ls="eza --color=always --group-directories-first"
 alias pip="pip3"
 alias python="python3"
 alias rimraf="rm -rf"
-alias open="xdg-open"
 alias myip="curl -sSfL -w '\n' https://api.ipify.org"
 alias myip6="curl -sSfL -w '\n' https://api6.ipify.org"
 alias cc="claude --dangerously-skip-permissions"
 alias cx="codex --dangerously-bypass-approvals-and-sandbox"
+function open
+  command nohup xdg-open $argv </dev/null >/dev/null 2>&1 &
+  disown
+end
 function github-auto-merge
   set fields number,autoMergeRequest,reviewDecision
   if test (count $argv) -gt 0

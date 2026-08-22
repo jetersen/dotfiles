@@ -249,7 +249,7 @@ function open {
     [string] $item
   )
   if ($IsLinux) {
-    Invoke-Expression "xdg-open $item"
+    Start-Process -FilePath 'xdg-open' -ArgumentList $item | Out-Null
   } elseif ($IsMacOS) {
     & /usr/bin/open $item
   } elseif ($item -and $item -imatch "https?://*") {
