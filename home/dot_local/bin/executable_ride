@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-dir="${1:-.}"
+path="${1:-.}"
 file=""
 
-for ext in slnx sln csproj; do
-  file=$(fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension "$ext" . "$dir")
-  [[ -n "$file" ]] && break
-done
+if [[ -f "$path" ]]; then
+  file="$path"
+else
+  for ext in slnx slnf sln csproj; do
+    file=$(fd --ignore-case --no-ignore --absolute-path --max-depth 3 --max-results 1 --threads 1 --type file --extension "$ext" . "$path")
+    [[ -n "$file" ]] && break
+  done
+fi
 
 target="${file:-.}"
 echo "$target"

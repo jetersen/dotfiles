@@ -213,10 +213,14 @@ function ride {
   param (
     [string] $path = "."
   )
-  $project = $null
-  foreach ($extension in @("*.slnx", "*.sln", "*.csproj")) {
-    $project = Get-ChildItem -Path $path -Filter $extension -File -Recurse -Depth 3 | Select-Object -First 1
-    if ($project) { break }
+  if (Test-Path -LiteralPath $path -PathType Leaf) {
+    $project = Get-Item -LiteralPath $path
+  } else {
+    $project = $null
+    foreach ($extension in @("*.slnx", "*.slnf", "*.sln", "*.csproj")) {
+      $project = Get-ChildItem -Path $path -Filter $extension -File -Recurse -Depth 3 | Select-Object -First 1
+      if ($project) { break }
+    }
   }
   $target = if ($project) { $project.FullName } else { "." }
   Write-Output $target
