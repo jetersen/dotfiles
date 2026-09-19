@@ -13,9 +13,11 @@
 # the local app, including anything machine-specific (wallpapers, display
 # profiles, device pins, battery/AC timeouts).
 #
-# The defaults live in the DMS package, so the overlay can be re-audited:
+# DMS 1.6 extracts its embedded UI at runtime. With DMS running, locate its
+# SettingsSpec.js under $XDG_RUNTIME_DIR/danklinux-shell/ and set DMS_SETTINGS_SPEC
+# to that file to re-audit the overlay:
 #
-#   node -e 'const f=require("fs");let s=f.readFileSync("/usr/share/quickshell/dms/Common/settings/SettingsSpec.js","utf8").replace(/^\s*\.pragma library\s*/m,"");const m={};new Function("module","exports",s+";module.exports=SPEC;")(m,{});const d={};for(const[k,v]of Object.entries(m.exports))d[k]=v.def;process.stdout.write(JSON.stringify(d))' > /tmp/dms-defaults.json
+#   node -e 'const f=require("fs");let s=f.readFileSync(process.env.DMS_SETTINGS_SPEC,"utf8").replace(/^\s*\.pragma library\s*/m,"");const m={};new Function("module","exports",s+";module.exports=SPEC;")(m,{});const d={};for(const[k,v]of Object.entries(m.exports))d[k]=v.def;process.stdout.write(JSON.stringify(d))' > /tmp/dms-defaults.json
 #   jq -n --slurpfile d /tmp/dms-defaults.json --slurpfile l ~/.config/DankMaterialShell/settings.json \
 #     '$l[0] | to_entries | map(select($d[0][.key] != null and $d[0][.key] != .value)) | from_entries | keys'
 #
@@ -86,7 +88,11 @@ overlay=$(cat <<'JSON'
         {
           "id": "openvpn3",
           "enabled": true
-        }
+        }{{ if .isWork }},
+        {
+          "id": "storageMonitor",
+          "enabled": true
+        }{{ end }}
       ],
       "spacing": 0,
       "innerPadding": 0,
@@ -185,13 +191,21 @@ current=$(cat)
 # from the overlay replace theirs outright. Key order follows the existing file,
 # with any overlay-only keys appended.
 #
-# NOTE: barConfigs IS replaced wholesale, including the per-bar
-# `screenPreferences` — fine while both machines use ["all"], but if one ever
-# needs monitor-specific bars, drop barConfigs from the overlay.
+# Merge managed bars by id, preserving new DMS fields, local monitor assignments,
+# and additional bars. Widget arrays remain managed by the overlay.
 merged=$(printf '%s' "$current" | jq \
     --argjson overlay "$overlay" \
     --argjson extraAppIds "$extra_app_id_substitutions" '
-  (. * $overlay) as $m
+  . as $current
+  | (. * $overlay
+      | .barConfigs = (
+          [$overlay.barConfigs[] | . as $managed
+            | ([$current.barConfigs[]? | select(.id == $managed.id)][0] // {}) as $local
+            | ($local * $managed)
+            | if ($local | has("screenPreferences")) then .screenPreferences = $local.screenPreferences else . end
+          ] + [$current.barConfigs[]? | select(.id as $id | ($overlay.barConfigs | map(.id) | index($id)) == null)]
+        )
+    ) as $m
   # On a fresh machine there is no appIdSubstitutions yet, and DMS ships five
   # rules of its own. Emitting only our extras would suppress those, so leave the
   # key absent and let DMS materialise its defaults; the next `chezmoi apply`

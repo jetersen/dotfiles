@@ -113,11 +113,11 @@ Some apps own their own config file — they rewrite it whenever a setting chang
 
 DankMaterialShell's `settings.json` has ~535 keys, but only ~27 differ from the values DMS ships. The script merges a 22-key overlay over whatever the machine currently has (plus one appended `appIdSubstitutions` rule, see caveats), using `jq`'s `*` operator so unlisted keys survive untouched. **The selection rule is "differs from the DMS default"** — pinning a key that already equals the default buys nothing and just creates upgrade churn. Machine-specific settings (wallpapers, display profiles, device pins, battery/AC timeouts) are left to the local app.
 
-The defaults are readable from the installed package at `/usr/share/quickshell/dms/Common/settings/SettingsSpec.js`, so the overlay can be re-audited against a DMS upgrade — the script header carries a copy-pasteable snippet that lists every currently non-default key. Keys that differ from the default but are deliberately *not* pinned are listed there too, with reasons (schema-drift artefacts and the machine-specific `niriOutputSettings`).
+DMS 1.6 extracts its embedded UI under `$XDG_RUNTIME_DIR/danklinux-shell/`; the defaults are in `Common/settings/SettingsSpec.js` beneath the running UI directory, so the overlay can be re-audited against a DMS upgrade — the script header carries a copy-pasteable snippet that lists every currently non-default key. Keys that differ from the default but are deliberately *not* pinned are listed there too, with reasons (schema-drift artefacts and the machine-specific `niriOutputSettings`).
 
 Caveats:
 
-- Arrays are replaced wholesale, not merged. `barConfigs` therefore overwrites each bar's `screenPreferences`; that is safe only while every machine uses `["all"]`.
+- Managed bars are merged by id, preserving additional bars, new DMS fields, and local `screenPreferences`. Widget arrays are replaced with the managed layout; `.isWork` adds Storage Monitor. Other arrays are replaced wholesale.
 - `appIdSubstitutions` is the exception: DMS ships its own rules in that array and extends them between releases, so it is handled outside the overlay and *appended* to whatever DMS currently ships (skipping patterns already present). On a fresh machine the key is left absent so DMS materialises its five defaults; the next `chezmoi apply` appends ours.
 - Output deliberately omits a trailing newline to match how DMS writes the file, otherwise chezmoi reports a one-byte diff forever. This is the one place the repo's final-newline rule does not apply to the *generated* output — the script source itself still ends with a newline.
 - Requires `jq` on PATH.
