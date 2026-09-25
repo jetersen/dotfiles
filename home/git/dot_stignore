@@ -140,3 +140,10 @@ secrets.json
 (?d)output
 (?d)out
 (?d)boboutput
+
+// Large asset repositories; managed separately with Git/LFS
+/msp2-client-resources
+/msp2-client-content
+
+// Unity client; managed separately with Git/LFS
+/msp2-client
