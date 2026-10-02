@@ -396,3 +396,5 @@ if (Get-Command "mise" -ErrorAction SilentlyContinue) {
 if (Get-Command "oh-my-posh" -ErrorAction SilentlyContinue) {
   oh-my-posh init pwsh --config "$HOME/.config/oh-my-posh/jetersen.omp.json" | Invoke-Expression
 }
+
+if (Get-Command wt -ErrorAction SilentlyContinue) { Invoke-Expression (& wt config shell init powershell | Out-String) }

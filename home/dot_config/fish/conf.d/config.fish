@@ -188,3 +188,7 @@ if command -q mise
 end
 
 oh-my-posh init fish --config ~/.config/oh-my-posh/jetersen.omp.json | source
+
+if command -q wt
+  wt config shell init fish | source
+end
