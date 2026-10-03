@@ -7,8 +7,11 @@ $ghStack = gh extension list 2>$null | Select-String -SimpleMatch "github/gh-sta
 if (-not $ghStack) {
   Write-Host "Installing gh-stack GitHub CLI extension..."
   gh extension install github/gh-stack
-  if ($LASTEXITCODE -ne 0) {
-    Write-Error "Failed to install the gh-stack GitHub CLI extension."
-    exit $LASTEXITCODE
-  }
+} else {
+  Write-Host "Upgrading gh-stack GitHub CLI extension..."
+  gh extension upgrade gh-stack
+}
+if ($LASTEXITCODE -ne 0) {
+  Write-Error "Failed to install or upgrade the gh-stack GitHub CLI extension."
+  exit $LASTEXITCODE
 }

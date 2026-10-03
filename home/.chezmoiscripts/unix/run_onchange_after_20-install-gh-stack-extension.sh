@@ -9,4 +9,7 @@ fi
 if ! gh extension list | grep -Fq "github/gh-stack"; then
   echo "Installing gh-stack GitHub CLI extension..."
   gh extension install github/gh-stack
+else
+  echo "Upgrading gh-stack GitHub CLI extension..."
+  gh extension upgrade gh-stack
 fi
