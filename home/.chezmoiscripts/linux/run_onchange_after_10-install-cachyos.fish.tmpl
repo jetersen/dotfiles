@@ -55,5 +55,14 @@ for dir in ~/.local/bin ~/git
   mkdir -p -m 751 $dir
 end
 
+# NetworkManager and Tailscale must share systemd-resolved's stub resolver.
+if systemctl is-active --quiet systemd-resolved; and test -f /run/systemd/resolve/stub-resolv.conf
+  set resolver_target (readlink /etc/resolv.conf)
+  if test "$resolver_target" != /run/systemd/resolve/stub-resolv.conf
+    sudo cp -a --backup=numbered /etc/resolv.conf /etc/resolv.conf.before-resolved
+    sudo ln -sfn /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+  end
+end
+
 echo "Setup complete!"
 {{ end -}}
