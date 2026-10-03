@@ -1,0 +1,19 @@
+[Unit]
+Description=Maintain homelab MagicDNS and VPN DNS routing
+Wants=systemd-resolved.service
+After=systemd-resolved.service tailscaled.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/homelab-dns/reconcile.py
+Restart=always
+RestartSec=3
+StateDirectory=homelab-dns
+StateDirectoryMode=0755
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/homelab-dns
+
+[Install]
+WantedBy=multi-user.target

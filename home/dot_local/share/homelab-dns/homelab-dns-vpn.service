@@ -1,0 +1,20 @@
+[Unit]
+Description=Publish validated OpenVPN split DNS to dnsdist
+After=dbus.service
+Before=homelab-dns.service
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/homelab-dns/vpn_bridge.py
+Restart=always
+RestartSec=2
+StateDirectory=homelab-dns
+StateDirectoryMode=0755
+NoNewPrivileges=yes
+ProtectSystem=strict
+# The plugin publishes under /run/user; ProtectHome=yes would hide that path.
+ProtectHome=read-only
+PrivateTmp=yes
+ReadWritePaths=/var/lib/homelab-dns
+
+[Install]
+WantedBy=multi-user.target
