@@ -23,7 +23,7 @@ the tailnet suffix.
 ## Roaming laptop
 
 `dnsdist` listens on loopback at `127.0.0.2:53` and owns system DNS. Ordinary
-queries use the cluster DNS address or the NAS through Tailscale. Health checks
+queries use the configured home resolvers through LAN or Tailscale. Health checks
 query a local authoritative record every two seconds. Public Cloudflare Security
 DNS over HTTPS becomes eligible only after both home resolvers fail their health
 checks. NXDOMAIN, REFUSED and SERVFAIL responses do not trigger public retries.
