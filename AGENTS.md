@@ -9,9 +9,9 @@ Installation instructions are in `README.md`.
 
 - Work on `main` unless asked to create a branch or worktree.
 - Use Conventional Commits, for example `feat(nixos): add workstation tools`.
-- Forgejo is primary; GitHub is a CI-managed mirror. Push to `origin` on Forgejo.
-  The `deploy/<hostname>` branches are promoted by CI after binary-cache upload;
-  do not advance them manually during normal changes.
+- Forgejo is primary; its native push mirror updates GitHub. Push to `origin` on
+  Forgejo. All NixOS hosts deploy from `main`; CI caches the system before notifying
+  each host. Do not introduce per-host deployment branches.
 - Edit chezmoi source files under `home/` and NixOS configuration under `nixos/`.
   NixOS must not invoke chezmoi; plain assets under `home/` can be reused directly.
   If applying a change locally, keep the source and deployed file consistent.

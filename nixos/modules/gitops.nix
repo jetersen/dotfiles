@@ -19,6 +19,18 @@ let
     # The daemon creates its socket after systemd considers it started.
     for attempt in {1..15}; do
       if [[ -S /var/lib/comin/grpc.sock ]]; then
+        # A lifecycle fetch can precede CI's cache upload. Comin only notices
+        # changed commits, so retry an idle failed build before fetching again.
+        status=$(${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} status --json)
+        if ${lib.getExe pkgs.jq} -e '
+          .is_suspended == false and
+          .builder.is_evaluating == false and .builder.is_building == false and
+          .builder.generation.eval_status == "evaluated" and
+          (.builder.generation.build_err // "") != ""
+        ' <<< "$status" > /dev/null; then
+          ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} suspend
+          ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} resume
+        fi
         exec ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} fetch
       fi
       ${pkgs.coreutils}/bin/sleep 1
@@ -47,7 +59,7 @@ in
       {
         name = "forgejo";
         url = "https://forgejo.jetersen.dev/jetersen/dotfiles.git";
-        branches.main.name = "deploy/${config.networking.hostName}";
+        branches.main.name = "main";
         # CI and local lifecycle events request fetches through the control socket.
         poller.period = 0;
       }
@@ -78,7 +90,7 @@ in
       Type = "oneshot";
       User = "comin-notify";
       ExecStart = notify;
-      TimeoutStartSec = 30;
+      TimeoutStartSec = 60;
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;
@@ -99,8 +111,8 @@ in
   ];
   powerManagement.resumeCommands = startFetch;
 
-  # CI publishes the deployment branch only after uploading the complete closure.
-  # Restrict this service to substitutes; interactive Nix builds remain available.
+  # Follow main on every host, but only activate systems available in the cache.
+  # Interactive Nix builds remain available.
   systemd.services.comin.serviceConfig.ExecStartPost =
     "-${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
   systemd.services.comin.environment.NIX_CONFIG = ''

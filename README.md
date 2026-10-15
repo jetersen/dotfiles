@@ -97,8 +97,8 @@ Proton Pass CLI is available as `pass-cli`. Sign in interactively with
 
 Forgejo is the primary repository at `forgejo.jetersen.dev/jetersen/dotfiles`.
 The GitHub repository remains a push mirror for existing chezmoi installations;
-Forgejo Actions mirrors Git commits and tags using a deploy key
-limited to that GitHub repository.
+Forgejo's native push mirror sends `main` and tags on push using a deploy key
+limited to that GitHub repository. No mirror workflow is needed.
 
 The homelab's shared Renovate job updates both repositories. Nix dependency PRs,
 including Claude's upstream manifest, pinned release tags, lock maintenance, and
@@ -107,16 +107,18 @@ Nix CI images, merge automatically with a linear history once the required
 `main`; rejected reviews block merging. Other dotfiles updates need manual merging.
 
 NixOS CI builds the Framework on Rocket and uploads its complete closure to the
-private Attic cache. Only then does it advance `deploy/framework` to that exact
-commit. CI then sends an SSH notification over Tailscale, and Comin pulls that
-branch and applies the update. The notification key can only request a fetch;
+private Attic cache. CI then sends an SSH notification over Tailscale, and Comin
+pulls `main` and applies the update. Every NixOS host follows `main`, including
+future hosts. The notification key can only request a fetch;
 it cannot select a revision or run arbitrary commands. The laptop also checks
 on boot, resume, and NetworkManager connection events, so offline machines catch
 up when they return. There are no periodic deployment checks. If a notification
 is missed while the laptop stays connected, the next lifecycle event or
 `comin fetch` checks for the latest published revision.
 Comin's Nix process disables local builds, so missing
-cached files postpone an update. Interactive Nix commands can still build normally.
+cached files postpone an update. If a lifecycle check arrives before the cache
+upload, the next notification retries the failed build. Manual suspension remains
+in effect. Interactive Nix commands can still build normally.
 CI requires an up-to-date lock file and does not receive the laptop's decryption
 or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 

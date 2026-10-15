@@ -4,7 +4,6 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
-enable-openid-connect: true
 concurrency:
   group: nixos-${{ forgejo.ref }}
   cancel-in-progress: false
@@ -62,34 +61,20 @@ jobs:
           mkdir -p "$HOME/.config/attic"
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
           attic push homelab:workstations "$(cat "$RUNNER_TEMP/framework-system")"
-      - name: Promote the cached revision
-        id: promote
+      - name: Check whether main still selects this revision
+        id: current
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash
-        env:
-          AUDIENCE: ${{ vars.NIXOS_PUBLISH_AUDIENCE }}
         run: |
           set -euo pipefail
-          test -n "$AUDIENCE"
-          response=$(curl --fail --silent --show-error --get \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            --data-urlencode "audience=$AUDIENCE" "$ACTIONS_ID_TOKEN_REQUEST_URL")
-          token=$(jq -er .value <<< "$response")
-          printf '::add-mask::%s\n' "$token"
-          # Decline to promote an old queued build after main has advanced.
           current=$(git ls-remote origin refs/heads/main | cut -f1)
-          if [[ "$current" != "$GITHUB_SHA" ]]; then
-            echo 'A newer main revision exists; leaving deployment promotion to its build.'
-            exit 0
+          if [[ "$current" == "$GITHUB_SHA" ]]; then
+            echo 'notify=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'A newer main revision exists; its build will send the notification.'
           fi
-          export GIT_CONFIG_COUNT=1
-          export GIT_CONFIG_KEY_0=http.extraHeader
-          GIT_CONFIG_VALUE_0="Authorization: Basic $(printf 'x-access-token:%s' "$token" | base64 -w0)"
-          export GIT_CONFIG_VALUE_0
-          git push origin "$GITHUB_SHA:refs/heads/deploy/framework"
-          echo 'promoted=true' >> "$GITHUB_OUTPUT"
       - name: Notify Framework to pull the published deployment
-        if: steps.promote.outputs.promoted == 'true'
+        if: steps.current.outputs.notify == 'true'
         shell: bash
         env:
           NOTIFY_KEY: ${{ secrets.NIXOS_DEPLOY_NOTIFY_KEY }}
