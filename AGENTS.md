@@ -8,6 +8,7 @@ Installation instructions are in `README.md`.
 ## Working here
 
 - Work on `main` unless asked to create a branch or worktree.
+- Use Conventional Commits, for example `feat(nixos): add workstation tools`.
 - Edit chezmoi source files under `home/` and NixOS configuration under `nixos/`.
   NixOS must not invoke chezmoi; plain assets under `home/` can be reused directly.
   If applying a change locally, keep the source and deployed file consistent.
