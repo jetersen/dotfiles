@@ -1,32 +1,78 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommits"],
+  "extends": [
+    "config:recommended",
+    ":semanticCommits"
+  ],
   "automergeStrategy": "rebase",
-  "nix": { "enabled": true },
+  "nix": {
+    "enabled": true
+  },
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 7am every weekday"]
+    "schedule": [
+      "before 7am every weekday"
+    ]
   },
   "customManagers": [
     {
       "customType": "jsonata",
       "fileFormat": "json",
-      "managerFilePatterns": ["/^nixos/packages/claude-code-manifest\\.json$/"],
+      "managerFilePatterns": [
+        "/^nixos/packages/claude-code-manifest\\.json$/"
+      ],
       "matchStrings": [
         "{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}"
       ],
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.*)$",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "git\\+https://github\\.com/(?<depName>[^?]+?)\\.git\\?ref=refs/tags/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)&shallow=1"
+      ],
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "semver"
     }
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["anthropics/claude-code"],
+      "matchPackageNames": [
+        "anthropics/claude-code"
+      ],
       "postUpgradeTasks": {
-        "commands": ["nixos/packages/update-claude-code.sh {{newVersion}}"],
-        "fileFilters": ["nixos/packages/claude-code-manifest.json"],
+        "commands": [
+          "nixos/packages/update-claude-code.sh {{newVersion}}"
+        ],
+        "fileFilters": [
+          "nixos/packages/claude-code-manifest.json"
+        ],
         "executionMode": "update"
+      }
+    },
+    {
+      "matchManagers": [
+        "custom.regex"
+      ],
+      "matchDatasources": [
+        "github-tags"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "nix --extra-experimental-features \"nix-command flakes\" flake lock"
+        ],
+        "fileFilters": [
+          "flake.lock"
+        ],
+        "executionMode": "branch",
+        "installTools": {
+          "nix": {}
+        }
       }
     }
   ]

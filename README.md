@@ -57,7 +57,7 @@ Forgejo Actions mirrors Git commits and tags using a deploy key
 limited to that GitHub repository.
 
 The homelab's Renovate job opens dependency updates on Forgejo, including Claude's
-upstream manifest and flake lock maintenance. NixOS CI builds the Framework on
+upstream manifest, pinned release tags, and flake lock maintenance. NixOS CI builds the Framework on
 Rocket and uploads its complete closure to the private Attic cache. Only then
 does it advance `deploy/framework` to that exact commit. Comin follows that branch
 and applies updates automatically when it can reach Forgejo and the cache.
