@@ -116,6 +116,10 @@ Home activation enables its tray, video hiding, Discord integration, and shortcu
 plugin while preserving local state and other preferences. Pear starts hidden
 in the tray. Its remote-control API and built-in updater are disabled; Nix
 manages application updates.
+Pear's local resume option is disabled so YouTube Music can restore the latest
+queue from another device. On Android, enable **Continue listening on connected
+devices** under YouTube Music's playback settings. Pause the source player, then
+open or refresh the destination player; playback position may restart at zero.
 GTK3 apps use adw-gtk3 with DMS-generated colors, including virt-manager.
 TinyRDM, RustDesk, and Rider use stable packages. Dolphin opens PDFs in Zen,
 images in Gwenview, videos in MPV, and archives in Ark. KDE's archive service

@@ -13,6 +13,8 @@ let
         tray = true;
         appVisible = false;
         autoUpdates = false;
+        # Open the home page so YouTube Music can restore the latest device queue.
+        resumeOnStart = false;
       };
       plugins = {
         video-toggle = {
