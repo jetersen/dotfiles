@@ -46,16 +46,17 @@
       "locked": {
         "lastModified": 1791392812,
         "narHash": "sha256-id6Y5XNO5K3KfXSOsEYVUwiq1ygYGNX5LeKSgHM3GR8=",
-        "owner": "AvengeMedia",
-        "repo": "dank-qml-common",
+        "ref": "refs/heads/master",
         "rev": "1ae722232da7110d26cd2c355b6615e078e94197",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/AvengeMedia/dank-qml-common.git"
       },
       "original": {
-        "owner": "AvengeMedia",
-        "ref": "stable-1.6",
-        "repo": "dank-qml-common",
-        "type": "github"
+        "rev": "1ae722232da7110d26cd2c355b6615e078e94197",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/AvengeMedia/dank-qml-common.git"
       }
     },
     "disko": {
@@ -109,15 +110,17 @@
       "locked": {
         "lastModified": 1767039857,
         "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
-        "owner": "NixOS",
-        "repo": "flake-compat",
+        "ref": "refs/heads/master",
         "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
-        "type": "github"
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/NixOS/flake-compat.git"
       },
       "original": {
-        "owner": "NixOS",
-        "repo": "flake-compat",
-        "type": "github"
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/NixOS/flake-compat.git"
       }
     },
     "home-manager": {

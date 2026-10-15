@@ -22,6 +22,14 @@
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.dank-qml-common = {
+        url = "git+https://github.com/AvengeMedia/dank-qml-common.git?rev=1ae722232da7110d26cd2c355b6615e078e94197&shallow=1";
+        flake = false;
+      };
+      inputs.flake-compat = {
+        url = "git+https://github.com/NixOS/flake-compat.git?rev=5edf11c44bc78a0d334f6334cdaf7d60d732daab&shallow=1";
+        flake = false;
+      };
     };
     dank-greeter = {
       url = "git+https://github.com/AvengeMedia/dank-greeter.git?ref=refs/tags/v1.6.2&shallow=1";
