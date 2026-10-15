@@ -105,12 +105,20 @@ Nix CI images, merge automatically with a linear history once the required
 
 NixOS CI builds the Framework on Rocket and uploads its complete closure to the
 private Attic cache. Only then does it advance `deploy/framework` to that exact
-commit. Comin follows that branch and applies updates automatically when it can
-reach Forgejo and the cache. Its Nix process disables local builds, so missing
+commit. CI then sends an SSH notification over Tailscale, and Comin pulls that
+branch and applies the update. The notification key can only request a fetch;
+it cannot select a revision or run arbitrary commands. The laptop also checks
+on boot, resume, and NetworkManager connection events, so offline machines catch
+up when they return. There are no periodic deployment checks. If a notification
+is missed while the laptop stays connected, the next lifecycle event or
+`comin fetch` checks for the latest published revision.
+Comin's Nix process disables local builds, so missing
 cached files postpone an update. Interactive Nix commands can still build normally.
 CI requires an up-to-date lock file and does not receive the laptop's decryption
 or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 
+The CI-only `NIXOS_DEPLOY_NOTIFY_KEY` secret matches `nixos/keys/deploy-notify.pub`.
+SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
 key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for
 rollback. To stop automatic updates while diagnosing a problem, run

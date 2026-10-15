@@ -63,6 +63,7 @@ jobs:
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
           attic push homelab:workstations "$(cat "$RUNNER_TEMP/framework-system")"
       - name: Promote the cached revision
+        id: promote
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash
         env:
@@ -86,3 +87,27 @@ jobs:
           GIT_CONFIG_VALUE_0="Authorization: Basic $(printf 'x-access-token:%s' "$token" | base64 -w0)"
           export GIT_CONFIG_VALUE_0
           git push origin "$GITHUB_SHA:refs/heads/deploy/framework"
+          echo 'promoted=true' >> "$GITHUB_OUTPUT"
+      - name: Notify Framework to pull the published deployment
+        if: steps.promote.outputs.promoted == 'true'
+        shell: bash
+        env:
+          NOTIFY_KEY: ${{ secrets.NIXOS_DEPLOY_NOTIFY_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$NOTIFY_KEY"
+          umask 077
+          key="$RUNNER_TEMP/nixos-notify-key"
+          known_hosts="$RUNNER_TEMP/nixos-notify-known-hosts"
+          trap 'rm -f "$key" "$known_hosts"' EXIT
+          printf '%s\n' "$NOTIFY_KEY" > "$key"
+          awk '{print "framework " $1 " " $2}' nixos/keys/framework-host.pub > "$known_hosts"
+          if ssh -F /dev/null -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o ConnectTimeout=5 -o ConnectionAttempts=1 \
+            -o ServerAliveInterval=5 -o ServerAliveCountMax=2 \
+            -o StrictHostKeyChecking=yes -o HostKeyAlias=framework \
+            -o "UserKnownHostsFile=$known_hosts" comin-notify@100.99.179.109 fetch; then
+            echo 'Framework accepted the deployment notification.'
+          else
+            echo '::warning::Framework could not accept the notification; it will check on boot, resume, or network reconnect.'
+          fi
