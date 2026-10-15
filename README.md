@@ -33,6 +33,8 @@ The initial desktop includes only essential applications from NixOS stable.
 DMS and DankGreeter use their upstream flakes pinned to release tags, with
 stable nixpkgs.
 Zen is pinned separately because it is not available in the stable package set.
+Git LFS supplies the wallpaper assets; run `git lfs pull` after cloning if the
+checkout contains wallpaper pointer files.
 Dolphin handles folders and file-manager D-Bus requests; the KDE portal supplies
 file-picker dialogs, while Niri's GNOME portal handles screen sharing.
 Password login through greetd unlocks GNOME Keyring. DMS screen unlock supports
