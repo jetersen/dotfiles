@@ -112,6 +112,10 @@ Snitch builds the pinned integration branch from `jetersen/snitch`; its NuGet
 dependencies are locked in `nixos/packages/snitch-deps.json`.
 
 Pear Desktop provides YouTube Music; `youtube-music` focuses or opens it.
+Home activation enables its tray, video hiding, Discord integration, and shortcut
+plugin while preserving local state and other preferences. Pear starts hidden
+in the tray. Its remote-control API and built-in updater are disabled; Nix
+manages application updates.
 GTK3 apps use adw-gtk3 with DMS-generated colors, including virt-manager.
 TinyRDM, RustDesk, and Rider use stable packages. Dolphin opens PDFs in Zen,
 images in Gwenview, videos in MPV, and archives in Ark. KDE's archive service

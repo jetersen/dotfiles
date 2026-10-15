@@ -7,6 +7,44 @@
   ...
 }:
 let
+  pearSettings = pkgs.writeText "pear-settings.json" (
+    builtins.toJSON {
+      options = {
+        tray = true;
+        appVisible = false;
+        autoUpdates = false;
+      };
+      plugins = {
+        video-toggle = {
+          enabled = true;
+          hideVideo = true;
+          forceHide = true;
+        };
+        discord.enabled = true;
+        shortcuts.enabled = true;
+        api-server.enabled = false;
+      };
+    }
+  );
+  configurePear = pkgs.writeShellApplication {
+    name = "configure-pear";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.jq
+    ];
+    text = ''
+      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}/YouTube Music"
+      mkdir -p "$config_dir"
+      settings="$config_dir/config.json"
+      current=/dev/stdin
+      if [[ -s "$settings" ]]; then current="$settings"; fi
+      temporary=$(mktemp "$config_dir/.config.XXXXXX")
+      trap 'rm -f "$temporary"' EXIT
+      jq --slurpfile overlay ${pearSettings} '. * $overlay[0]' \
+        "$current" <<< '{}' > "$temporary"
+      if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
+    '';
+  };
   kdePaletteTemplate = pkgs.writeText "kdeglobals-template.colors" (
     builtins.readFile "${dmsSource}/quickshell/matugen/templates/kcolorscheme.colors"
     + ''
@@ -62,6 +100,10 @@ let
   };
 in
 {
+  home.activation.configurePear = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${lib.getExe configurePear}
+  '';
+
   home.activation.configureDms = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     run ${lib.getExe configureDms}
   '';
