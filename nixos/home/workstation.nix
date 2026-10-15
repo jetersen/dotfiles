@@ -42,6 +42,7 @@
         dark = "DankShell Dark";
         light = "DankShell Light";
       };
+      languages.CSharp.language_servers = [ "roslyn" ];
       languages.Nix.language_servers = [ "nixd" ];
       languages.Nix.formatter.external.command = "nixfmt";
     };
