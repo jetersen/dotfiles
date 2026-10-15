@@ -1,5 +1,6 @@
 # Dotfiles
 
+The root Nix flake manages NixOS through `nixos/`, Disko, sops-nix, and Home Manager.
 Chezmoi manages these dotfiles across CachyOS, macOS, Windows, and Codespaces.
 `home/` is the source root (see `.chezmoiroot`); repository metadata is not deployed.
 Installation instructions are in `README.md`.
@@ -7,7 +8,14 @@ Installation instructions are in `README.md`.
 ## Working here
 
 - Work on `main` unless asked to create a branch or worktree.
-- Edit chezmoi source files under `home/`. If applying a change locally, keep the source and deployed file consistent.
+- Edit chezmoi source files under `home/` and NixOS configuration under `nixos/`.
+  NixOS must not invoke chezmoi; plain assets under `home/` can be reused directly.
+  If applying a change locally, keep the source and deployed file consistent.
+- Keep NixOS hardware and disk identities host-specific, and verify the disk's
+  persistent ID before installing with Disko. Generate hardware configuration on
+  the target. Do not bump NixOS or Home Manager state versions for package updates.
+- Keep plaintext secrets and private keys out of Nix expressions and the Nix store.
+  Use sops-nix for deployed secrets.
 - `.tmpl` files use Go templates; check relevant OS and `isWork` variants. `modify_` scripts transform an existing file supplied on stdin, so preserve unmanaged settings.
 - Inspect the source-state hook in `home/.chezmoi.toml.tmpl` before invoking chezmoi. Even read commands can trigger Proton Pass login. Avoid a whole-repository apply for a focused change; deployment scripts can install packages and change system settings.
 
