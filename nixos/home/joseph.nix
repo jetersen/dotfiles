@@ -1,6 +1,7 @@
 { pkgs, ... }:
 {
   imports = [
+    ./ai-tools.nix
     ./desktop.nix
     ./direnv.nix
     ./git.nix

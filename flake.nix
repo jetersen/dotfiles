@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
+    nixpkgs-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -118,6 +119,10 @@
               '')
             ];
             home-manager.extraSpecialArgs = {
+              aiPkgs = import inputs.nixpkgs-unstable {
+                inherit (pkgs.stdenv.hostPlatform) system;
+                config.allowUnfree = true;
+              };
               dmsSource = inputs.dms;
               pulumiCli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-cli;
               pulumiDotnet = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-language-dotnet;

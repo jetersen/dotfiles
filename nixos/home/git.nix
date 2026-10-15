@@ -33,6 +33,8 @@ let
   };
 in
 {
+  home.packages = [ pkgs.forgejo-cli ];
+
   # The private key is provisioned from Proton Pass outside the Nix store.
   home.file.".ssh/id_ed25519.pub".source = ../keys/joseph.pub;
   xdg.configFile."git/gitignore".source = ../../home/dot_config/git/gitignore;

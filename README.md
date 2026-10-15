@@ -38,6 +38,15 @@ packages. Google Cloud CLI includes the GKE authentication plugin for kubectl.
 Zed uses the packaged FHS wrapper for downloaded language servers, with C# and
 Nix extensions and the DMS theme. It handles plain text and JSON files; the
 terminal editor remains Neovim.
+
+Claude Code, Codex CLI, and T3 Code use a separate pinned `nixpkgs-unstable`
+input to follow their frequent releases. T3 Code includes both provider CLIs on
+its runtime path. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs the
+web interface. Sign in locally with `claude auth login` and `codex login`.
+Credentials and application state remain user-managed outside the Nix store.
+Update these tools with `nix flake update nixpkgs-unstable`, then rebuild NixOS.
+Application binaries update through Nix rather than their own installers.
+
 Git also uses Zed for interactive editing, signs commits and tags with the SSH
 key matching `nixos/keys/joseph.pub`, and selects the work email for
 `moviestarplanet` and `moviestarplanet-archives` remotes. Provision the matching
@@ -47,6 +56,9 @@ Sign in to GitHub CLI from the desktop with
 `gh auth login --hostname github.com --git-protocol ssh --skip-ssh-key --web`.
 Its settings remain writable; activation merges the declared defaults while
 preserving other settings.
+Forgejo CLI (`fj`) uses stable Nixpkgs for homelab repository operations.
+Authenticate it separately for `forgejo.jetersen.dev`; its login state remains
+user-managed outside the Nix store.
 
 The NixOS Fish prompt uses stable Starship with two lines: path, Git state,
 relevant runtimes above the command marker. Remote SSH and mosh
