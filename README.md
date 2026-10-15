@@ -56,6 +56,31 @@ user-managed. Use `aws sso login --profile default --region eu-west-1` to sign
 in to the shared work SSO session, and select Kubernetes contexts explicitly
 with `kubectl --context CONTEXT ...`.
 
+OpenVPN 3 uses the stable package and systemd-resolved. The pinned
+[DMS OpenVPN plugin](https://github.com/jetersen/dms-openvpn3) provides the bar
+control and routes company domains through the DNS servers pushed by the VPN.
+Other names use the existing network DNS. Its Python D-Bus dependency is packaged
+with the plugin. A polkit rule permits the active local user to update DNS domains
+and the default-route flag on numbered VPN interfaces without repeated prompts.
+
+The inline VPN profiles and generated domain list are encrypted as `vpn-profile`,
+`vpn-profile-tcp`, and `vpn-domains` in the Framework's sops file. Import profiles
+once as the desktop user, then connect from the DMS widget:
+
+```sh
+openvpn3 config-import --config /run/secrets/vpn-profile --name moviestarplanet --persistent
+openvpn3 config-import --config /run/secrets/vpn-profile-tcp --name moviestarplanet-tcp --persistent
+openvpn3 config-manage --config moviestarplanet --dns-scope tunnel
+openvpn3 config-manage --config moviestarplanet-tcp --dns-scope tunnel
+```
+
+Use `openvpn3 session-auth` if a connection requires interactive authentication.
+After replacing an encrypted profile, disconnect and remove its imported copy
+before importing the replacement. Refresh `vpn-domains` with the output of
+`scripts/export-dns-domains.py` in the `devops-openvpn` repository after its
+application definitions change. The plugin reads the list on connection or load;
+it has no separate polling service. Browsers must use system DNS for these routes.
+
 Pulumi uses stable's binary CLI package without its bundled providers and
 language hosts. Providers install on demand into the user's Pulumi directory.
 The .NET language host is built from source using the pinned

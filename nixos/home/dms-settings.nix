@@ -1,4 +1,7 @@
 {
+  extraRightWidgets ? [ ],
+}:
+{
   barConfigs = [
     {
       id = "default";
@@ -23,16 +26,19 @@
             inherit id;
             enabled = true;
           })
-          [
-            "systemTray"
-            "clipboard"
-            "cpuUsage"
-            "memUsage"
-            "notificationButton"
-            "systemUpdate"
-            "privacyIndicator"
-            "controlCenterButton"
-          ];
+          (
+            [
+              "systemTray"
+              "clipboard"
+              "cpuUsage"
+              "memUsage"
+              "notificationButton"
+              "systemUpdate"
+              "privacyIndicator"
+              "controlCenterButton"
+            ]
+            ++ extraRightWidgets
+          );
       spacing = 0;
       innerPadding = 0;
       bottomGap = 0;

@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  osConfig,
   dmsSource,
   ...
 }:
@@ -20,7 +21,9 @@ let
   '';
   dmsSettings = pkgs.writeText "dms-settings.json" (
     builtins.toJSON (
-      (import ./dms-settings.nix)
+      (import ./dms-settings.nix {
+        extraRightWidgets = lib.optional osConfig.programs.openvpn3.enable "openvpn3";
+      })
       // {
         customThemeFile = "${config.xdg.configHome}/DankMaterialShell/themes/catppuccin/theme.json";
       }

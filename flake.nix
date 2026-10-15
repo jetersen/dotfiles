@@ -32,6 +32,10 @@
       url = "git+https://github.com/unmango/pulumipkgs.git?rev=e51aea7d9473a8dde80c23081c522ac967b93988&shallow=1";
       flake = false;
     };
+    dms-openvpn3 = {
+      url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=f9e01be5ca81840f1b0e5322d40342cbce96e09c&shallow=1";
+      flake = false;
+    };
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -131,12 +135,17 @@
             ./nixos/modules/secure-boot.nix
           ];
         };
+        company-vpn = {
+          imports = [ ./nixos/modules/company-vpn.nix ];
+          home-manager.extraSpecialArgs.openvpnPluginSource = inputs.dms-openvpn3;
+        };
         framework = {
           imports = [
             inputs.self.nixosModules.common
             inputs.self.nixosModules.desktop
             inputs.self.nixosModules.encrypted-laptop
             inputs.self.nixosModules.secure-boot
+            inputs.self.nixosModules.company-vpn
             nixos-hardware.nixosModules.framework-intel-core-ultra-series3
             ./nixos/hosts/framework
           ];

@@ -122,6 +122,24 @@
         "url": "https://github.com/AvengeMedia/DankMaterialShell.git"
       }
     },
+    "dms-openvpn3": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791056080,
+        "narHash": "sha256-18fc7itX2bpqb4SpoNpa/u8eSVLRgtWEo5sKn0K/dNc=",
+        "ref": "refs/heads/main",
+        "rev": "f9e01be5ca81840f1b0e5322d40342cbce96e09c",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/jetersen/dms-openvpn3.git"
+      },
+      "original": {
+        "rev": "f9e01be5ca81840f1b0e5322d40342cbce96e09c",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/jetersen/dms-openvpn3.git"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -283,6 +301,7 @@
         "dank-greeter": "dank-greeter",
         "disko": "disko",
         "dms": "dms",
+        "dms-openvpn3": "dms-openvpn3",
         "home-manager": "home-manager",
         "lanzaboote": "lanzaboote",
         "nixos-hardware": "nixos-hardware",
