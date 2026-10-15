@@ -19,7 +19,7 @@ let
     # The daemon creates its socket after systemd considers it started.
     for attempt in {1..15}; do
       if [[ -S /var/lib/comin/grpc.sock ]]; then
-        exec ${lib.getExe config.services.comin.package} fetch
+        exec ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} fetch
       fi
       ${pkgs.coreutils}/bin/sleep 1
     done
