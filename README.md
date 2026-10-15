@@ -61,6 +61,20 @@ secret files in the repo and back up the decryption keys separately. Do not
 reference plaintext secrets with Nix paths or `builtins.readFile`, which would
 copy them into the Nix store.
 
+The Framework uses Lanzaboote to sign its boot files on every rebuild. Its
+signing keys stay on the encrypted root filesystem in `/var/lib/sbctl`, outside
+the Nix store. Back up this directory with age encryption and keep a copy on
+another machine. A fresh installation must stage the key bundle at that path
+using `nixos-anywhere --extra-files` before installing the bootloader; unsigned
+boot files are refused.
+After verifying the signed boot files, follow the
+[Lanzaboote Framework instructions](https://nix-community.github.io/lanzaboote/getting-started/enable-secure-boot.html)
+to enter firmware Setup Mode and enroll with
+`sudo sbctl enroll-keys --microsoft --firmware-builtin`. Keep the firmware's
+revocation database and enable Enforce Secure Boot after enrollment. To recover
+from a boot failure, disable enforcement in the firmware before booting the
+installer or a previous configuration.
+
 Rebuild on an installed Framework from this checkout:
 
 ```sh

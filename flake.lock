@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "crane": {
+      "locked": {
+        "lastModified": 1789760033,
+        "narHash": "sha256-jtT4yxZpR8seYnlCMMWSSPlFN92zO6ICuZ8pJrmi86k=",
+        "ref": "refs/heads/master",
+        "rev": "73b980519cefc727a5f6cc8e5c0947a2f9be6edd",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/ipetkov/crane.git"
+      },
+      "original": {
+        "rev": "73b980519cefc727a5f6cc8e5c0947a2f9be6edd",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/ipetkov/crane.git"
+      }
+    },
     "dank-greeter": {
       "inputs": {
         "dank-qml-common": "dank-qml-common",
@@ -123,6 +140,22 @@
         "url": "https://github.com/NixOS/flake-compat.git"
       }
     },
+    "flake-compat_2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767039857,
+        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
+        "owner": "NixOS",
+        "repo": "flake-compat",
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -143,6 +176,31 @@
         "shallow": true,
         "type": "git",
         "url": "https://github.com/nix-community/home-manager.git"
+      }
+    },
+    "lanzaboote": {
+      "inputs": {
+        "crane": "crane",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "pre-commit": "pre-commit",
+        "rust-overlay": "rust-overlay"
+      },
+      "locked": {
+        "lastModified": 1790423250,
+        "narHash": "sha256-sr4Kfp6yaXUeyKL6n0Y8/ElcR3momIRC20HFc+LF22s=",
+        "ref": "refs/tags/v1.2.0",
+        "rev": "c1c5edd31802d181c8aa2c71588995d93425d650",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/nix-community/lanzaboote.git"
+      },
+      "original": {
+        "ref": "refs/tags/v1.2.0",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/nix-community/lanzaboote.git"
       }
     },
     "nixos-hardware": {
@@ -180,16 +238,61 @@
         "url": "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz"
       }
     },
+    "pre-commit": {
+      "inputs": {
+        "flake-compat": "flake-compat_2",
+        "nixpkgs": [
+          "lanzaboote",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789514889,
+        "narHash": "sha256-PFD1nxptCXJyJoiYO1gf/5Vv43yqGpHtMC6LUhl9/pQ=",
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "rev": "59f4ca0d063a1a3ec722c88b51a33004862e5379",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cachix",
+        "repo": "git-hooks.nix",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "dank-greeter": "dank-greeter",
         "disko": "disko",
         "dms": "dms",
         "home-manager": "home-manager",
+        "lanzaboote": "lanzaboote",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789889921,
+        "narHash": "sha256-aL/ogiN7qZCGeNovS1f9hX73jwYIKb4Pcq6AZm57WtY=",
+        "ref": "refs/heads/master",
+        "rev": "1fb104a12a8667045559b2575d6d448ae2fbd99b",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/oxalica/rust-overlay.git"
+      },
+      "original": {
+        "rev": "1fb104a12a8667045559b2575d6d448ae2fbd99b",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/oxalica/rust-overlay.git"
       }
     },
     "sops-nix": {

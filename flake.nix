@@ -19,6 +19,15 @@
       url = "git+https://github.com/NixOS/nixos-hardware.git?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    lanzaboote = {
+      url = "git+https://github.com/nix-community/lanzaboote.git?ref=refs/tags/v1.2.0&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.crane.url = "git+https://github.com/ipetkov/crane.git?rev=73b980519cefc727a5f6cc8e5c0947a2f9be6edd&shallow=1";
+      inputs.rust-overlay = {
+        url = "git+https://github.com/oxalica/rust-overlay.git?rev=1fb104a12a8667045559b2575d6d448ae2fbd99b&shallow=1";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
+    };
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -103,11 +112,18 @@
             ./nixos/modules/encrypted-laptop.nix
           ];
         };
+        secure-boot = {
+          imports = [
+            inputs.lanzaboote.nixosModules.lanzaboote
+            ./nixos/modules/secure-boot.nix
+          ];
+        };
         framework = {
           imports = [
             inputs.self.nixosModules.common
             inputs.self.nixosModules.desktop
             inputs.self.nixosModules.encrypted-laptop
+            inputs.self.nixosModules.secure-boot
             nixos-hardware.nixosModules.framework-intel-core-ultra-series3
             ./nixos/hosts/framework
           ];
