@@ -27,6 +27,7 @@
   # CI publishes the deployment branch only after uploading the complete closure.
   # Restrict this service to substitutes; interactive Nix builds remain available.
   systemd.services.comin.environment.NIX_CONFIG = ''
+    always-allow-substitutes = true
     max-jobs = 0
     fallback = false
   '';
