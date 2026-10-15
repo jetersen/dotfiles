@@ -108,9 +108,9 @@ Nix CI images, merge automatically with a linear history once the required
 
 NixOS CI builds the Framework on Rocket. A persistent Docker volume retains
 the Nix store and fetched inputs for reuse across disposable jobs. Builds run
-serially to share the store safely. A preparation job registers the CI image's
-paths before the build, including after image updates. Nix reclaims unrooted paths
-under disk pressure; the latest system and CI tools stay rooted. CI also reads
+serially to share the store safely. Nix is included in the homelab's shared job
+image, so no separate Nix container or preparation job is needed. Nix reclaims
+unrooted paths under disk pressure; the latest system and CI tools stay rooted. CI also reads
 and writes a Nix binary cache on the NAS over NFS, including build dependencies.
 This can refill the working store after cleanup or replacement. The NAS cache is
 disposable and has a dataset quota. Stop Nix jobs and invalidate their cached
@@ -131,7 +131,8 @@ CI requires an up-to-date lock file and does not receive the laptop's decryption
 or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 
 The CI-only `NIXOS_DEPLOY_NOTIFY_KEY` secret matches `nixos/keys/deploy-notify.pub`.
-SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
+The `FRAMEWORK_HOST` repository variable selects its fully qualified Tailscale
+hostname. SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
 key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for
 rollback. The boot menu is hidden; hold Space during startup to choose another

@@ -7,6 +7,7 @@
     comin = {
       url = "git+https://github.com/nlewo/comin.git?ref=refs/tags/v0.14.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
       inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
@@ -136,14 +137,7 @@
         nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/varlock.nix
           { };
       packages.x86_64-linux.codegraph = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.codegraph;
-      packages.x86_64-linux.ci-tools = nixpkgs.legacyPackages.x86_64-linux.buildEnv {
-        name = "dotfiles-ci-tools";
-        paths = with nixpkgs.legacyPackages.x86_64-linux; [
-          attic-client
-          jq
-          openssh
-        ];
-      };
+      packages.x86_64-linux.ci-tools = nixpkgs.legacyPackages.x86_64-linux.attic-client;
       packages.x86_64-linux.pulumi-cli =
         nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/pulumi-cli.nix
           { };

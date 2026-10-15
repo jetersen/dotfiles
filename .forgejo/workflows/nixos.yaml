@@ -8,33 +8,10 @@ concurrency:
   group: nixos-build
   cancel-in-progress: false
 jobs:
-  prepare:
-    if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
-    runs-on: runner-rocket
-    container:
-      image: nixos/nix:2.35.3@sha256:ff480dbb23511aa1c10710aa068ceea5b93fed9bfce5f5379f3a6b07282cbc7b
-      volumes:
-        - dotfiles-nix-cache:/cache
-    timeout-minutes: 5
-    env:
-      NIX_CONFIG: 'experimental-features = nix-command flakes'
-    steps:
-      - name: Register the CI image in the persistent store
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Seed new image paths before mounting the store over the next job's /nix.
-          # Nix copies only missing paths and registers them in the shared database.
-          target='local?real=/cache/store&state=/cache/var/nix&log=/cache/var/log/nix'
-          nix copy --all --no-check-sigs --to "$target"
-          NIX_REMOTE="$target" nix-env --profile /cache/var/nix/profiles/default \
-            --set "$(readlink -f /root/.nix-profile)"
   framework:
-    needs: prepare
     if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
     runs-on: runner-rocket
     container:
-      image: nixos/nix:2.35.3@sha256:ff480dbb23511aa1c10710aa068ceea5b93fed9bfce5f5379f3a6b07282cbc7b
       volumes:
         - dotfiles-nix-cache:/nix
         - /var/cache/nix-nas:/var/cache/nix-nas
@@ -113,9 +90,11 @@ jobs:
         shell: bash
         env:
           NOTIFY_KEY: ${{ secrets.NIXOS_DEPLOY_NOTIFY_KEY }}
+          FRAMEWORK_HOST: ${{ vars.FRAMEWORK_HOST }}
         run: |
           set -euo pipefail
           test -n "$NOTIFY_KEY"
+          test -n "$FRAMEWORK_HOST"
           umask 077
           key="$RUNNER_TEMP/nixos-notify-key"
           known_hosts="$RUNNER_TEMP/nixos-notify-known-hosts"
@@ -127,7 +106,7 @@ jobs:
             -o ConnectTimeout=5 -o ConnectionAttempts=1 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=2 \
             -o StrictHostKeyChecking=yes -o HostKeyAlias=framework \
-            -o "UserKnownHostsFile=$known_hosts" comin-notify@100.99.179.109 fetch; then
+            -o "UserKnownHostsFile=$known_hosts" "comin-notify@$FRAMEWORK_HOST" fetch; then
             echo 'Framework accepted the deployment notification.'
           else
             echo '::warning::Framework could not accept the notification; it will check on boot, resume, or network reconnect.'
