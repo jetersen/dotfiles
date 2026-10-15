@@ -33,7 +33,6 @@
               "cpuUsage"
               "memUsage"
               "notificationButton"
-              "systemUpdate"
               "privacyIndicator"
               "controlCenterButton"
             ]
