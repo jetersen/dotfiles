@@ -38,6 +38,7 @@ pacman = [
   "mise",
   "mpv",
   "pear-desktop",
+  "music-assistant-desktop-bin",
   "pulumi",
   "ripgrep",
   "rustup",

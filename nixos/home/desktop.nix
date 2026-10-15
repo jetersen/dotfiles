@@ -120,6 +120,7 @@ in
   };
 
   home.packages = [
+    (pkgs.callPackage ../packages/music-assistant-desktop.nix { })
     pkgs.pear-desktop
     (pkgs.writeShellApplication {
       name = "youtube-music";
