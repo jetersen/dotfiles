@@ -104,7 +104,7 @@ def main():
         run('openvpn3-admin', 'netcfg-service', '--config-unset', 'systemd-resolved')
         run('openvpn3-admin', 'netcfg-service', '--config-set', 'resolv-conf', '/var/lib/openvpn3/dnsdist-resolv.conf')
         install(Path('/var/lib/openvpn3/dnsdist-resolv.conf'), b'nameserver 127.0.0.2\n')
-        install(Path('/etc/resolv.conf'), f'nameserver 127.0.0.2\nsearch {suffix} lan.jetersen.dev\noptions timeout:2 attempts:2\n'.encode())
+        install(Path('/etc/resolv.conf'), f'nameserver 127.0.0.2\nsearch {suffix}\noptions timeout:2 attempts:2\n'.encode())
         install(Path('/etc/NetworkManager/conf.d/90-homelab-dns.conf'), b'[main]\ndns=none\nrc-manager=unmanaged\n')
         # Preserve .local lookup through the already-installed Avahi/NSS module.
         nss = Path('/etc/nsswitch.conf')
