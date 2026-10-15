@@ -38,6 +38,8 @@
     };
   };
 
+  programs.ssh.knownHosts.truenas.publicKeyFile = ../keys/truenas-host.pub;
+
   programs.fish.enable = true;
   programs.localsend.enable = true;
   programs.mosh = {

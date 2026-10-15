@@ -29,7 +29,16 @@ buildTool {
   meta = {
     description = "Nix-managed ${nugetName} global tool";
     homepage = "https://www.nuget.org/packages/${nugetName}";
-    license = if nugetName == "Amazon.Lambda.Tools" then lib.licenses.asl20 else lib.licenses.mit;
+    license =
+      if
+        builtins.elem nugetName [
+          "Amazon.Lambda.Tools"
+          "centralisedpackageconverter"
+        ]
+      then
+        lib.licenses.asl20
+      else
+        lib.licenses.mit;
     mainProgram = pname;
     platforms = lib.platforms.linux;
   };

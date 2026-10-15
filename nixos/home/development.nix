@@ -11,6 +11,20 @@
     uv
     powershell
     just
+    go
+    rustc
+    cargo
+    rustfmt
+    clippy
+    stdenv.cc # Linker for Rust and cgo outside project development shells.
+    pkg-config
+    bun
+    (maven.override { jdk_headless = jdk21; })
+    yq-go
+    kargo
+    sqlcmd
+    actionlint
+    git-cliff
     ssm-session-manager-plugin
     kubernetes-helm
     kustomize
@@ -25,6 +39,13 @@
     unzip
     ilspycmd
     dotnet-outdated
+    csharpier
+    dotfilesPackages.snitch
+    dotfilesPackages.central-pkg-converter
+    dotfilesPackages.dotnet-counters
+    dotfilesPackages.dotnet-trace
+    dotfilesPackages.dotnet-stack
+    dotfilesPackages.apicompat
     dotfilesPackages.dotnet-lambda
     dotfilesPackages.dotnet-script
     grpcurl
@@ -60,6 +81,11 @@
       '';
     })
   ];
+
+  programs.java = {
+    enable = true;
+    package = pkgs.jdk21;
+  };
 
   # Prefer runtimes supplied by Nix or the project's development shell.
   xdg.configFile."vite-plus/config.json".text = builtins.toJSON {

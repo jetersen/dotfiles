@@ -61,8 +61,16 @@ Application binaries update through Nix rather than their own installers.
 
 Development and infrastructure tools are declared in
 `nixos/home/development.nix`. Node.js includes npm; Python packages and virtual
-environments use `uv`. Use project Nix development shells through direnv when a
-repository needs a different runtime. PowerShell is available as `pwsh`.
+environments use `uv`. Stable Go, Rust (Cargo, rustfmt, and Clippy), Bun, and
+Java 21 with Maven are available globally. A C compiler and pkg-config support
+native builds. PowerShell is available as `pwsh`.
+
+Use project development shells through direnv for project-specific versions and
+native libraries. A shell can live outside the project, for example in a
+personal flake, and `nix develop /path/to/that/flake#shell-name` works from the
+project directory. For a temporary tool, use `nix shell nixpkgs#PACKAGE`.
+Neither approach requires committing Nix files to the project.
+
 Fish, Bash, Zsh, and PowerShell use the same compact Starship layout. Identity
 appears in remote or changed-user sessions; Framework's battery percentage
 appears when unplugged. Start a new shell after a configuration update.
@@ -77,9 +85,16 @@ ILSpy, dotnet-outdated, database clients, diagnostic tools, DBeaver Community,
 Charles, and Remmina use stable packages. VictoriaLogs queries use `vlogscli`;
 its package builds only the CLI. LocalSend enables its TCP/UDP discovery and
 transfer port through the NixOS module.
-Lambda Tools and dotnet-script use official NuGet archives pinned in the flake.
-Renovate updates their URLs and lock-file hashes. They are available as
-`dotnet lambda` and `dotnet script`, without a mutable global tool installation.
+CSharpier uses the stable Nixpkgs package. Lambda Tools, dotnet-script,
+`central-pkg-converter`, `apicompat`, and the .NET counters, trace, and stack tools
+use official NuGet archives pinned in the flake. Renovate updates their URLs
+and lock-file hashes. They work without a mutable global tool installation.
+Snitch builds the pinned integration branch from `jetersen/snitch`; its NuGet
+dependencies are locked in `nixos/packages/snitch-deps.json`.
+
+SSH aliases `rocket`, `worklaptop`, and `truenasadmin` use Tailscale hostnames.
+The NAS alias logs in as `truenas_admin`; its host key is pinned. Keep additional
+machine-local aliases in `~/.ssh/local.config`.
 
 The private npm registry configuration and Varlock work schema are deployed by
 sops-nix. Run `bw login` once in a local terminal, then use

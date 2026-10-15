@@ -1,5 +1,29 @@
 {
   "nodes": {
+    "apicompat-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-48gJ6gLsUWgdWUeeBQa3SNRmod9oDmo0DPDHftFyZRk=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/microsoft.dotnet.apicompat.tool/10.0.402/microsoft.dotnet.apicompat.tool.10.0.402.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/microsoft.dotnet.apicompat.tool/10.0.402/microsoft.dotnet.apicompat.tool.10.0.402.nupkg"
+      }
+    },
+    "central-pkg-converter-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-kID9S17OhgIjcmIC51WLk5KCcovob/0hsRmtqnn8JHY=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/centralisedpackageconverter/1.0.74/centralisedpackageconverter.1.0.74.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/centralisedpackageconverter/1.0.74/centralisedpackageconverter.1.0.74.nupkg"
+      }
+    },
     "comin": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -164,6 +188,18 @@
         "url": "https://github.com/jetersen/dms-openvpn3.git"
       }
     },
+    "dotnet-counters-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-Do3XeBx5eC++UvgzfZcWO0ch59MoVZgZCcCLiDbTvh0=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-counters/10.0.750501/dotnet-counters.10.0.750501.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-counters/10.0.750501/dotnet-counters.10.0.750501.nupkg"
+      }
+    },
     "dotnet-script-source": {
       "flake": false,
       "locked": {
@@ -174,6 +210,30 @@
       "original": {
         "type": "file",
         "url": "https://api.nuget.org/v3-flatcontainer/dotnet-script/2.0.1/dotnet-script.2.0.1.nupkg"
+      }
+    },
+    "dotnet-stack-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-5A06JtlJ9Zd1QEXkvcHZd/8O3NACqY2tgbE61dOsHAs=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-stack/10.0.750501/dotnet-stack.10.0.750501.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-stack/10.0.750501/dotnet-stack.10.0.750501.nupkg"
+      }
+    },
+    "dotnet-trace-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-2TrzWUtCa+ihXXvexH2yFDEHpLGE966zQC66VVOwU0s=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-trace/10.0.750501/dotnet-trace.10.0.750501.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-trace/10.0.750501/dotnet-trace.10.0.750501.nupkg"
       }
     },
     "flake-compat": {
@@ -375,12 +435,17 @@
     },
     "root": {
       "inputs": {
+        "apicompat-source": "apicompat-source",
+        "central-pkg-converter-source": "central-pkg-converter-source",
         "comin": "comin",
         "dank-greeter": "dank-greeter",
         "disko": "disko",
         "dms": "dms",
         "dms-openvpn3": "dms-openvpn3",
+        "dotnet-counters-source": "dotnet-counters-source",
         "dotnet-script-source": "dotnet-script-source",
+        "dotnet-stack-source": "dotnet-stack-source",
+        "dotnet-trace-source": "dotnet-trace-source",
         "home-manager": "home-manager",
         "lambda-tools-source": "lambda-tools-source",
         "lanzaboote": "lanzaboote",
@@ -391,6 +456,7 @@
         "skill-finder": "skill-finder",
         "skill-rea": "skill-rea",
         "skill-unslop": "skill-unslop",
+        "snitch-source": "snitch-source",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"
       }
@@ -469,6 +535,24 @@
         "shallow": true,
         "type": "git",
         "url": "https://github.com/cursor/plugins.git"
+      }
+    },
+    "snitch-source": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792100228,
+        "narHash": "sha256-M9wbdS6i2bCVradhyUdjdEt1+bJp/sxbVI0U6uZ6jxY=",
+        "ref": "integration",
+        "rev": "bf3370676398d367cea092aa0dc137bb4f1b0dd2",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/jetersen/snitch.git"
+      },
+      "original": {
+        "ref": "integration",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/jetersen/snitch.git"
       }
     },
     "sops-nix": {

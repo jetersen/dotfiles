@@ -63,6 +63,30 @@
       url = "file+https://api.nuget.org/v3-flatcontainer/dotnet-script/2.0.1/dotnet-script.2.0.1.nupkg";
       flake = false;
     };
+    central-pkg-converter-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/centralisedpackageconverter/1.0.74/centralisedpackageconverter.1.0.74.nupkg";
+      flake = false;
+    };
+    dotnet-counters-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/dotnet-counters/10.0.750501/dotnet-counters.10.0.750501.nupkg";
+      flake = false;
+    };
+    dotnet-trace-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/dotnet-trace/10.0.750501/dotnet-trace.10.0.750501.nupkg";
+      flake = false;
+    };
+    dotnet-stack-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/dotnet-stack/10.0.750501/dotnet-stack.10.0.750501.nupkg";
+      flake = false;
+    };
+    apicompat-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/microsoft.dotnet.apicompat.tool/10.0.402/microsoft.dotnet.apicompat.tool.10.0.402.nupkg";
+      flake = false;
+    };
+    snitch-source = {
+      url = "git+https://github.com/jetersen/snitch.git?ref=integration&shallow=1";
+      flake = false;
+    };
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -129,6 +153,20 @@
       packages.x86_64-linux.dotnet-script =
         nugetTool "dotnet-script-source" "dotnet-script"
           "dotnet-script";
+      packages.x86_64-linux.central-pkg-converter =
+        nugetTool "central-pkg-converter-source" "central-pkg-converter"
+          "centralisedpackageconverter";
+      packages.x86_64-linux.dotnet-counters =
+        nugetTool "dotnet-counters-source" "dotnet-counters"
+          "dotnet-counters";
+      packages.x86_64-linux.dotnet-trace = nugetTool "dotnet-trace-source" "dotnet-trace" "dotnet-trace";
+      packages.x86_64-linux.dotnet-stack = nugetTool "dotnet-stack-source" "dotnet-stack" "dotnet-stack";
+      packages.x86_64-linux.apicompat =
+        nugetTool "apicompat-source" "apicompat"
+          "microsoft.dotnet.apicompat.tool";
+      packages.x86_64-linux.snitch = pkgs.callPackage ./nixos/packages/snitch.nix {
+        source = inputs.snitch-source;
+      };
       packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
       packages.x86_64-linux.codegraph = pkgsUnstable.codegraph;
       packages.x86_64-linux.ci-tools = pkgs.attic-client;

@@ -7,6 +7,7 @@
     ./development.nix
     ./direnv.nix
     ./git.nix
+    ./ssh.nix
     ./prompt.nix
     ./workstation.nix
     ./work-environment.nix
