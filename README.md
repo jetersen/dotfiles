@@ -48,6 +48,14 @@ Sign in to GitHub CLI from the desktop with
 Its settings remain writable; activation merges the declared defaults while
 preserving other settings.
 
+The Framework's AWS SSO profiles and Kubernetes configuration are encrypted in
+`nixos/secrets/framework.yaml` as `aws-config` and `kube-config`. Home Manager
+links the decrypted, user-owned files into `~/.aws/config` and `~/.kube/config`.
+Update these definitions with sops. AWS SSO and other login caches remain
+user-managed. Use `aws sso login --profile default --region eu-west-1` to sign
+in to the shared work SSO session, and select Kubernetes contexts explicitly
+with `kubectl --context CONTEXT ...`.
+
 Pulumi uses stable's binary CLI package without its bundled providers and
 language hosts. Providers install on demand into the user's Pulumi directory.
 The .NET language host is built from source using the pinned

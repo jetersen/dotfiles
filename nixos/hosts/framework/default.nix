@@ -37,6 +37,17 @@
 
   sops.defaultSopsFile = ../../secrets/framework.yaml;
   sops.secrets.joseph-password.neededForUsers = true;
+  sops.secrets.aws-config = {
+    owner = "joseph";
+    group = "users";
+    mode = "0600";
+  };
+  sops.secrets.kube-config = {
+    owner = "joseph";
+    group = "users";
+    mode = "0600";
+  };
+  home-manager.users.joseph.imports = [ ../../home/cloud.nix ];
   users.users.joseph.hashedPasswordFile = config.sops.secrets.joseph-password.path;
   users.mutableUsers = false;
 
