@@ -23,6 +23,8 @@ in
       }
     ];
 
+    # Hide the menu; hold Space at startup to select a rollback generation.
+    boot.loader.timeout = 0;
     boot.loader.systemd-boot = {
       enable = true;
       configurationLimit = 10;

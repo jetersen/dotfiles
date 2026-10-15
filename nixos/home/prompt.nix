@@ -6,6 +6,33 @@
 }:
 let
   cfg = config.dotfiles.prompt;
+  identity = pkgs.writeShellScript "prompt-identity" ''
+    if [[ -v SSH_CONNECTION || -v SSH_CLIENT || -v SSH_TTY ]] ||
+       (( EUID == 0 )) ||
+       [[ -n "''${LOGNAME:-}" && "''${USER:-}" != "$LOGNAME" ]]; then
+      printf 1
+    fi
+  '';
+  shellIdentity = ''
+    unset DOTFILES_PROMPT_IDENTITY
+    if [[ -n "$(${identity})" ]]; then
+      export DOTFILES_PROMPT_IDENTITY=1
+    fi
+  '';
+  batteryModule = low: {
+    when = cfg.showBattery;
+    shell = [
+      "${pkgs.bash}/bin/bash"
+      "--noprofile"
+      "--norc"
+    ];
+    command = ''
+      low=${if low then "1" else "0"}
+      ${builtins.readFile ./prompt-battery.sh}
+    '';
+    format = "([Bat $output]($style) )";
+    style = if low then "bold #f38ba8" else "#f9e2af";
+  };
   settings = {
     add_newline = false;
     scan_timeout = 30;
@@ -13,8 +40,7 @@ let
     format = lib.concatStrings [
       "$username$hostname$directory$git_branch$git_commit$git_state$git_status"
       "$dotnet$nodejs$python$nix_shell"
-      "\${env_var.DOTFILES_PROMPT_BATTERY}"
-      "\${env_var.DOTFILES_PROMPT_BATTERY_LOW}"
+      "\${custom.battery}\${custom.battery_low}"
       "$cmd_duration$status$line_break$character"
     ];
     username = {
@@ -60,9 +86,9 @@ let
     nodejs.format = "[Node $version](#a6e3a1) ";
     python.format = "[Py $version( $virtualenv)](#f9e2af) ";
     nix_shell.format = "[Nix $state](#89dceb) ";
-    env_var = {
-      DOTFILES_PROMPT_BATTERY.format = "[Bat $env_value](#f9e2af) ";
-      DOTFILES_PROMPT_BATTERY_LOW.format = "[Bat $env_value](bold #f38ba8) ";
+    custom = {
+      battery = batteryModule false;
+      battery_low = batteryModule true;
     };
     cmd_duration = {
       min_time = 2000;
@@ -78,8 +104,7 @@ let
     };
   };
   shellPrompt = pkgs.replaceVars ./prompt.fish {
-    showBattery = if cfg.showBattery then "1" else "0";
-    id = "${pkgs.coreutils}/bin/id";
+    inherit identity;
   };
 in
 {
@@ -88,11 +113,33 @@ in
   config = {
     programs.starship = {
       enable = true;
+      enableBashIntegration = true;
+      enableFishIntegration = true;
+      enableZshIntegration = true;
       enableTransience = false;
       inherit settings;
     };
+    programs.bash = {
+      enable = true;
+      initExtra = lib.mkBefore shellIdentity;
+    };
+    programs.zsh = {
+      enable = true;
+      initContent = lib.mkBefore shellIdentity;
+    };
     programs.fish.interactiveShellInit = lib.mkBefore ''
       source ${shellPrompt}
+    '';
+    # Home Manager has no PowerShell module. Use its all-hosts user profile.
+    xdg.configFile."powershell/profile.ps1".text = ''
+      Remove-Item Env:DOTFILES_PROMPT_IDENTITY -ErrorAction SilentlyContinue
+      if (& '${identity}') {
+        $env:DOTFILES_PROMPT_IDENTITY = '1'
+      }
+      $env:STARSHIP_CONFIG = '${config.programs.starship.configPath}'
+      if ($env:TERM -ne 'dumb') {
+        & '${lib.getExe config.programs.starship.package}' init powershell | Out-String | Invoke-Expression
+      }
     '';
   };
 }

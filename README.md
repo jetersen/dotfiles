@@ -55,6 +55,9 @@ Development and infrastructure tools are declared in
 `nixos/home/development.nix`. Node.js includes npm; Python packages and virtual
 environments use `uv`. Use project Nix development shells through direnv when a
 repository needs a different runtime. PowerShell is available as `pwsh`.
+Fish, Bash, Zsh, and PowerShell use the same compact Starship layout. Identity
+appears in remote or changed-user sessions; Framework's battery percentage
+appears when unplugged. Start a new shell after a configuration update.
 Vite Plus (`vp`), topf, Freelens, CodeGraph, and Varlock use checksum-pinned upstream releases in
 `nixos/packages/workstation-manifest.json`; Renovate updates both versions and
 checksums. Vite Plus and Freelens use FHS wrappers for upstream runtime binaries.
@@ -121,7 +124,8 @@ The CI-only `NIXOS_DEPLOY_NOTIFY_KEY` secret matches `nixos/keys/deploy-notify.p
 SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
 key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for
-rollback. To stop automatic updates while diagnosing a problem, run
+rollback. The boot menu is hidden; hold Space during startup to choose another
+generation. To stop automatic updates while diagnosing a problem, run
 `sudo systemctl stop comin`; start it again after correcting or reverting the
 deployment revision. Reverting only the running system is temporary while Comin
 still follows a newer deployment commit.
