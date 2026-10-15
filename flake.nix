@@ -100,10 +100,12 @@
       ...
     }:
     let
+      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
       locked = builtins.fromJSON (builtins.readFile ./flake.lock);
       nugetTool =
         inputName: pname: nugetName:
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/nuget-tool.nix {
+        pkgs.callPackage ./nixos/packages/nuget-tool.nix {
           inherit pname nugetName;
           source = inputs.${inputName};
           # Keep the URL in flake.nix as the single version pin for Renovate.
@@ -113,37 +115,26 @@
         };
     in
     {
-      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
+      formatter.x86_64-linux = pkgs.nixfmt;
       packages.x86_64-linux.installer-iso =
         inputs.self.nixosConfigurations.installer.config.system.build.isoImage;
-      packages.x86_64-linux.nixos-anywhere = nixpkgs.legacyPackages.x86_64-linux.nixos-anywhere;
-      packages.x86_64-linux.ssh-to-age = nixpkgs.legacyPackages.x86_64-linux.ssh-to-age;
-      packages.x86_64-linux.vite-plus =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/vite-plus.nix
-          { };
-      packages.x86_64-linux.topf =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/topf.nix
-          { };
-      packages.x86_64-linux.freelens =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/freelens.nix
-          { };
+      packages.x86_64-linux.nixos-anywhere = pkgs.nixos-anywhere;
+      packages.x86_64-linux.ssh-to-age = pkgs.ssh-to-age;
+      packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
+      packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix { };
+      packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix { };
       packages.x86_64-linux.dotnet-lambda =
         nugetTool "lambda-tools-source" "dotnet-lambda"
           "Amazon.Lambda.Tools";
       packages.x86_64-linux.dotnet-script =
         nugetTool "dotnet-script-source" "dotnet-script"
           "dotnet-script";
-      packages.x86_64-linux.varlock =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/varlock.nix
-          { };
-      packages.x86_64-linux.codegraph = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.codegraph;
-      packages.x86_64-linux.ci-tools = nixpkgs.legacyPackages.x86_64-linux.attic-client;
-      packages.x86_64-linux.pulumi-cli =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/pulumi-cli.nix
-          { };
+      packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
+      packages.x86_64-linux.codegraph = pkgsUnstable.codegraph;
+      packages.x86_64-linux.ci-tools = pkgs.attic-client;
+      packages.x86_64-linux.pulumi-cli = pkgs.callPackage ./nixos/packages/pulumi-cli.nix { };
       packages.x86_64-linux.pulumi-language-dotnet =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage
-          "${inputs.pulumi-packages}/pkgs/languages/pulumi-dotnet/package.nix"
+        pkgs.callPackage "${inputs.pulumi-packages}/pkgs/languages/pulumi-dotnet/package.nix"
           { };
 
       nixosModules = {
