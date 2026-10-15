@@ -37,6 +37,9 @@ Git LFS supplies the wallpaper assets; run `git lfs pull` after cloning if the
 checkout contains wallpaper pointer files.
 Dolphin handles folders and file-manager D-Bus requests; the KDE portal supplies
 file-picker dialogs, while Niri's GNOME portal handles screen sharing.
+The KDE Qt integration uses DMS's generated palette for Dolphin and Qt
+file-picker dialogs. Matugen generates `kdeglobals` from DMS's color template.
+Papirus Dark icons with violet folders are shared across DMS, GTK, and Qt applications.
 Password login through greetd unlocks GNOME Keyring. DMS screen unlock supports
 fingerprints alongside a password fallback; sudo and PolicyKit also accept
 fingerprints. Enroll a finger with `fprintd-enroll` after the first login.

@@ -84,6 +84,9 @@
   niriLayoutBorderSize = 0;
   builtInPluginSettings.dms_settings_search.trigger = "?";
   soundNewNotification = false;
+  iconThemeDark = "Papirus-Dark";
+  iconThemeLight = "Papirus-Dark";
+  iconThemePerMode = false;
   enableFprint = true;
   lockBeforeSuspend = true;
   greeterEnableFprint = false;

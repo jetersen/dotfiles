@@ -50,6 +50,12 @@
     polkit-1.fprintAuth = config.services.fprintd.enable;
   };
   services.gnome.gnome-keyring.enable = true;
+  qt.enable = true;
+  environment.variables = {
+    QT_QPA_PLATFORMTHEME = "kde";
+    QT_QPA_PLATFORMTHEME_QT6 = "kde";
+    GTK_USE_PORTAL = "1";
+  };
   services.udisks2.enable = true;
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
@@ -73,6 +79,8 @@
   environment.systemPackages = with pkgs; [
     alacritty
     kdePackages.dolphin
+    kdePackages.plasma-integration
+    (papirus-icon-theme.override { color = "violet"; })
     satty
     udiskie
     wl-clipboard
