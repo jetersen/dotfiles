@@ -5,21 +5,49 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
-  group: nixos-${{ forgejo.ref }}
+  group: nixos-build
   cancel-in-progress: false
 jobs:
-  framework:
+  prepare:
     if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
     runs-on: runner-rocket
     container:
       image: nixos/nix:2.35.3@sha256:ff480dbb23511aa1c10710aa068ceea5b93fed9bfce5f5379f3a6b07282cbc7b
+      volumes:
+        - dotfiles-nix-cache:/cache
+    timeout-minutes: 5
+    env:
+      NIX_CONFIG: 'experimental-features = nix-command flakes'
+    steps:
+      - name: Register the CI image in the persistent store
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Seed new image paths before mounting the store over the next job's /nix.
+          # Nix copies only missing paths and registers them in the shared database.
+          target='local?real=/cache/store&state=/cache/var/nix&log=/cache/var/log/nix'
+          nix copy --all --no-check-sigs --to "$target"
+          NIX_REMOTE="$target" nix-env --profile /cache/var/nix/profiles/default \
+            --set "$(readlink -f /root/.nix-profile)"
+  framework:
+    needs: prepare
+    if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
+    runs-on: runner-rocket
+    container:
+      image: nixos/nix:2.35.3@sha256:ff480dbb23511aa1c10710aa068ceea5b93fed9bfce5f5379f3a6b07282cbc7b
+      volumes:
+        - dotfiles-nix-cache:/nix
     timeout-minutes: 90
     env:
+      XDG_CACHE_HOME: /nix/var/nix/ci-cache
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         sandbox = false
         max-jobs = 2
         cores = 4
+        always-allow-substitutes = true
+        min-free = 10737418240
+        max-free = 32212254720
     steps:
       - name: Check out the exact revision
         shell: bash
@@ -27,7 +55,7 @@ jobs:
           set -euo pipefail
           git init .
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git"
-          git fetch origin "$GITHUB_SHA"
+          git fetch --depth=1 origin "$GITHUB_SHA"
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
       - name: Prepare CI tools and private cache access
@@ -37,19 +65,22 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          tools=$(nix build .#ci-tools --no-update-lock-file --no-link --print-out-paths)
-          printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
           printf 'machine nix-cache.jetersen.dev login attic password %s\n' "$CACHE_TOKEN" > "$RUNNER_TEMP/nix-netrc"
-          printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
-          printf 'extra-substituters = https://nix-cache.jetersen.dev/workstations\n' >> "$GITHUB_ENV"
-          printf 'extra-trusted-public-keys = workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=\n' >> "$GITHUB_ENV"
-          printf 'netrc-file = %s/nix-netrc\nNIX_CONFIG_END\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+          export NIX_CONFIG="$NIX_CONFIG
+          extra-substituters = https://nix-cache.jetersen.dev/workstations
+          extra-trusted-public-keys = workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=
+          netrc-file = $RUNNER_TEMP/nix-netrc"
+          tools=$(nix build .#ci-tools --no-update-lock-file \
+            --out-link /nix/var/nix/gcroots/ci-tools --print-out-paths)
+          printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
+          printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\nNIX_CONFIG_END\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
       - name: Build the Framework system
         shell: bash
         run: |
           set -euo pipefail
           nix build .#nixosConfigurations.framework.config.system.build.toplevel \
-            --no-update-lock-file --no-link --print-out-paths > "$RUNNER_TEMP/framework-system"
+            --no-update-lock-file --out-link /nix/var/nix/gcroots/ci-framework \
+            --print-out-paths > "$RUNNER_TEMP/framework-system"
       - name: Publish the complete system closure
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash

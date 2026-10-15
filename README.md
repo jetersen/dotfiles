@@ -106,8 +106,13 @@ Nix CI images, merge automatically with a linear history once the required
 `NixOS / framework (pull_request)` check passes. The PR must be up to date with
 `main`; rejected reviews block merging. Other dotfiles updates need manual merging.
 
-NixOS CI builds the Framework on Rocket and uploads its complete closure to the
-private Attic cache. CI then sends an SSH notification over Tailscale, and Comin
+NixOS CI builds the Framework on Rocket. A persistent Docker volume retains
+the Nix store and fetched inputs for reuse across disposable jobs. Builds run
+serially to share the store safely. A preparation job registers the CI image's
+paths before the build, including after image updates. Nix reclaims unrooted paths
+under disk pressure; the latest system and CI tools stay rooted.
+CI uploads the complete system closure to the private Attic cache, then sends
+an SSH notification over Tailscale. Comin
 pulls `main` and applies the update. Every NixOS host follows `main`, including
 future hosts. The notification key can only request a fetch;
 it cannot select a revision or run arbitrary commands. The laptop also checks
