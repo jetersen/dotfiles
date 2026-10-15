@@ -53,7 +53,7 @@ Application binaries update through Nix rather than their own installers.
 
 Forgejo is the primary repository at `forgejo.jetersen.dev/jetersen/dotfiles`.
 The GitHub repository remains a push mirror for existing chezmoi installations;
-Forgejo Actions mirrors Git commits, tags, and LFS objects using a deploy key
+Forgejo Actions mirrors Git commits and tags using a deploy key
 limited to that GitHub repository.
 
 The homelab's Renovate job opens dependency updates on Forgejo, including Claude's
@@ -159,8 +159,8 @@ The .NET language host is built from source using the pinned
 dependencies. These packages are also available as `.#pulumi-cli` and
 `.#pulumi-language-dotnet`. Cloud and application sign-ins remain user-managed.
 
-Git LFS supplies the wallpaper assets; run `git lfs pull` after cloning if the
-checkout contains wallpaper pointer files.
+Nix downloads the wallpaper from an external collection at a pinned revision and
+verifies its checksum. Wallpaper binaries are not stored in this repository.
 Dolphin handles folders and file-manager D-Bus requests; the KDE portal supplies
 file-picker dialogs, while Niri's GNOME portal handles screen sharing.
 The KDE Qt integration uses DMS's generated palette for Dolphin and Qt

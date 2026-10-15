@@ -49,8 +49,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git lfs install --local
-          git lfs pull
           nix build .#nixosConfigurations.framework.config.system.build.toplevel \
             --no-link --print-out-paths > "$RUNNER_TEMP/framework-system"
       - name: Publish the complete system closure

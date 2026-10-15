@@ -66,7 +66,7 @@ in
 
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
-  home.file."Pictures/Wallpapers".source = ../../home/Pictures/Wallpapers;
+  home.file."Pictures/Wallpapers".source = import ./wallpapers.nix { inherit pkgs; };
   xdg.dataFile."dbus-1/services/org.freedesktop.FileManager1.service".text = ''
     [D-BUS Service]
     Name=org.freedesktop.FileManager1

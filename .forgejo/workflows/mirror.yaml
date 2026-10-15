@@ -26,7 +26,7 @@ jobs:
           git checkout --detach "$GITHUB_SHA"
           tools=$(nix build .#ci-tools --no-link --print-out-paths)
           printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
-      - name: Mirror commits, tags, and LFS objects
+      - name: Mirror commits and tags
         shell: bash
         env:
           MIRROR_KEY: ${{ secrets.GH_MIRROR_SSH_KEY }}
@@ -39,8 +39,5 @@ jobs:
           printf '%s\n' "$MIRROR_KEY" > "$key"
           cp .forgejo/github-known-hosts "$known_hosts"
           export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$known_hosts"
-          git lfs install --local
-          git lfs fetch --all origin
           git remote add github git@github.com:jetersen/dotfiles.git
-          git lfs push --all github
           git push github "$GITHUB_SHA:refs/heads/main" --tags
