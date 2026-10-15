@@ -540,10 +540,10 @@
     "snitch-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1792100228,
-        "narHash": "sha256-M9wbdS6i2bCVradhyUdjdEt1+bJp/sxbVI0U6uZ6jxY=",
+        "lastModified": 1792100582,
+        "narHash": "sha256-Nh3WTGj14m4R6kikxEH+QqFbvdNbk5e7gLTM6n4GyRQ=",
         "ref": "integration",
-        "rev": "bf3370676398d367cea092aa0dc137bb4f1b0dd2",
+        "rev": "ea155c7c666c477369ee615d6e9f5e191e7577ee",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/snitch.git"

@@ -6,7 +6,7 @@
 }:
 buildDotnetModule {
   pname = "snitch";
-  version = "2.1.0-local.1";
+  version = "2.1.0-local.2";
   src = source;
   # Nix builds the CLI directly; the upstream Cake release tool is unnecessary.
   postPatch = "rm dotnet-tools.json";
