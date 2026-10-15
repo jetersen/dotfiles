@@ -153,8 +153,8 @@ and writes a Nix binary cache on the NAS over NFS, including build dependencies.
 This can refill the working store after cleanup or replacement. The NAS cache is
 disposable and has a dataset quota. Stop Nix jobs and invalidate their cached
 narinfo metadata when resetting the NAS cache.
-CI uploads system outputs to private Attic. Attic skips paths signed by the public
-NixOS cache, and CI excludes outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
+CI imports available public-cache signatures before uploading system outputs to
+private Attic. Attic skips paths signed by the public NixOS cache, and CI excludes outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
 (currently 512 MiB unpacked). This applies to every package, not just vendor
 repacks. Hosts download and package or compile excluded outputs locally when
 needed. CI retains them in its working store and NAS cache. CI then sends

@@ -73,8 +73,13 @@ jobs:
           umask 077
           mkdir -p "$HOME/.config/attic"
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
+          # Locally generated paths may also exist upstream without having its
+          # signature locally. Import it so Attic's upstream filter recognizes them.
+          # Cache public misses for a day; private-cache lookups remain immediate.
+          nix store copy-sigs --substituter https://cache.nixos.org \
+            --option narinfo-cache-negative-ttl 86400 --recursive \
+            "$(cat "$RUNNER_TEMP/framework-system")"
           # Keep large outputs local to CI and let hosts build them as needed.
-          # Attic separately skips paths signed by the upstream NixOS cache.
           nix path-info --recursive --json \
             "$(cat "$RUNNER_TEMP/framework-system")" > "$RUNNER_TEMP/system-paths.json"
           jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
