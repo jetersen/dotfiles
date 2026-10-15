@@ -28,6 +28,10 @@
         inputs.nixpkgs.follows = "nixpkgs";
       };
     };
+    pulumi-packages = {
+      url = "git+https://github.com/unmango/pulumipkgs.git?rev=e51aea7d9473a8dde80c23081c522ac967b93988&shallow=1";
+      flake = false;
+    };
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -70,6 +74,13 @@
         inputs.self.nixosConfigurations.installer.config.system.build.isoImage;
       packages.x86_64-linux.nixos-anywhere = nixpkgs.legacyPackages.x86_64-linux.nixos-anywhere;
       packages.x86_64-linux.ssh-to-age = nixpkgs.legacyPackages.x86_64-linux.ssh-to-age;
+      packages.x86_64-linux.pulumi-cli =
+        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/pulumi-cli.nix
+          { };
+      packages.x86_64-linux.pulumi-language-dotnet =
+        nixpkgs.legacyPackages.x86_64-linux.callPackage
+          "${inputs.pulumi-packages}/pkgs/languages/pulumi-dotnet/package.nix"
+          { };
 
       nixosModules = {
         common = {
@@ -104,6 +115,8 @@
             ];
             home-manager.extraSpecialArgs = {
               dmsSource = inputs.dms;
+              pulumiCli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-cli;
+              pulumiDotnet = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-language-dotnet;
             };
           };
         encrypted-laptop = {

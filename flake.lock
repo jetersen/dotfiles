@@ -260,6 +260,24 @@
         "type": "github"
       }
     },
+    "pulumi-packages": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791931279,
+        "narHash": "sha256-gVo6LEiw5tuHrkc8vvwaIuE5DRJhnnF+o7sPwPoh1CA=",
+        "ref": "refs/heads/main",
+        "rev": "e51aea7d9473a8dde80c23081c522ac967b93988",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/unmango/pulumipkgs.git"
+      },
+      "original": {
+        "rev": "e51aea7d9473a8dde80c23081c522ac967b93988",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/unmango/pulumipkgs.git"
+      }
+    },
     "root": {
       "inputs": {
         "dank-greeter": "dank-greeter",
@@ -269,6 +287,7 @@
         "lanzaboote": "lanzaboote",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
+        "pulumi-packages": "pulumi-packages",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"
       }

@@ -1,6 +1,9 @@
 { pkgs, ... }:
 {
-  imports = [ ./desktop.nix ];
+  imports = [
+    ./desktop.nix
+    ./workstation.nix
+  ];
   home.username = "joseph";
   home.homeDirectory = "/home/joseph";
   home.stateVersion = "26.05";

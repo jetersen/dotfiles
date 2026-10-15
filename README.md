@@ -33,6 +33,19 @@ The initial desktop includes only essential applications from NixOS stable.
 DMS and DankGreeter use their upstream flakes pinned to release tags, with
 stable nixpkgs.
 Zen is pinned separately because it is not available in the stable package set.
+Slack, Discord, Zed, .NET 10, AWS CLI, kubectl, and Google Cloud CLI use stable
+packages. Google Cloud CLI includes the GKE authentication plugin for kubectl.
+Zed uses the packaged FHS wrapper for downloaded language servers, with C# and
+Nix extensions and the DMS theme. It handles plain text and JSON files; the
+terminal editor remains Neovim.
+
+Pulumi uses stable's binary CLI package without its bundled providers and
+language hosts. Providers install on demand into the user's Pulumi directory.
+The .NET language host is built from source using the pinned
+[pulumipkgs recipe](https://github.com/unmango/pulumipkgs), with stable Nixpkgs
+dependencies. These packages are also available as `.#pulumi-cli` and
+`.#pulumi-language-dotnet`. Cloud and application sign-ins remain user-managed.
+
 Git LFS supplies the wallpaper assets; run `git lfs pull` after cloning if the
 checkout contains wallpaper pointer files.
 Dolphin handles folders and file-manager D-Bus requests; the KDE portal supplies
