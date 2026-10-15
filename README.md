@@ -51,6 +51,28 @@ the web interface. Sign in locally with `claude auth login` and `codex login`.
 Credentials and application state remain user-managed outside the Nix store.
 Application binaries update through Nix rather than their own installers.
 
+Forgejo is the primary repository at `forgejo.jetersen.dev/jetersen/dotfiles`.
+The GitHub repository remains a push mirror for existing chezmoi installations;
+Forgejo Actions mirrors Git commits, tags, and LFS objects using a deploy key
+limited to that GitHub repository.
+
+The homelab's Renovate job opens dependency updates on Forgejo, including Claude's
+upstream manifest and flake lock maintenance. NixOS CI builds the Framework on
+Rocket and uploads its complete closure to the private Attic cache. Only then
+does it advance `deploy/framework` to that exact commit. Comin follows that branch
+and applies updates automatically when it can reach Forgejo and the cache.
+Its Nix process disables local builds, so missing cached files postpone an update.
+Interactive Nix commands can still build normally. Merging an update enables its
+deployment after CI succeeds; CI does not receive the laptop's decryption or
+Secure Boot private keys. Kernel changes still require a reboot to take effect.
+
+Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
+key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for
+rollback. To stop automatic updates while diagnosing a problem, run
+`sudo systemctl stop comin`; start it again after correcting or reverting the
+deployment revision. Reverting only the running system is temporary while Comin
+still follows a newer deployment commit.
+
 Git also uses Zed for interactive editing, signs commits and tags with the SSH
 key matching `nixos/keys/joseph.pub`, and selects the work email for
 `moviestarplanet` and `moviestarplanet-archives` remotes. Provision the matching

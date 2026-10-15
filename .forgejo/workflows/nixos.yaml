@@ -1,0 +1,90 @@
+name: NixOS
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+enable-openid-connect: true
+concurrency:
+  group: nixos-${{ forgejo.ref }}
+  cancel-in-progress: false
+jobs:
+  framework:
+    if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
+    runs-on: runner-rocket
+    container:
+      image: nixos/nix:2.34.1@sha256:1d59121e0c361076b4f23c158d236702f2f045b3b477b51075b81ceb6188d34a
+    timeout-minutes: 90
+    env:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        sandbox = false
+        max-jobs = 2
+        cores = 4
+    steps:
+      - name: Check out the exact revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git"
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Prepare CI tools and private cache access
+        shell: bash
+        env:
+          CACHE_TOKEN: ${{ secrets.NIX_CACHE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          tools=$(nix build .#ci-tools --no-link --print-out-paths)
+          printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
+          printf 'machine nix-cache.jetersen.dev login attic password %s\n' "$CACHE_TOKEN" > "$RUNNER_TEMP/nix-netrc"
+          printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
+          printf 'extra-substituters = https://nix-cache.jetersen.dev/workstations\n' >> "$GITHUB_ENV"
+          printf 'extra-trusted-public-keys = workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=\n' >> "$GITHUB_ENV"
+          printf 'netrc-file = %s/nix-netrc\nNIX_CONFIG_END\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Build the Framework system
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull
+          nix build .#nixosConfigurations.framework.config.system.build.toplevel \
+            --no-link --print-out-paths > "$RUNNER_TEMP/framework-system"
+      - name: Publish the complete system closure
+        if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
+        shell: bash
+        env:
+          CACHE_TOKEN: ${{ secrets.NIX_CACHE_PUSH_TOKEN }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$HOME/.config/attic"
+          printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
+          attic push homelab:workstations "$(cat "$RUNNER_TEMP/framework-system")"
+      - name: Promote the cached revision
+        if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
+        shell: bash
+        env:
+          AUDIENCE: ${{ vars.NIXOS_PUBLISH_AUDIENCE }}
+        run: |
+          set -euo pipefail
+          test -n "$AUDIENCE"
+          response=$(curl --fail --silent --show-error --get \
+            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            --data-urlencode "audience=$AUDIENCE" "$ACTIONS_ID_TOKEN_REQUEST_URL")
+          token=$(jq -er .value <<< "$response")
+          printf '::add-mask::%s\n' "$token"
+          # Decline to promote an old queued build after main has advanced.
+          current=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [[ "$current" != "$GITHUB_SHA" ]]; then
+            echo 'A newer main revision exists; leaving deployment promotion to its build.'
+            exit 0
+          fi
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0=http.extraHeader
+          GIT_CONFIG_VALUE_0="Authorization: Basic $(printf 'x-access-token:%s' "$token" | base64 -w0)"
+          export GIT_CONFIG_VALUE_0
+          git push origin "$GITHUB_SHA:refs/heads/deploy/framework"

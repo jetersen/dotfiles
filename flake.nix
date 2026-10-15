@@ -2,8 +2,14 @@
   description = "Joseph's NixOS systems";
 
   inputs = {
+    self.lfs = true;
     nixpkgs.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
     nixpkgs-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
+    comin = {
+      url = "git+https://github.com/nlewo/comin.git?ref=refs/tags/v0.14.0&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -79,6 +85,15 @@
         inputs.self.nixosConfigurations.installer.config.system.build.isoImage;
       packages.x86_64-linux.nixos-anywhere = nixpkgs.legacyPackages.x86_64-linux.nixos-anywhere;
       packages.x86_64-linux.ssh-to-age = nixpkgs.legacyPackages.x86_64-linux.ssh-to-age;
+      packages.x86_64-linux.ci-tools = nixpkgs.legacyPackages.x86_64-linux.buildEnv {
+        name = "dotfiles-ci-tools";
+        paths = with nixpkgs.legacyPackages.x86_64-linux; [
+          attic-client
+          git-lfs
+          jq
+          openssh
+        ];
+      };
       packages.x86_64-linux.pulumi-cli =
         nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/pulumi-cli.nix
           { };
@@ -89,6 +104,7 @@
 
       nixosModules = {
         common = {
+          system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
           imports = [
             home-manager.nixosModules.home-manager
             sops-nix.nixosModules.sops
@@ -151,6 +167,8 @@
             inputs.self.nixosModules.encrypted-laptop
             inputs.self.nixosModules.secure-boot
             inputs.self.nixosModules.company-vpn
+            inputs.comin.nixosModules.comin
+            ./nixos/modules/gitops.nix
             nixos-hardware.nixosModules.framework-intel-core-ultra-series3
             ./nixos/hosts/framework
           ];

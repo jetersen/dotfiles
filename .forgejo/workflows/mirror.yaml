@@ -1,0 +1,46 @@
+name: Mirror GitHub
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: github-mirror
+  cancel-in-progress: false
+jobs:
+  mirror:
+    if: forgejo.ref == 'refs/heads/main'
+    runs-on: linux-docker
+    container:
+      image: nixos/nix:2.34.1@sha256:1d59121e0c361076b4f23c158d236702f2f045b3b477b51075b81ceb6188d34a
+    timeout-minutes: 20
+    env:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        sandbox = false
+    steps:
+      - name: Check out Forgejo
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" .
+          git checkout --detach "$GITHUB_SHA"
+          tools=$(nix build .#ci-tools --no-link --print-out-paths)
+          printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
+      - name: Mirror commits, tags, and LFS objects
+        shell: bash
+        env:
+          MIRROR_KEY: ${{ secrets.GH_MIRROR_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          key="$RUNNER_TEMP/github-mirror-key"
+          known_hosts="$RUNNER_TEMP/github-known-hosts"
+          trap 'rm -f "$key" "$known_hosts"' EXIT
+          printf '%s\n' "$MIRROR_KEY" > "$key"
+          cp .forgejo/github-known-hosts "$known_hosts"
+          export GIT_SSH_COMMAND="ssh -i $key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$known_hosts"
+          git lfs install --local
+          git lfs fetch --all origin
+          git remote add github git@github.com:jetersen/dotfiles.git
+          git lfs push --all github
+          git push github "$GITHUB_SHA:refs/heads/main" --tags

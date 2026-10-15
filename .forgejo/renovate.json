@@ -1,0 +1,33 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "automergeStrategy": "rebase",
+  "nix": { "enabled": true },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 7am every weekday"]
+  },
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "json",
+      "managerFilePatterns": ["/^nixos/packages/claude-code-manifest\\.json$/"],
+      "matchStrings": [
+        "{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}"
+      ],
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$",
+      "versioningTemplate": "semver"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["anthropics/claude-code"],
+      "postUpgradeTasks": {
+        "commands": ["nixos/packages/update-claude-code.sh {{newVersion}}"],
+        "fileFilters": ["nixos/packages/claude-code-manifest.json"],
+        "executionMode": "update"
+      }
+    }
+  ]
+}
