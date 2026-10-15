@@ -73,6 +73,22 @@ user-managed. Use `aws sso login --profile default --region eu-west-1` to sign
 in to the shared work SSO session, and select Kubernetes contexts explicitly
 with `kubectl --context CONTEXT ...`.
 
+NuGet's `msp` feed uses AWS's pinned CodeArtifact credential provider, deployed
+through Nix into `~/.nuget/plugins/netcore`. It uses the `default-process` profile
+to obtain credentials through AWS CLI and the existing SSO session. An additional
+user config at `~/.nuget/NuGet/config/msp.config` adds the feed and maps `Msp.*` and
+`MovieStarPlanet.*` packages to it. Repository NuGet settings take precedence.
+Do not run `aws codeartifact login`; tokens in NuGet config override the provider.
+
+The Framework runs rootless Docker with Compose and Buildx from stable Nixpkgs.
+Its socket is `$XDG_RUNTIME_DIR/docker.sock`; new sessions set `DOCKER_HOST`
+automatically. Use Docker as your normal user. The shared work ECR registry uses
+the stable AWS credential helper with the `default` profile, including when the
+calling shell selects a production profile. No `docker login` is needed for ECR.
+Activation merges this registry's helper into writable `~/.docker/config.json`,
+preserving other registry credentials and settings. Renew an expired SSO session
+with `aws sso login --profile default --region eu-west-1`.
+
 OpenVPN 3 uses the stable package and systemd-resolved. The pinned
 [DMS OpenVPN plugin](https://github.com/jetersen/dms-openvpn3) provides the bar
 control and routes company domains through the DNS servers pushed by the VPN.

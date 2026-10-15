@@ -5,9 +5,11 @@
   ...
 }:
 {
-  imports =
-    lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
-    ++ lib.optional (builtins.pathExists ./disk.nix) ./disk.nix;
+  imports = [
+    ../../modules/containers.nix
+  ]
+  ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
+  ++ lib.optional (builtins.pathExists ./disk.nix) ./disk.nix;
 
   assertions = [
     {
