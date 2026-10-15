@@ -135,13 +135,13 @@ in
   ];
   powerManagement.resumeCommands = startFetch;
 
-  # Follow main on every host, but only activate systems available in the cache.
-  # Interactive Nix builds remain available.
+  # Prefer CI outputs while allowing large packages excluded from Attic.
   systemd.services.comin.serviceConfig.ExecStartPost =
     "-${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
   systemd.services.comin.environment.NIX_CONFIG = ''
     always-allow-substitutes = true
-    max-jobs = 0
+    max-jobs = 1
+    cores = 4
     fallback = false
   '';
 }

@@ -153,7 +153,11 @@ and writes a Nix binary cache on the NAS over NFS, including build dependencies.
 This can refill the working store after cleanup or replacement. The NAS cache is
 disposable and has a dataset quota. Stop Nix jobs and invalidate their cached
 narinfo metadata when resetting the NAS cache.
-CI uploads the complete system closure to the private Attic cache, then sends
+CI uploads system outputs to private Attic. Attic skips paths signed by the public
+NixOS cache, and CI excludes outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
+(currently 512 MiB unpacked). This applies to every package, not just vendor
+repacks. Hosts download and package or compile excluded outputs locally when
+needed. CI retains them in its working store and NAS cache. CI then sends
 an SSH notification over Tailscale. Comin pulls `main` and applies the update. Every NixOS host follows `main`, including
 future hosts. The notification key can only request a fetch;
 it cannot select a revision or run arbitrary commands. The laptop also checks
@@ -161,8 +165,9 @@ on boot, resume, and NetworkManager connection events, so offline machines catch
 up when they return. There are no periodic deployment checks. If a notification
 is missed while the laptop stays connected, the next lifecycle event or
 `sudo systemctl start comin-fetch.service` checks for the latest published revision.
-Comin's Nix process disables local builds, so missing
-cached files postpone an update. Nix does not retain negative cache lookups, so
+Comin prefers cached outputs and allows one local packaging or build job using
+up to four cores. Missing cache entries can therefore build locally. Nix does not
+retain negative cache lookups, so
 newly published paths are immediately available. One local systemd unit handles
 SSH notifications and lifecycle events. It restarts an idle Comin after a failed
 evaluation or build before fetching again; active work, manual suspension, and a

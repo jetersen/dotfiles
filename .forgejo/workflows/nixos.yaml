@@ -18,6 +18,7 @@ jobs:
     timeout-minutes: 90
     env:
       XDG_CACHE_HOME: /nix/var/nix/ci-cache
+      ATTIC_MAX_NAR_MIB: 512
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         sandbox = false
@@ -62,7 +63,7 @@ jobs:
           nix build .#nixosConfigurations.framework.config.system.build.toplevel \
             --no-update-lock-file --out-link /nix/var/nix/gcroots/ci-framework \
             --print-out-paths > "$RUNNER_TEMP/framework-system"
-      - name: Publish the complete system closure
+      - name: Publish eligible system outputs
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash
         env:
@@ -72,7 +73,14 @@ jobs:
           umask 077
           mkdir -p "$HOME/.config/attic"
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
-          attic push homelab:workstations "$(cat "$RUNNER_TEMP/framework-system")"
+          # Keep large outputs local to CI and let hosts build them as needed.
+          # Attic separately skips paths signed by the upstream NixOS cache.
+          nix path-info --recursive --json \
+            "$(cat "$RUNNER_TEMP/framework-system")" > "$RUNNER_TEMP/system-paths.json"
+          jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
+            to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
+          ' "$RUNNER_TEMP/system-paths.json" \
+            | attic push --no-closure --stdin homelab:workstations
       - name: Check whether main still selects this revision
         id: current
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
