@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.dotfiles.prompt;
-  configHome = config.xdg.configHome;
   settings = {
     add_newline = false;
     scan_timeout = 30;
@@ -78,29 +77,7 @@ let
       error_symbol = "[❯](bold #f38ba8)";
     };
   };
-  cloudSettings = settings // {
-    format = lib.replaceStrings [ "$cmd_duration" ] [ "$aws$kubernetes$cmd_duration" ] settings.format;
-    aws = {
-      format = "[AWS ($profile@)$region](bold #f9e2af) ";
-      force_display = true;
-    };
-    kubernetes = {
-      disabled = false;
-      format = "[K8s $context(/$namespace)]($style) ";
-      style = "#89dceb";
-      contexts = [
-        {
-          context_pattern = "eu|us";
-          context_alias = "PROD-$0";
-          style = "bold #f38ba8";
-        }
-      ];
-    };
-  };
-  shellContext = pkgs.replaceVars ./shell-context.fish {
-    baseConfig = "${configHome}/starship.toml";
-    cloudConfig = "${configHome}/starship-cloud.toml";
-    homelabConfig = "${configHome}/kube/homelab-context.yaml";
+  shellPrompt = pkgs.replaceVars ./prompt.fish {
     showBattery = if cfg.showBattery then "1" else "0";
     id = "${pkgs.coreutils}/bin/id";
   };
@@ -115,15 +92,7 @@ in
       inherit settings;
     };
     programs.fish.interactiveShellInit = lib.mkBefore ''
-      source ${shellContext}
+      source ${shellPrompt}
     '';
-    xdg.configFile = {
-      "starship-cloud.toml".source = (pkgs.formats.toml { }).generate "starship-cloud.toml" cloudSettings;
-      "kube/homelab-context.yaml".text = ''
-        apiVersion: v1
-        kind: Config
-        current-context: homelab
-      '';
-    };
   };
 }

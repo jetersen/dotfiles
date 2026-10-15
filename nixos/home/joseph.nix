@@ -2,6 +2,7 @@
 {
   imports = [
     ./desktop.nix
+    ./direnv.nix
     ./git.nix
     ./prompt.nix
     ./workstation.nix
