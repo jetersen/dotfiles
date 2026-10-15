@@ -51,6 +51,9 @@ the web interface. Sign in locally with `claude auth login` and `codex login`.
 Credentials and application state remain user-managed outside the Nix store.
 Application binaries update through Nix rather than their own installers.
 
+Proton Pass CLI is available as `pass-cli`. Sign in interactively with
+`pass-cli login` in a local terminal.
+
 Forgejo is the primary repository at `forgejo.jetersen.dev/jetersen/dotfiles`.
 The GitHub repository remains a push mirror for existing chezmoi installations;
 Forgejo Actions mirrors Git commits and tags using a deploy key

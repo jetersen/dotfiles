@@ -9,6 +9,7 @@
     slack
     discord
     dotnet-sdk_10
+    proton-pass-cli
     pulumiCli
     pulumiDotnet
     awscli2
