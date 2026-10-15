@@ -20,6 +20,15 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
   dotfiles.storage.swapSize = "72G";
 
+  # Goodix can leave fprintd with a suspended device handle mid-verification.
+  # These hooks run while user.slice is frozen, before DMS can retry on resume.
+  environment.etc."systemd/system-sleep/fprintd".source = pkgs.writeShellScript "fprintd-sleep" ''
+    case "$1" in
+      pre) ${pkgs.systemd}/bin/systemctl stop fprintd.service ;;
+      post) ${pkgs.systemd}/bin/systemctl start fprintd.service ;;
+    esac
+  '';
+
   sops.defaultSopsFile = ../../secrets/framework.yaml;
   sops.secrets.joseph-password.neededForUsers = true;
   users.users.joseph.hashedPasswordFile = config.sops.secrets.joseph-password.path;

@@ -43,6 +43,8 @@ Papirus Dark icons with violet folders are shared across DMS, GTK, and Qt applic
 Password login through greetd unlocks GNOME Keyring. DMS screen unlock supports
 fingerprints alongside a password fallback; sudo and PolicyKit also accept
 fingerprints. Enroll a finger with `fprintd-enroll` after the first login.
+The Framework restarts its fingerprint service across sleep to avoid a stale
+Goodix device handle after resume.
 DMS's PolicyKit agent provides approval dialogs for `pkexec` in the desktop session.
 Its layout is a 2 GiB EFI partition plus a LUKS container containing LVM volumes
 for Btrfs and 72 GiB of swap for hibernation. The passphrase file used during
