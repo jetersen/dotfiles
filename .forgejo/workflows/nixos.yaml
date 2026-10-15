@@ -38,7 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          tools=$(nix build .#ci-tools --no-link --print-out-paths)
+          tools=$(nix build .#ci-tools --no-update-lock-file --no-link --print-out-paths)
           printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
           printf 'machine nix-cache.jetersen.dev login attic password %s\n' "$CACHE_TOKEN" > "$RUNNER_TEMP/nix-netrc"
           printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           nix build .#nixosConfigurations.framework.config.system.build.toplevel \
-            --no-link --print-out-paths > "$RUNNER_TEMP/framework-system"
+            --no-update-lock-file --no-link --print-out-paths > "$RUNNER_TEMP/framework-system"
       - name: Publish the complete system closure
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash

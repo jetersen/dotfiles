@@ -56,15 +56,19 @@ The GitHub repository remains a push mirror for existing chezmoi installations;
 Forgejo Actions mirrors Git commits and tags using a deploy key
 limited to that GitHub repository.
 
-The homelab's Renovate job opens dependency updates on Forgejo, including Claude's
-upstream manifest, pinned release tags, and flake lock maintenance. NixOS CI builds the Framework on
-Rocket and uploads its complete closure to the private Attic cache. Only then
-does it advance `deploy/framework` to that exact commit. Comin follows that branch
-and applies updates automatically when it can reach Forgejo and the cache.
-Its Nix process disables local builds, so missing cached files postpone an update.
-Interactive Nix commands can still build normally. Merging an update enables its
-deployment after CI succeeds; CI does not receive the laptop's decryption or
-Secure Boot private keys. Kernel changes still require a reboot to take effect.
+The homelab's shared Renovate job updates both repositories. Nix dependency PRs,
+including Claude's upstream manifest, pinned release tags, lock maintenance, and
+Nix CI images, merge automatically with a linear history once the required
+`NixOS / framework (pull_request)` check passes. The PR must be up to date with
+`main`; rejected reviews block merging. Other dotfiles updates need manual merging.
+
+NixOS CI builds the Framework on Rocket and uploads its complete closure to the
+private Attic cache. Only then does it advance `deploy/framework` to that exact
+commit. Comin follows that branch and applies updates automatically when it can
+reach Forgejo and the cache. Its Nix process disables local builds, so missing
+cached files postpone an update. Interactive Nix commands can still build normally.
+CI requires an up-to-date lock file and does not receive the laptop's decryption
+or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
 key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for

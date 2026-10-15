@@ -12,7 +12,8 @@
     "enabled": true,
     "schedule": [
       "before 7am every weekday"
-    ]
+    ],
+    "automerge": true
   },
   "customManagers": [
     {
@@ -74,6 +75,26 @@
           "nix": {}
         }
       }
+    },
+    {
+      "description": "Merge Nix dependency updates after the Framework build passes",
+      "matchFileNames": [
+        "flake.nix",
+        "nixos/**"
+      ],
+      "automerge": true,
+      "rebaseWhen": "behind-base-branch"
+    },
+    {
+      "description": "Keep both Nix CI images aligned and merge after the Framework build passes",
+      "matchPackageNames": [
+        "nixos/nix"
+      ],
+      "groupName": "Nix CI images",
+      "automerge": true,
+      "rebaseWhen": "behind-base-branch"
     }
-  ]
+  ],
+  "automergeType": "pr",
+  "platformAutomerge": true
 }
