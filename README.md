@@ -45,6 +45,8 @@ private key from Proton Pass at `~/.ssh/id_ed25519` with mode `0600`; it stays
 outside the repository and Nix store.
 Sign in to GitHub CLI from the desktop with
 `gh auth login --hostname github.com --git-protocol ssh --skip-ssh-key --web`.
+Its settings remain writable; activation merges the declared defaults while
+preserving other settings.
 
 Pulumi uses stable's binary CLI package without its bundled providers and
 language hosts. Providers install on demand into the user's Pulumi directory.

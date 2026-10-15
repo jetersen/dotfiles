@@ -1,13 +1,46 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   personalEmail = "me@jetersen.dev";
   workEmail = "jop@moviestarplanet.com";
   signingKey = lib.trim (builtins.readFile ../keys/joseph.pub);
+  ghDefaults = (pkgs.formats.yaml { }).generate "gh-defaults.yaml" (
+    { version = "1"; } // config.programs.gh.settings
+  );
+  configureGh = pkgs.writeShellApplication {
+    name = "configure-gh";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.yq-go
+    ];
+    text = ''
+      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}/gh"
+      mkdir -p "$config_dir"
+      settings="$config_dir/config.yml"
+      current="$settings"
+      if [[ ! -s "$current" ]]; then current=${ghDefaults}; fi
+      temporary=$(mktemp "$config_dir/.config.XXXXXX")
+      trap 'rm -f "$temporary"' EXIT
+      yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
+        "$current" ${ghDefaults} > "$temporary"
+      chmod 600 "$temporary"
+      mv "$temporary" "$settings"
+    '';
+  };
 in
 {
   # The private key is provisioned from Proton Pass outside the Nix store.
   home.file.".ssh/id_ed25519.pub".source = ../keys/joseph.pub;
   xdg.configFile."git/gitignore".source = ../../home/dot_config/git/gitignore;
+  # gh writes settings after authentication, so its config must remain writable.
+  xdg.configFile."gh/config.yml".enable = lib.mkForce false;
+  home.activation.configureGh = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${lib.getExe configureGh}
+  '';
 
   programs.git = {
     enable = true;
