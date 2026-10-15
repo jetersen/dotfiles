@@ -67,13 +67,14 @@ the Nix store. Back up this directory with age encryption and keep a copy on
 another machine. A fresh installation must stage the key bundle at that path
 using `nixos-anywhere --extra-files` before installing the bootloader; unsigned
 boot files are refused.
-After verifying the signed boot files, follow the
-[Lanzaboote Framework instructions](https://nix-community.github.io/lanzaboote/getting-started/enable-secure-boot.html)
-to enter firmware Setup Mode and enroll with
-`sudo sbctl enroll-keys --microsoft --firmware-builtin`. Keep the firmware's
-revocation database and enable Enforce Secure Boot after enrollment. To recover
-from a boot failure, disable enforcement in the firmware before booting the
-installer or a previous configuration.
+After verifying the signed boot files, export the public certificate
+`/var/lib/sbctl/keys/db/db.pem` in DER format as `/boot/nixos-secure-boot.cer`.
+In the Framework firmware, use Administer Secure Boot, DB Options, Enroll
+Signature to add this certificate. Enter the owner GUID from `/var/lib/sbctl/GUID`
+when prompted. Retain the existing factory certificates and revocation database,
+then enable Enforce Secure Boot. To recover from a boot failure, disable
+enforcement in the firmware before booting the installer or a previous
+configuration.
 
 Rebuild on an installed Framework from this checkout:
 
