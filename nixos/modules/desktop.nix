@@ -78,6 +78,11 @@
   environment.systemPackages = with pkgs; [
     alacritty
     kdePackages.dolphin
+    kdePackages.ark
+    kdePackages.kio-extras
+    kdePackages.gwenview
+    kdePackages.ffmpegthumbs
+    kdePackages.kdegraphics-thumbnailers
     kdePackages.plasma-integration
     (papirus-icon-theme.override { color = "violet"; })
     satty

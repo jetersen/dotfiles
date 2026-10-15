@@ -71,6 +71,12 @@ personal flake, and `nix develop /path/to/that/flake#shell-name` works from the
 project directory. For a temporary tool, use `nix shell nixpkgs#PACKAGE`.
 Neither approach requires committing Nix files to the project.
 
+Fish, Bash, Zsh, and PowerShell share Docker aliases, clone-and-enter helpers,
+`cws`, `ride`, `open`, `dotenv`, and the existing development shortcuts.
+`ride` opens a solution or project in stable Rider. PowerShell's `posh-git`,
+`cd-extras`, and `Get-ChildItemColor` modules use pinned upstream sources;
+profiles never install modules at startup. Direnv integrates with all four shells.
+
 Fish, Bash, Zsh, and PowerShell use the same compact Starship layout. Identity
 appears in remote or changed-user sessions; Framework's battery percentage
 appears when unplugged. Start a new shell after a configuration update.
@@ -91,6 +97,15 @@ use official NuGet archives pinned in the flake. Renovate updates their URLs
 and lock-file hashes. They work without a mutable global tool installation.
 Snitch builds the pinned integration branch from `jetersen/snitch`; its NuGet
 dependencies are locked in `nixos/packages/snitch-deps.json`.
+
+TinyRDM, RustDesk, and Rider use stable packages. Dolphin opens PDFs in Zen,
+images in Gwenview, videos in MPV, and archives in Ark. KDE's archive service
+menus, archive browsing, and image/PDF/video thumbnail plugins are installed.
+
+Local VMs use virt-manager with QEMU/KVM and libvirt (`qemu:///system`).
+QEMU runs unprivileged; UEFI firmware, a software TPM, virtiofs shared folders,
+and SPICE USB redirection are available. The standard `default` NAT network
+autostarts. VM definitions and disks remain local state under `/var/lib/libvirt`.
 
 SSH aliases `rocket`, `worklaptop`, and `truenasadmin` use Tailscale hostnames.
 The NAS alias logs in as `truenas_admin`; its host key is pinned. Keep additional

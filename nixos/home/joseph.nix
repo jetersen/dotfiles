@@ -7,6 +7,7 @@
     ./development.nix
     ./direnv.nix
     ./git.nix
+    ./shell.nix
     ./ssh.nix
     ./prompt.nix
     ./workstation.nix
@@ -17,23 +18,8 @@
   home.stateVersion = "26.05";
 
   home.sessionVariables = {
-    EDITOR = "nvim";
+    EDITOR = "zeditor --wait";
     BROWSER = "zen-browser";
-  };
-
-  programs.fish = {
-    enable = true;
-    shellAliases = {
-      vi = "nvim";
-      vim = "nvim";
-      ls = "eza --color=always --group-directories-first";
-      l = "eza -1 --color=always --group-directories-first --all";
-      ll = "eza --binary --group --header --all --long --links --classify --group-directories-first";
-    };
-    interactiveShellInit = ''
-      fish_add_path ~/.local/bin
-      set -gx CDPATH $HOME/git
-    '';
   };
 
   home.packages = with pkgs; [

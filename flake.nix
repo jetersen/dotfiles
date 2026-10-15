@@ -83,6 +83,18 @@
       url = "file+https://api.nuget.org/v3-flatcontainer/microsoft.dotnet.apicompat.tool/10.0.402/microsoft.dotnet.apicompat.tool.10.0.402.nupkg";
       flake = false;
     };
+    powershell-posh-git = {
+      url = "git+https://github.com/dahlbyk/posh-git.git?ref=refs/tags/v1.1.0&shallow=1";
+      flake = false;
+    };
+    powershell-cd-extras = {
+      url = "git+https://github.com/nickcox/cd-extras.git?ref=refs/tags/v2.9.4&shallow=1";
+      flake = false;
+    };
+    powershell-childitemcolor = {
+      url = "git+https://github.com/joonro/Get-ChildItemColor.git?ref=refs/tags/v3.5.2&shallow=1";
+      flake = false;
+    };
     snitch-source = {
       url = "git+https://github.com/jetersen/snitch.git?ref=integration&shallow=1";
       flake = false;
@@ -242,6 +254,11 @@
                 };
                 dotfilesPackages = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
                 dmsSource = inputs.dms;
+                powershellModules = {
+                  posh-git = inputs.powershell-posh-git + "/src";
+                  cd-extras = inputs.powershell-cd-extras + "/cd-extras";
+                  Get-ChildItemColor = inputs.powershell-childitemcolor + "/src";
+                };
                 agentSkillSources = {
                   find-skills = inputs.skill-finder + "/skills/find-skills";
                   unslop = inputs.skill-unslop + "/pstack/skills/unslop";

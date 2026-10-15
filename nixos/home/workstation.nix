@@ -5,6 +5,9 @@
 }:
 {
   home.packages = with pkgs; [
+    tiny-rdm
+    rustdesk-flutter
+    jetbrains.rider
     slack
     discord
     dotnet-sdk_10

@@ -393,6 +393,60 @@
         "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
       }
     },
+    "powershell-cd-extras": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1616670372,
+        "narHash": "sha256-7SGxNan39c+4xZG7i5buvs8ZCBeXARANJtzl6u7Jx6o=",
+        "ref": "refs/tags/v2.9.4",
+        "rev": "fd2982d659c520ae15e75491c05cffca89be4bd1",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/nickcox/cd-extras.git"
+      },
+      "original": {
+        "ref": "refs/tags/v2.9.4",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/nickcox/cd-extras.git"
+      }
+    },
+    "powershell-childitemcolor": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1722791048,
+        "narHash": "sha256-HJLVXgegA/5hPojyhVoAyM3JvfHVdtxqAKWszySLsb8=",
+        "ref": "refs/tags/v3.5.2",
+        "rev": "dd77adec46ba9b139ac5456263a5b9f510d2de64",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/joonro/Get-ChildItemColor.git"
+      },
+      "original": {
+        "ref": "refs/tags/v3.5.2",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/joonro/Get-ChildItemColor.git"
+      }
+    },
+    "powershell-posh-git": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1648739603,
+        "narHash": "sha256-mcqXmDvPR3gZcWVAsdEVvSZyisd87eb74OD62TXD0Hw=",
+        "ref": "refs/tags/v1.1.0",
+        "rev": "d8b126decc29193a78e71cca6f59598017703a85",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/dahlbyk/posh-git.git"
+      },
+      "original": {
+        "ref": "refs/tags/v1.1.0",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/dahlbyk/posh-git.git"
+      }
+    },
     "pre-commit": {
       "inputs": {
         "flake-compat": "flake-compat_3",
@@ -452,6 +506,9 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "powershell-cd-extras": "powershell-cd-extras",
+        "powershell-childitemcolor": "powershell-childitemcolor",
+        "powershell-posh-git": "powershell-posh-git",
         "pulumi-packages": "pulumi-packages",
         "skill-finder": "skill-finder",
         "skill-rea": "skill-rea",

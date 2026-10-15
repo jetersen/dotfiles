@@ -65,6 +65,8 @@ in
     iconTheme.name = "Papirus-Dark";
   };
 
+  programs.mpv.enable = true;
+
   xdg.userDirs.enable = true;
   xdg.userDirs.createDirectories = true;
   home.file."Pictures/Wallpapers".source = import ./wallpapers.nix { inherit pkgs; };
@@ -75,12 +77,55 @@ in
   '';
   xdg.mimeApps = {
     enable = true;
-    defaultApplications = {
-      "text/html" = [ "zen-beta.desktop" ];
-      "x-scheme-handler/http" = [ "zen-beta.desktop" ];
-      "x-scheme-handler/https" = [ "zen-beta.desktop" ];
-      "inode/directory" = [ "org.kde.dolphin.desktop" ];
-    };
+    defaultApplications =
+      lib.genAttrs [
+        "image/png"
+        "image/jpeg"
+        "image/webp"
+        "image/avif"
+        "image/gif"
+        "image/bmp"
+        "image/tiff"
+        "image/svg+xml"
+        "image/heic"
+        "image/heif"
+      ] (_: [ "org.kde.gwenview.desktop" ])
+      // lib.genAttrs [
+        "video/mp4"
+        "video/x-matroska"
+        "video/webm"
+        "video/quicktime"
+        "video/x-msvideo"
+        "video/mpeg"
+        "video/ogg"
+        "video/mp2t"
+        "video/x-flv"
+      ] (_: [ "mpv.desktop" ])
+      // lib.genAttrs [
+        "application/zip"
+        "application/x-7z-compressed"
+        "application/vnd.rar"
+        "application/x-rar"
+        "application/x-rar-compressed"
+        "application/x-tar"
+        "application/gzip"
+        "application/x-gzip"
+        "application/x-bzip2"
+        "application/x-xz"
+        "application/zstd"
+        "application/x-zstd"
+        "application/x-compressed-tar"
+        "application/x-bzip-compressed-tar"
+        "application/x-xz-compressed-tar"
+        "application/x-zstd-compressed-tar"
+      ] (_: [ "org.kde.ark.desktop" ])
+      // {
+        "application/pdf" = [ "zen-beta.desktop" ];
+        "text/html" = [ "zen-beta.desktop" ];
+        "x-scheme-handler/http" = [ "zen-beta.desktop" ];
+        "x-scheme-handler/https" = [ "zen-beta.desktop" ];
+        "inode/directory" = [ "org.kde.dolphin.desktop" ];
+      };
   };
 
   xdg.configFile = {
