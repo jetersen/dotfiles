@@ -23,6 +23,14 @@
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dank-greeter = {
+      url = "git+https://github.com/AvengeMedia/dank-greeter.git?ref=refs/tags/v1.6.2&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.dank-qml-common = {
+        url = "git+https://github.com/AvengeMedia/dank-qml-common.git?rev=26396ce432d6c71c3f5367438f96f4a8d667e160&shallow=1";
+        flake = false;
+      };
+    };
     zen-browser = {
       url = "git+https://github.com/0xc000022070/zen-browser-flake.git?ref=main&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -68,6 +76,7 @@
           {
             imports = [
               ./nixos/modules/desktop.nix
+              inputs.dank-greeter.nixosModules.default
             ];
             programs.dms-shell.package = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
             environment.systemPackages = [

@@ -93,7 +93,6 @@ in
         }
       }
 
-      spawn-at-startup "${pkgs.kdePackages.polkit-kde-agent-1}/libexec/polkit-kde-authentication-agent-1"
       spawn-at-startup "udiskie"
       spawn-sh-at-startup "wl-paste --watch wl-copy --primary"
       spawn-at-startup "zen-browser"

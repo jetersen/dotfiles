@@ -27,16 +27,18 @@ sudo mount /dev/disk/by-label/iODD /mnt/zalman
 sudo bash /mnt/zalman/nixos-enable-ssh.sh
 ```
 
-The Framework configuration uses Niri, DankMaterialShell, Disko, and sops-nix.
+The Framework configuration uses Niri, DankMaterialShell, DankGreeter, Disko,
+and sops-nix.
 The initial desktop includes only essential applications from NixOS stable.
-DMS uses its upstream flake pinned to a release tag, with stable nixpkgs.
+DMS and DankGreeter use their upstream flakes pinned to release tags, with
+stable nixpkgs.
 Zen is pinned separately because it is not available in the stable package set.
 Dolphin handles folders and file-manager D-Bus requests; the KDE portal supplies
 file-picker dialogs, while Niri's GNOME portal handles screen sharing.
 Password login through greetd unlocks GNOME Keyring. DMS screen unlock supports
 fingerprints alongside a password fallback; sudo and PolicyKit also accept
 fingerprints. Enroll a finger with `fprintd-enroll` after the first login.
-The KDE PolicyKit agent provides approval dialogs for `pkexec` in the desktop session.
+DMS's PolicyKit agent provides approval dialogs for `pkexec` in the desktop session.
 Its layout is a 2 GiB EFI partition plus a LUKS container containing LVM volumes
 for Btrfs and 72 GiB of swap for hibernation. The passphrase file used during
 installation is `/tmp/nixos-disk-password` in the live environment; it must not

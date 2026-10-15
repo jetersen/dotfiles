@@ -19,13 +19,23 @@
     config.niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "kde";
   };
 
-  services.greetd = {
+  programs.dms-greeter = {
     enable = true;
-    settings.default_session = {
-      command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --cmd niri-session";
-      user = "greeter";
-    };
+    compositor.name = "niri";
+    configHome = "/home/joseph";
   };
+  services.displayManager.defaultSession = "niri";
+  environment.etc."greetd/niri_overrides.kdl".text = ''
+    input {
+      keyboard {
+        xkb {
+          layout "dk,us"
+          options "grp:alt_space_toggle"
+        }
+      }
+    }
+    output "eDP-1" { scale 1.5; }
+  '';
 
   security.polkit.enable = true;
   security.pam.services = {
@@ -63,7 +73,6 @@
   environment.systemPackages = with pkgs; [
     alacritty
     kdePackages.dolphin
-    kdePackages.polkit-kde-agent-1
     satty
     udiskie
     wl-clipboard

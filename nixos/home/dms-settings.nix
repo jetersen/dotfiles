@@ -86,4 +86,6 @@
   soundNewNotification = false;
   enableFprint = true;
   lockBeforeSuspend = true;
+  greeterEnableFprint = false;
+  greeterPamExternallyManaged = true;
 }
