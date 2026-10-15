@@ -110,10 +110,13 @@ NixOS CI builds the Framework on Rocket. A persistent Docker volume retains
 the Nix store and fetched inputs for reuse across disposable jobs. Builds run
 serially to share the store safely. A preparation job registers the CI image's
 paths before the build, including after image updates. Nix reclaims unrooted paths
-under disk pressure; the latest system and CI tools stay rooted.
+under disk pressure; the latest system and CI tools stay rooted. CI also reads
+and writes a Nix binary cache on the NAS over NFS, including build dependencies.
+This can refill the working store after cleanup or replacement. The NAS cache is
+disposable and has a dataset quota. Stop Nix jobs and invalidate their cached
+narinfo metadata when resetting the NAS cache.
 CI uploads the complete system closure to the private Attic cache, then sends
-an SSH notification over Tailscale. Comin
-pulls `main` and applies the update. Every NixOS host follows `main`, including
+an SSH notification over Tailscale. Comin pulls `main` and applies the update. Every NixOS host follows `main`, including
 future hosts. The notification key can only request a fetch;
 it cannot select a revision or run arbitrary commands. The laptop also checks
 on boot, resume, and NetworkManager connection events, so offline machines catch
