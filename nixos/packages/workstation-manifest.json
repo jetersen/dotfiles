@@ -14,11 +14,6 @@
     "version": "v1.10.3",
     "sha256": "5be46890eb13e167559b862b9a6f246eeec0a72761c0b3e91a646329323581e9"
   },
-  "codegraph": {
-    "repo": "colbymchenry/codegraph",
-    "version": "v1.6.2",
-    "sha256": "ef0af416092128fb1ccc723786000b7edf4a6971fe604acd08bf966e4f37b828"
-  },
   "varlock": {
     "repo": "dmno-dev/varlock",
     "version": "varlock@1.23.0",

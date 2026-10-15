@@ -135,9 +135,7 @@
       packages.x86_64-linux.varlock =
         nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/varlock.nix
           { };
-      packages.x86_64-linux.codegraph =
-        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/codegraph.nix
-          { };
+      packages.x86_64-linux.codegraph = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux.codegraph;
       packages.x86_64-linux.ci-tools = nixpkgs.legacyPackages.x86_64-linux.buildEnv {
         name = "dotfiles-ci-tools";
         paths = with nixpkgs.legacyPackages.x86_64-linux; [

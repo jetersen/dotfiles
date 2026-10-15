@@ -8,7 +8,7 @@
   ...
 }:
 let
-  codegraph = pkgs.callPackage ../packages/codegraph.nix { };
+  codegraph = aiPkgs.codegraph;
   mcpPython = pkgs.python3.withPackages (p: [ p.tomlkit ]);
   configureCodegraph = pkgs.writeShellApplication {
     name = "configure-codegraph-mcp";

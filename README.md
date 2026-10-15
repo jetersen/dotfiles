@@ -43,7 +43,7 @@ Claude Code uses Anthropic's upstream release manifest with stable Nixpkgs'
 native packaging. Run `nixos/packages/update-claude-code.sh` to pin the latest
 release, or pass a specific version. Review the manifest diff and rebuild NixOS;
 Nix verifies the binary against the manifest's checksum.
-Codex CLI and T3 Code use a separate pinned `nixpkgs-unstable` input. Update them
+Codex CLI, T3 Code, and CodeGraph use a separate pinned `nixpkgs-unstable` input. Update them
 with `nix flake update nixpkgs-unstable`, then rebuild NixOS.
 T3 Code includes both provider CLIs on its runtime path, using the same Claude
 version as the terminal. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs
@@ -58,7 +58,7 @@ repository needs a different runtime. PowerShell is available as `pwsh`.
 Fish, Bash, Zsh, and PowerShell use the same compact Starship layout. Identity
 appears in remote or changed-user sessions; Framework's battery percentage
 appears when unplugged. Start a new shell after a configuration update.
-Vite Plus (`vp`), topf, Freelens, CodeGraph, and Varlock use checksum-pinned upstream releases in
+Vite Plus (`vp`), topf, Freelens, and Varlock use checksum-pinned upstream releases in
 `nixos/packages/workstation-manifest.json`; Renovate updates both versions and
 checksums. Vite Plus and Freelens use FHS wrappers for upstream runtime binaries.
 Vite Plus prefers Nix-provided Node.js and package managers; its project tooling

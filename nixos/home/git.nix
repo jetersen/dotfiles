@@ -9,29 +9,6 @@ let
   personalEmail = "me@jetersen.dev";
   workEmail = "jop@moviestarplanet.com";
   signingKey = lib.trim (builtins.readFile ../keys/joseph.pub);
-  ghDefaults = (pkgs.formats.yaml { }).generate "gh-defaults.yaml" (
-    { version = "1"; } // config.programs.gh.settings
-  );
-  configureGh = pkgs.writeShellApplication {
-    name = "configure-gh";
-    runtimeInputs = [
-      pkgs.coreutils
-      pkgs.yq-go
-    ];
-    text = ''
-      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}/gh"
-      mkdir -p "$config_dir"
-      settings="$config_dir/config.yml"
-      current="$settings"
-      if [[ ! -s "$current" ]]; then current=${ghDefaults}; fi
-      temporary=$(mktemp "$config_dir/.config.XXXXXX")
-      trap 'rm -f "$temporary"' EXIT
-      yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' \
-        "$current" ${ghDefaults} > "$temporary"
-      chmod 600 "$temporary"
-      mv "$temporary" "$settings"
-    '';
-  };
 in
 {
   home.packages = [ pkgs.forgejo-cli ];
@@ -42,7 +19,10 @@ in
   # gh writes settings after authentication, so its config must remain writable.
   xdg.configFile."gh/config.yml".enable = lib.mkForce false;
   home.activation.configureGh = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    run ${lib.getExe configureGh}
+    run ${lib.getExe config.programs.gh.package} config set git_protocol \
+      ${lib.escapeShellArg config.programs.gh.settings.git_protocol}
+    run ${lib.getExe config.programs.gh.package} config set editor \
+      ${lib.escapeShellArg config.programs.gh.settings.editor}
   '';
 
   programs.git = {
