@@ -49,6 +49,15 @@
     group = "users";
     mode = "0600";
   };
+  sops.secrets.ai-work-instructions = { };
+  sops.templates.ai-instructions = {
+    owner = "joseph";
+    group = "users";
+    mode = "0600";
+    content =
+      lib.replaceStrings [ "@AI_WORK_INSTRUCTIONS@" ] [ config.sops.placeholder.ai-work-instructions ]
+        (builtins.readFile ../../../home/.chezmoitemplates/ai-instructions.md);
+  };
   home-manager.users.joseph.imports = [ ../../home/cloud.nix ];
   home-manager.users.joseph.dotfiles.prompt.showBattery = true;
   users.users.joseph.hashedPasswordFile = config.sops.secrets.joseph-password.path;

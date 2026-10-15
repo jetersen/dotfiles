@@ -51,6 +51,27 @@ the web interface. Sign in locally with `claude auth login` and `codex login`.
 Credentials and application state remain user-managed outside the Nix store.
 Application binaries update through Nix rather than their own installers.
 
+Development and infrastructure tools are declared in
+`nixos/home/development.nix`. Node.js includes npm; Python packages and virtual
+environments use `uv`. Use project Nix development shells through direnv when a
+repository needs a different runtime. PowerShell is available as `pwsh`.
+Vite Plus (`vp`), topf, and Freelens use checksum-pinned upstream releases in
+`nixos/packages/workstation-manifest.json`; Renovate updates both versions and
+checksums. Vite Plus and Freelens use FHS wrappers for upstream runtime binaries.
+Vite Plus prefers Nix-provided Node.js and package managers; its project tooling
+and caches remain writable user state. Mosh accepts incoming UDP sessions over
+Tailscale only, using ports 60000–61000.
+
+`gh stack` uses unstable's current GitHub CLI extension to match its upstream
+skill. `git-dirty` reuses the shared script in `home/dot_local/bin/`.
+Claude and Codex share pinned skills through `~/.agents/skills` and
+`~/.claude/skills`. Common instructions come from
+`home/.chezmoitemplates/ai-instructions.md`; chezmoi adds the private work section
+from Proton Pass. NixOS assembles it with sops-nix at runtime, outside the Nix
+store, and links both clients to the same file. Skills become available in a new
+agent session. Built-in client skills and cloud-synced Claude skills remain
+managed by their clients.
+
 Proton Pass CLI is available as `pass-cli`. Sign in interactively with
 `pass-cli login` in a local terminal.
 

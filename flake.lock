@@ -362,6 +362,9 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "pulumi-packages": "pulumi-packages",
+        "skill-finder": "skill-finder",
+        "skill-rea": "skill-rea",
+        "skill-unslop": "skill-unslop",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"
       }
@@ -386,6 +389,60 @@
         "shallow": true,
         "type": "git",
         "url": "https://github.com/oxalica/rust-overlay.git"
+      }
+    },
+    "skill-finder": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791568486,
+        "narHash": "sha256-djzSciYX530uc1Xk4+Vdf2IHmNotC0bb6YU/peF0UK4=",
+        "ref": "refs/heads/main",
+        "rev": "13e4063a1cf913f5606d57d42ab83a86f5001e04",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/vercel-labs/skills.git"
+      },
+      "original": {
+        "rev": "13e4063a1cf913f5606d57d42ab83a86f5001e04",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/vercel-labs/skills.git"
+      }
+    },
+    "skill-rea": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792089499,
+        "narHash": "sha256-yaiUwZRbxJYUJQ08S7u5w7K3ZJHpzhyNp+7I1yc4D7c=",
+        "ref": "refs/heads/main",
+        "rev": "3406dc4d85bf29414319b33b98bd1421d573f663",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/morluto/rea.git"
+      },
+      "original": {
+        "rev": "3406dc4d85bf29414319b33b98bd1421d573f663",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/morluto/rea.git"
+      }
+    },
+    "skill-unslop": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792081749,
+        "narHash": "sha256-ql2vPKDIHqQxAcxpc2rTnIBv3rlxkE+I4X/Z71mQAoY=",
+        "ref": "refs/heads/main",
+        "rev": "99743e9c151c8537cbbf1f98bb38f34ef3368453",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/cursor/plugins.git"
+      },
+      "original": {
+        "rev": "99743e9c151c8537cbbf1f98bb38f34ef3368453",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/cursor/plugins.git"
       }
     },
     "sops-nix": {

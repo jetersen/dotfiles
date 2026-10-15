@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  aiPkgs,
   ...
 }:
 let
@@ -120,6 +121,8 @@ in
 
   programs.gh = {
     enable = true;
+    # The matching upstream skill requires the current stacked-PR commands.
+    extensions = [ aiPkgs.gh-stack ];
     settings = {
       git_protocol = "ssh";
       editor = "zeditor --wait";

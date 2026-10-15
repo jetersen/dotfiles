@@ -1,0 +1,17 @@
+{
+  "vite-plus": {
+    "repo": "voidzero-dev/vite-plus",
+    "version": "v1.2.0",
+    "sha256": "489e2493d10499d1e0f19f0c7938b1baa5cd488be1f2e3abd3fbf820131452bf"
+  },
+  "topf": {
+    "repo": "postfinance/topf",
+    "version": "v0.6.1",
+    "sha256": "6f399e527cb8588b02d7d28eae9a61c49680f4cd5e82d98be7a5c5001c80d341"
+  },
+  "freelens": {
+    "repo": "freelensapp/freelens",
+    "version": "v1.10.3",
+    "sha256": "5be46890eb13e167559b862b9a6f246eeec0a72761c0b3e91a646329323581e9"
+  }
+}

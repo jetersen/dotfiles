@@ -3,6 +3,7 @@
   imports = [
     ./ai-tools.nix
     ./desktop.nix
+    ./development.nix
     ./direnv.nix
     ./git.nix
     ./prompt.nix
