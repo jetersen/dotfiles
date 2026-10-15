@@ -50,6 +50,29 @@
       ],
       "datasourceTemplate": "github-release-attachments",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "file\\+https://api\\.nuget\\.org/v3-flatcontainer/(?<depName>[^/]+)/(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)/[^\"\\s]+\\.nupkg"
+      ],
+      "datasourceTemplate": "nuget",
+      "versioningTemplate": "nuget",
+      "autoReplaceStringTemplate": "file+https://api.nuget.org/v3-flatcontainer/{{{depName}}}/{{{newValue}}}/{{{depName}}}.{{{newValue}}}.nupkg"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^nixos/packages/workstation-manifest\\.json$/"
+      ],
+      "matchStrings": [
+        "\"repo\": \"(?<depName>dmno-dev/varlock)\",\\s+\"version\": \"(?<currentValue>varlock@[0-9]+\\.[0-9]+\\.[0-9]+)\",\\s+\"sha256\": \"(?<currentDigest>[a-f0-9]{64})\""
+      ],
+      "datasourceTemplate": "github-release-attachments",
+      "versioningTemplate": "regex:^varlock@(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
     }
   ],
   "packageRules": [
@@ -72,7 +95,8 @@
         "custom.regex"
       ],
       "matchDatasources": [
-        "github-tags"
+        "github-tags",
+        "nuget"
       ],
       "postUpgradeTasks": {
         "commands": [

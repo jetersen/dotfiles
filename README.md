@@ -55,12 +55,26 @@ Development and infrastructure tools are declared in
 `nixos/home/development.nix`. Node.js includes npm; Python packages and virtual
 environments use `uv`. Use project Nix development shells through direnv when a
 repository needs a different runtime. PowerShell is available as `pwsh`.
-Vite Plus (`vp`), topf, and Freelens use checksum-pinned upstream releases in
+Vite Plus (`vp`), topf, Freelens, CodeGraph, and Varlock use checksum-pinned upstream releases in
 `nixos/packages/workstation-manifest.json`; Renovate updates both versions and
 checksums. Vite Plus and Freelens use FHS wrappers for upstream runtime binaries.
 Vite Plus prefers Nix-provided Node.js and package managers; its project tooling
 and caches remain writable user state. Mosh accepts incoming UDP sessions over
 Tailscale only, using ports 60000–61000.
+
+ILSpy, dotnet-outdated, database clients, diagnostic tools, DBeaver Community,
+Charles, and Remmina use stable packages. VictoriaLogs queries use `vlogscli`;
+its package builds only the CLI. LocalSend enables its TCP/UDP discovery and
+transfer port through the NixOS module.
+Lambda Tools and dotnet-script use official NuGet archives pinned in the flake.
+Renovate updates their URLs and lock-file hashes. They are available as
+`dotnet lambda` and `dotnet script`, without a mutable global tool installation.
+
+The private npm registry configuration and Varlock work schema are deployed by
+sops-nix. Run `bw login` once in a local terminal, then use
+`workenv COMMAND [ARGUMENTS...]` to load work secrets through Varlock. Varlock
+handles subsequent Bitwarden unlock prompts and session caching according to
+the schema. Bitwarden CLI authentication stays local to each machine.
 
 `gh stack` uses unstable's current GitHub CLI extension to match its upstream
 skill. `git-dirty` reuses the shared script in `home/dot_local/bin/`.
@@ -71,6 +85,9 @@ from Proton Pass. NixOS assembles it with sops-nix at runtime, outside the Nix
 store, and links both clients to the same file. Skills become available in a new
 agent session. Built-in client skills and cloud-synced Claude skills remain
 managed by their clients.
+Home activation configures the pinned CodeGraph MCP server for Claude and
+Codex while preserving their other settings. New agent sessions load the
+server; run `codegraph init --yes` in a project to create its local index.
 
 Proton Pass CLI is available as `pass-cli`. Sign in interactively with
 `pass-cli login` in a local terminal.

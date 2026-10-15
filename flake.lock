@@ -164,6 +164,18 @@
         "url": "https://github.com/jetersen/dms-openvpn3.git"
       }
     },
+    "dotnet-script-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-93eJfRnuglAQFaLspKQn1uR2nMUGOzfGupeZI9+sbiY=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-script/2.0.1/dotnet-script.2.0.1.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/dotnet-script/2.0.1/dotnet-script.2.0.1.nupkg"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -234,6 +246,18 @@
         "shallow": true,
         "type": "git",
         "url": "https://github.com/nix-community/home-manager.git"
+      }
+    },
+    "lambda-tools-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-fKtItkzfEVBCGqBTBcNnivjL7qZPqOHRsx4jUx2Qj0A=",
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.tools/7.0.0/amazon.lambda.tools.7.0.0.nupkg"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://api.nuget.org/v3-flatcontainer/amazon.lambda.tools/7.0.0/amazon.lambda.tools.7.0.0.nupkg"
       }
     },
     "lanzaboote": {
@@ -356,7 +380,9 @@
         "disko": "disko",
         "dms": "dms",
         "dms-openvpn3": "dms-openvpn3",
+        "dotnet-script-source": "dotnet-script-source",
         "home-manager": "home-manager",
+        "lambda-tools-source": "lambda-tools-source",
         "lanzaboote": "lanzaboote",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",

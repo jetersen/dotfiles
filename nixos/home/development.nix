@@ -1,4 +1,9 @@
-{ pkgs, ... }:
+{
+  dotnetLambda,
+  dotnetScript,
+  pkgs,
+  ...
+}:
 {
   home.packages = with pkgs; [
     nodejs_24 # Includes npm.
@@ -19,6 +24,26 @@
     openssl
     zip
     unzip
+    ilspycmd
+    dotnet-outdated
+    dotnetLambda
+    dotnetScript
+    grpcurl
+    postgresql
+    mariadb.client
+    crane
+    skopeo
+    trivy
+    dbeaver-bin
+    charles
+    remmina
+    (victorialogs.overrideAttrs (old: {
+      pname = "vlogscli";
+      subPackages = [ "app/vlogscli" ];
+      meta = old.meta // {
+        mainProgram = "vlogscli";
+      };
+    }))
     (callPackage ../packages/vite-plus.nix { })
     (callPackage ../packages/topf.nix { })
     (callPackage ../packages/freelens.nix { })

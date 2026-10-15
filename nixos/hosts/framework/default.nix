@@ -50,6 +50,16 @@
     mode = "0600";
   };
   sops.secrets.ai-work-instructions = { };
+  sops.secrets.npm-config = {
+    owner = "joseph";
+    group = "users";
+    mode = "0600";
+  };
+  sops.secrets.varlock-work-schema = {
+    owner = "joseph";
+    group = "users";
+    mode = "0600";
+  };
   sops.templates.ai-instructions = {
     owner = "joseph";
     group = "users";

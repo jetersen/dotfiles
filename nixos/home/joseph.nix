@@ -8,6 +8,7 @@
     ./git.nix
     ./prompt.nix
     ./workstation.nix
+    ./work-environment.nix
   ];
   home.username = "joseph";
   home.homeDirectory = "/home/joseph";

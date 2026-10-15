@@ -54,6 +54,14 @@
       url = "git+https://github.com/morluto/rea.git?rev=3406dc4d85bf29414319b33b98bd1421d573f663&shallow=1";
       flake = false;
     };
+    lambda-tools-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/amazon.lambda.tools/7.0.0/amazon.lambda.tools.7.0.0.nupkg";
+      flake = false;
+    };
+    dotnet-script-source = {
+      url = "file+https://api.nuget.org/v3-flatcontainer/dotnet-script/2.0.1/dotnet-script.2.0.1.nupkg";
+      flake = false;
+    };
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -90,6 +98,19 @@
       nixos-hardware,
       ...
     }:
+    let
+      locked = builtins.fromJSON (builtins.readFile ./flake.lock);
+      nugetTool =
+        inputName: pname: nugetName:
+        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/nuget-tool.nix {
+          inherit pname nugetName;
+          source = inputs.${inputName};
+          # Keep the URL in flake.nix as the single version pin for Renovate.
+          version = builtins.head (
+            builtins.match ".*/([^/]+)/[^/]+[.]nupkg" locked.nodes.${inputName}.locked.url
+          );
+        };
+    in
     {
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt;
       packages.x86_64-linux.installer-iso =
@@ -104,6 +125,18 @@
           { };
       packages.x86_64-linux.freelens =
         nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/freelens.nix
+          { };
+      packages.x86_64-linux.dotnet-lambda =
+        nugetTool "lambda-tools-source" "dotnet-lambda"
+          "Amazon.Lambda.Tools";
+      packages.x86_64-linux.dotnet-script =
+        nugetTool "dotnet-script-source" "dotnet-script"
+          "dotnet-script";
+      packages.x86_64-linux.varlock =
+        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/varlock.nix
+          { };
+      packages.x86_64-linux.codegraph =
+        nixpkgs.legacyPackages.x86_64-linux.callPackage ./nixos/packages/codegraph.nix
           { };
       packages.x86_64-linux.ci-tools = nixpkgs.legacyPackages.x86_64-linux.buildEnv {
         name = "dotfiles-ci-tools";
@@ -166,6 +199,8 @@
               };
               pulumiCli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-cli;
               pulumiDotnet = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-language-dotnet;
+              dotnetLambda = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.dotnet-lambda;
+              dotnetScript = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.dotnet-script;
             };
           };
         encrypted-laptop = {

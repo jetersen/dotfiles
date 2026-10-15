@@ -39,6 +39,7 @@
   };
 
   programs.fish.enable = true;
+  programs.localsend.enable = true;
   programs.mosh = {
     enable = true;
     openFirewall = false;
