@@ -39,12 +39,16 @@ Zed uses the packaged FHS wrapper for downloaded language servers, with C# and
 Nix extensions and the DMS theme. It handles plain text and JSON files; the
 terminal editor remains Neovim.
 
-Claude Code, Codex CLI, and T3 Code use a separate pinned `nixpkgs-unstable`
-input to follow their frequent releases. T3 Code includes both provider CLIs on
-its runtime path. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs the
-web interface. Sign in locally with `claude auth login` and `codex login`.
+Claude Code uses Anthropic's upstream release manifest with stable Nixpkgs'
+native packaging. Run `nixos/packages/update-claude-code.sh` to pin the latest
+release, or pass a specific version. Review the manifest diff and rebuild NixOS;
+Nix verifies the binary against the manifest's checksum.
+Codex CLI and T3 Code use a separate pinned `nixpkgs-unstable` input. Update them
+with `nix flake update nixpkgs-unstable`, then rebuild NixOS.
+T3 Code includes both provider CLIs on its runtime path, using the same Claude
+version as the terminal. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs
+the web interface. Sign in locally with `claude auth login` and `codex login`.
 Credentials and application state remain user-managed outside the Nix store.
-Update these tools with `nix flake update nixpkgs-unstable`, then rebuild NixOS.
 Application binaries update through Nix rather than their own installers.
 
 Git also uses Zed for interactive editing, signs commits and tags with the SSH
