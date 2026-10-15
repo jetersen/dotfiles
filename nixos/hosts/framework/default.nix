@@ -6,16 +6,8 @@
 }:
 {
   imports = [
-    ../../modules/containers.nix
-  ]
-  ++ lib.optional (builtins.pathExists ./hardware-configuration.nix) ./hardware-configuration.nix
-  ++ lib.optional (builtins.pathExists ./disk.nix) ./disk.nix;
-
-  assertions = [
-    {
-      assertion = builtins.pathExists ./hardware-configuration.nix;
-      message = "Generate nixos/hosts/framework/hardware-configuration.nix from the Framework live environment before installing.";
-    }
+    ./hardware-configuration.nix
+    ./disk.nix
   ];
 
   networking.hostName = "framework";
@@ -39,37 +31,16 @@
 
   sops.defaultSopsFile = ../../secrets/framework.yaml;
   sops.secrets.joseph-password.neededForUsers = true;
-  sops.secrets.aws-config = {
-    owner = "joseph";
-    group = "users";
-    mode = "0600";
+  # Keep the laptop panel defaults out of the shared workstation desktop.
+  environment.etc."greetd/niri_overrides.kdl".text = lib.mkAfter ''
+    output "eDP-1" { scale 1.5; }
+  '';
+  home-manager.users.joseph = {
+    dotfiles.prompt.showBattery = true;
+    xdg.configFile."niri/config.kdl".text = lib.mkBefore ''
+      output "eDP-1" { scale 1.5; }
+    '';
   };
-  sops.secrets.kube-config = {
-    owner = "joseph";
-    group = "users";
-    mode = "0600";
-  };
-  sops.secrets.ai-work-instructions = { };
-  sops.secrets.npm-config = {
-    owner = "joseph";
-    group = "users";
-    mode = "0600";
-  };
-  sops.secrets.varlock-work-schema = {
-    owner = "joseph";
-    group = "users";
-    mode = "0600";
-  };
-  sops.templates.ai-instructions = {
-    owner = "joseph";
-    group = "users";
-    mode = "0600";
-    content =
-      lib.replaceStrings [ "@AI_WORK_INSTRUCTIONS@" ] [ config.sops.placeholder.ai-work-instructions ]
-        (builtins.readFile ../../../home/.chezmoitemplates/ai-instructions.md);
-  };
-  home-manager.users.joseph.imports = [ ../../home/cloud.nix ];
-  home-manager.users.joseph.dotfiles.prompt.showBattery = true;
   users.users.joseph.hashedPasswordFile = config.sops.secrets.joseph-password.path;
   users.mutableUsers = false;
 

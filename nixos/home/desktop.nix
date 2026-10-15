@@ -22,6 +22,7 @@ let
   dmsSettings = pkgs.writeText "dms-settings.json" (
     builtins.toJSON (
       (import ./dms-settings.nix {
+        enableFprint = osConfig.services.fprintd.enable;
         extraRightWidgets = lib.optional osConfig.programs.openvpn3.enable "openvpn3";
       })
       // {
@@ -107,7 +108,6 @@ in
         QT_QPA_PLATFORMTHEME_QT6 "kde"
       }
 
-      output "eDP-1" { scale 1.5; }
       workspace "browser"
 
       layout {

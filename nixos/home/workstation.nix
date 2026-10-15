@@ -1,7 +1,6 @@
 {
+  dotfilesPackages,
   pkgs,
-  pulumiCli,
-  pulumiDotnet,
   ...
 }:
 {
@@ -10,8 +9,8 @@
     discord
     dotnet-sdk_10
     proton-pass-cli
-    pulumiCli
-    pulumiDotnet
+    dotfilesPackages.pulumi-cli
+    dotfilesPackages.pulumi-language-dotnet
     awscli2
     kubectl
     (google-cloud-sdk.withExtraComponents [ google-cloud-sdk.components.gke-gcloud-auth-plugin ])

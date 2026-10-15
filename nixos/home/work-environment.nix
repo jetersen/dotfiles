@@ -1,6 +1,11 @@
-{ lib, pkgs, ... }:
+{
+  dotfilesPackages,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  varlock = pkgs.callPackage ../packages/varlock.nix { };
+  varlock = dotfilesPackages.varlock;
 in
 {
   home.packages = [

@@ -1,14 +1,14 @@
 {
   agentSkillSources,
-  aiPkgs,
   config,
   lib,
   osConfig,
   pkgs,
+  pkgsUnstable,
   ...
 }:
 let
-  codegraph = aiPkgs.codegraph;
+  codegraph = pkgsUnstable.codegraph;
   mcpPython = pkgs.python3.withPackages (p: [ p.tomlkit ]);
   configureCodegraph = pkgs.writeShellApplication {
     name = "configure-codegraph-mcp";
@@ -24,9 +24,9 @@ in
   # Claude follows upstream directly; Codex and T3 use the faster Nixpkgs branch.
   home.packages = [
     claudeCode
-    aiPkgs.codex
+    pkgsUnstable.codex
     codegraph
-    (aiPkgs.t3code.override {
+    (pkgsUnstable.t3code.override {
       enableClaude = true;
       claude-code = claudeCode;
       inherit (pkgs) git gh;
@@ -59,7 +59,7 @@ in
       (
         agentSkillSources
         // {
-          gh-stack = aiPkgs.gh-stack.src + "/skills/gh-stack";
+          gh-stack = pkgsUnstable.gh-stack.src + "/skills/gh-stack";
         }
       );
 }

@@ -5,38 +5,49 @@
   ...
 }:
 let
-  notify = pkgs.writeShellScript "comin-notify" ''
+  fetch = pkgs.writeShellScript "comin-fetch" ''
     set -euo pipefail
-    if [[ -n "''${SSH_CONNECTION:-}" && "''${SSH_ORIGINAL_COMMAND:-}" != fetch ]]; then
-      echo 'Only the fetch notification is supported.' >&2
-      exit 2
-    fi
     # A manual stop must continue to pause automatic deployment.
     if ! ${pkgs.systemd}/bin/systemctl --quiet is-active comin.service; then
       echo 'Comin is stopped; deployment remains paused.'
       exit 0
     fi
-    # The daemon creates its socket after systemd considers it started.
-    for attempt in {1..15}; do
-      if [[ -S /var/lib/comin/grpc.sock ]]; then
-        # A lifecycle fetch can precede CI's cache upload. Comin only notices
-        # changed commits, so retry an idle failed build before fetching again.
-        status=$(${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} status --json)
-        if ${lib.getExe pkgs.jq} -e '
-          .is_suspended == false and
-          .builder.is_evaluating == false and .builder.is_building == false and
-          .builder.generation.eval_status == "evaluated" and
-          (.builder.generation.build_err // "") != ""
-        ' <<< "$status" > /dev/null; then
-          ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} suspend
-          ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} resume
+
+    # The daemon creates its control socket after systemd considers it started.
+    wait_for_comin() {
+      for attempt in {1..15}; do
+        if status=$(${pkgs.coreutils}/bin/timeout 2 ${lib.getExe config.services.comin.package} status --json 2>/dev/null); then
+          return
         fi
-        exec ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} fetch
-      fi
-      ${pkgs.coreutils}/bin/sleep 1
-    done
-    echo 'Comin did not create its control socket.' >&2
-    exit 1
+        ${pkgs.coreutils}/bin/sleep 1
+      done
+      echo 'Comin control socket is not ready.' >&2
+      return 1
+    }
+
+    wait_for_comin
+    # Comin v0.14 only evaluates changed commits. Restart an idle failed daemon
+    # to retry the same revision; its resume RPC cancels asynchronous retries.
+    if ${lib.getExe pkgs.jq} -e '
+      .is_suspended == false and
+      .fetcher.is_fetching == false and .deployer.is_deploying == false and
+      .builder.is_evaluating == false and .builder.is_building == false and
+      (.builder.generation.eval_status == "failed" or
+       .builder.generation.build_status == "failed")
+    ' <<< "$status" > /dev/null; then
+      ${pkgs.systemd}/bin/systemctl try-restart comin.service
+      wait_for_comin
+    fi
+    exec ${pkgs.coreutils}/bin/timeout 10 ${lib.getExe config.services.comin.package} fetch
+  '';
+  startFetchCommand = "${pkgs.systemd}/bin/systemctl start comin-fetch.service";
+  notify = pkgs.writeShellScript "comin-notify" ''
+    set -euo pipefail
+    if [[ "''${SSH_ORIGINAL_COMMAND:-}" != fetch ]]; then
+      echo 'Only the fetch notification is supported.' >&2
+      exit 2
+    fi
+    exec /run/wrappers/bin/sudo -n ${startFetchCommand}
   '';
   startFetch = "${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
 in
@@ -50,6 +61,8 @@ in
     substituters = [ "https://nix-cache.jetersen.dev/workstations" ];
     trusted-public-keys = [ "workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=" ];
     netrc-file = config.sops.secrets.nix-cache-netrc.path;
+    # A lifecycle check can precede CI's upload. Retry new cache paths immediately.
+    narinfo-cache-negative-ttl = 0;
   };
 
   services.comin = {
@@ -76,6 +89,18 @@ in
       ''restrict,command="${notify}" ${lib.removeSuffix "\n" (builtins.readFile ../keys/deploy-notify.pub)}''
     ];
   };
+  security.sudo.extraRules = [
+    {
+      users = [ "comin-notify" ];
+      runAs = "root";
+      commands = [
+        {
+          command = startFetchCommand;
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 
   systemd.services.comin-fetch = {
     description = "Check for a published NixOS deployment";
@@ -88,9 +113,8 @@ in
     unitConfig.StartLimitIntervalSec = 0;
     serviceConfig = {
       Type = "oneshot";
-      User = "comin-notify";
-      ExecStart = notify;
-      TimeoutStartSec = 60;
+      ExecStart = fetch;
+      TimeoutStartSec = 120;
       NoNewPrivileges = true;
       ProtectSystem = "strict";
       ProtectHome = true;

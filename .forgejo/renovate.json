@@ -119,15 +119,6 @@
       ],
       "automerge": true,
       "rebaseWhen": "behind-base-branch"
-    },
-    {
-      "description": "Keep both Nix CI images aligned and merge after the Framework build passes",
-      "matchPackageNames": [
-        "nixos/nix"
-      ],
-      "groupName": "Nix CI images",
-      "automerge": true,
-      "rebaseWhen": "behind-base-branch"
     }
   ],
   "automergeType": "pr",

@@ -2,6 +2,7 @@
 {
   imports = [
     ./ai-tools.nix
+    ./cloud.nix
     ./desktop.nix
     ./development.nix
     ./direnv.nix

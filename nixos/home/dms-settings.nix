@@ -1,5 +1,6 @@
 {
   extraRightWidgets ? [ ],
+  enableFprint ? false,
 }:
 {
   barConfigs = [
@@ -92,7 +93,7 @@
   iconThemeDark = "Papirus-Dark";
   iconThemeLight = "Papirus-Dark";
   iconThemePerMode = false;
-  enableFprint = true;
+  inherit enableFprint;
   lockBeforeSuspend = true;
   greeterEnableFprint = false;
   greeterPamExternallyManaged = true;

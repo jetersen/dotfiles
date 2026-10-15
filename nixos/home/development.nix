@@ -1,6 +1,5 @@
 {
-  dotnetLambda,
-  dotnetScript,
+  dotfilesPackages,
   pkgs,
   ...
 }:
@@ -26,8 +25,8 @@
     unzip
     ilspycmd
     dotnet-outdated
-    dotnetLambda
-    dotnetScript
+    dotfilesPackages.dotnet-lambda
+    dotfilesPackages.dotnet-script
     grpcurl
     postgresql
     mariadb.client
@@ -44,9 +43,9 @@
         mainProgram = "vlogscli";
       };
     }))
-    (callPackage ../packages/vite-plus.nix { })
-    (callPackage ../packages/topf.nix { })
-    (callPackage ../packages/freelens.nix { })
+    dotfilesPackages.vite-plus
+    dotfilesPackages.topf
+    dotfilesPackages.freelens
     (writeShellApplication {
       name = "git-dirty";
       runtimeInputs = [

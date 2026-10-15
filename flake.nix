@@ -141,15 +141,9 @@
         common = {
           system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
           imports = [
-            home-manager.nixosModules.home-manager
             sops-nix.nixosModules.sops
             ./nixos/modules/common.nix
           ];
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            users.joseph = import ./nixos/home/joseph.nix;
-          };
         };
         desktop =
           {
@@ -169,22 +163,6 @@
                 exec ${lib.getExe inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.beta} "$@"
               '')
             ];
-            home-manager.extraSpecialArgs = {
-              aiPkgs = import inputs.nixpkgs-unstable {
-                inherit (pkgs.stdenv.hostPlatform) system;
-                config.allowUnfree = true;
-              };
-              dmsSource = inputs.dms;
-              agentSkillSources = {
-                find-skills = inputs.skill-finder + "/skills/find-skills";
-                unslop = inputs.skill-unslop + "/pstack/skills/unslop";
-                reverse-engineer-anything = inputs.skill-rea + "/.agents/skills/reverse-engineer-anything";
-              };
-              pulumiCli = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-cli;
-              pulumiDotnet = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pulumi-language-dotnet;
-              dotnetLambda = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.dotnet-lambda;
-              dotnetScript = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.dotnet-script;
-            };
           };
         encrypted-laptop = {
           imports = [
@@ -202,15 +180,43 @@
           imports = [ ./nixos/modules/company-vpn.nix ];
           home-manager.extraSpecialArgs.openvpnPluginSource = inputs.dms-openvpn3;
         };
+        workstation =
+          { pkgs, ... }:
+          {
+            imports = [
+              inputs.self.nixosModules.common
+              inputs.self.nixosModules.desktop
+              inputs.self.nixosModules.company-vpn
+              home-manager.nixosModules.home-manager
+              inputs.comin.nixosModules.comin
+              ./nixos/modules/containers.nix
+              ./nixos/modules/work.nix
+              ./nixos/modules/gitops.nix
+            ];
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.joseph = import ./nixos/home/joseph.nix;
+              extraSpecialArgs = {
+                pkgsUnstable = import inputs.nixpkgs-unstable {
+                  inherit (pkgs.stdenv.hostPlatform) system;
+                  config.allowUnfree = true;
+                };
+                dotfilesPackages = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
+                dmsSource = inputs.dms;
+                agentSkillSources = {
+                  find-skills = inputs.skill-finder + "/skills/find-skills";
+                  unslop = inputs.skill-unslop + "/pstack/skills/unslop";
+                  reverse-engineer-anything = inputs.skill-rea + "/.agents/skills/reverse-engineer-anything";
+                };
+              };
+            };
+          };
         framework = {
           imports = [
-            inputs.self.nixosModules.common
-            inputs.self.nixosModules.desktop
+            inputs.self.nixosModules.workstation
             inputs.self.nixosModules.encrypted-laptop
             inputs.self.nixosModules.secure-boot
-            inputs.self.nixosModules.company-vpn
-            inputs.comin.nixosModules.comin
-            ./nixos/modules/gitops.nix
             nixos-hardware.nixosModules.framework-intel-core-ultra-series3
             ./nixos/hosts/framework
           ];

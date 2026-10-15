@@ -27,6 +27,14 @@ sudo mount /dev/disk/by-label/iODD /mnt/zalman
 sudo bash /mnt/zalman/nixos-enable-ssh.sh
 ```
 
+The reusable `nixosModules.workstation` profile provides the desktop, development
+and work tools, rootless containers, Home Manager, and GitOps deployment. Each
+host supplies its own hardware, storage, password and sops file. Framework's
+panel scaling, battery prompt, kernel and fingerprint sleep workaround stay in
+its host directory. To add Rocket, generate its hardware configuration and
+supply its verified disk identity and host-specific secrets, then add its system
+build and notification target to CI.
+
 The Framework configuration uses Niri, DankMaterialShell, DankGreeter, Disko,
 and sops-nix.
 The initial desktop includes only essential applications from NixOS stable.
@@ -101,8 +109,8 @@ Forgejo's native push mirror sends `main` and tags on push using a deploy key
 limited to that GitHub repository. No mirror workflow is needed.
 
 The homelab's shared Renovate job updates both repositories. Nix dependency PRs,
-including Claude's upstream manifest, pinned release tags, lock maintenance, and
-Nix CI images, merge automatically with a linear history once the required
+including Claude's upstream manifest, pinned release tags, and lock maintenance,
+merge automatically with a linear history once the required
 `NixOS / framework (pull_request)` check passes. The PR must be up to date with
 `main`; rejected reviews block merging. Other dotfiles updates need manual merging.
 
@@ -122,11 +130,15 @@ it cannot select a revision or run arbitrary commands. The laptop also checks
 on boot, resume, and NetworkManager connection events, so offline machines catch
 up when they return. There are no periodic deployment checks. If a notification
 is missed while the laptop stays connected, the next lifecycle event or
-`comin fetch` checks for the latest published revision.
+`sudo systemctl start comin-fetch.service` checks for the latest published revision.
 Comin's Nix process disables local builds, so missing
-cached files postpone an update. If a lifecycle check arrives before the cache
-upload, the next notification retries the failed build. Manual suspension remains
-in effect. Interactive Nix commands can still build normally.
+cached files postpone an update. Nix does not retain negative cache lookups, so
+newly published paths are immediately available. One local systemd unit handles
+SSH notifications and lifecycle events. It restarts an idle Comin after a failed
+evaluation or build before fetching again; active work, manual suspension, and a
+stopped daemon are preserved. The notification account can only start that unit
+through a narrowly scoped sudo rule. Interactive Nix commands can still build
+normally.
 CI requires an up-to-date lock file and does not receive the laptop's decryption
 or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 
