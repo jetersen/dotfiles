@@ -38,6 +38,13 @@ packages. Google Cloud CLI includes the GKE authentication plugin for kubectl.
 Zed uses the packaged FHS wrapper for downloaded language servers, with C# and
 Nix extensions and the DMS theme. It handles plain text and JSON files; the
 terminal editor remains Neovim.
+Git also uses Zed for interactive editing, signs commits and tags with the SSH
+key matching `nixos/keys/joseph.pub`, and selects the work email for
+`moviestarplanet` and `moviestarplanet-archives` remotes. Provision the matching
+private key from Proton Pass at `~/.ssh/id_ed25519` with mode `0600`; it stays
+outside the repository and Nix store.
+Sign in to GitHub CLI from the desktop with
+`gh auth login --hostname github.com --git-protocol ssh --skip-ssh-key --web`.
 
 Pulumi uses stable's binary CLI package without its bundled providers and
 language hosts. Providers install on demand into the user's Pulumi directory.

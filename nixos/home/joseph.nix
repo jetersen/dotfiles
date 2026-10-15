@@ -2,6 +2,7 @@
 {
   imports = [
     ./desktop.nix
+    ./git.nix
     ./workstation.nix
   ];
   home.username = "joseph";
@@ -33,20 +34,4 @@
     ripgrep
   ];
 
-  programs.git = {
-    enable = true;
-    lfs.enable = true;
-    settings = {
-      user = {
-        name = "Joseph Petersen";
-        email = "me@jetersen.dev";
-      };
-      init.defaultBranch = "main";
-      pull.rebase = true;
-      push.autoSetupRemote = true;
-      fetch.prune = true;
-      rebase.autoStash = true;
-      merge.conflictStyle = "diff3";
-    };
-  };
 }
