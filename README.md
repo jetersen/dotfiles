@@ -48,6 +48,21 @@ Sign in to GitHub CLI from the desktop with
 Its settings remain writable; activation merges the declared defaults while
 preserving other settings.
 
+The NixOS Fish prompt uses stable Starship with two lines: path, Git state,
+relevant runtimes and context above the command marker. Remote SSH and mosh
+sessions show `user@host`; failures show the exit code, and commands taking at
+least two seconds show their duration. Prompt history retains this information.
+The Framework shows battery percentage while unplugged, in red at 20% or below.
+
+Interactive Fish selects cloud prompt details in `homelab`, `dotfiles`, and
+`devops-*` repositories, or projects with Pulumi, Terraform, Helm, or Kustomize
+markers. Detection includes subdirectories and stops at the repository boundary.
+Inside `homelab` and `dotfiles`, a kubeconfig overlay makes `homelab` the default
+context without rewriting the encrypted kubeconfig. Leaving restores the previous
+`KUBECONFIG`, including across nested Fish sessions. Explicit `--context` still
+wins. Scripts inherit the calling shell's context; automation should select its
+context explicitly. Other platforms retain their existing Oh My Posh setup.
+
 The Framework's AWS SSO profiles and Kubernetes configuration are encrypted in
 `nixos/secrets/framework.yaml` as `aws-config` and `kube-config`. Home Manager
 links the decrypted, user-owned files into `~/.aws/config` and `~/.kube/config`.

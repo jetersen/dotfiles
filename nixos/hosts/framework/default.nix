@@ -48,6 +48,7 @@
     mode = "0600";
   };
   home-manager.users.joseph.imports = [ ../../home/cloud.nix ];
+  home-manager.users.joseph.dotfiles.prompt.showBattery = true;
   users.users.joseph.hashedPasswordFile = config.sops.secrets.joseph-password.path;
   users.mutableUsers = false;
 

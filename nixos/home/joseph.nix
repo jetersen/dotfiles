@@ -3,6 +3,7 @@
   imports = [
     ./desktop.nix
     ./git.nix
+    ./prompt.nix
     ./workstation.nix
   ];
   home.username = "joseph";
