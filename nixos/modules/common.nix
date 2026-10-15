@@ -21,7 +21,11 @@
   networking.networkmanager.enable = true;
   networking.networkmanager.dns = "systemd-resolved";
   services.resolved.enable = true;
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    # Use the homelab's advertised host routes when away from the LAN.
+    extraSetFlags = [ "--accept-routes=true" ];
+  };
   services.fwupd.enable = true;
   services.fstrim.enable = true;
 

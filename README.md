@@ -138,6 +138,11 @@ Other names use the existing network DNS. Its Python D-Bus dependency is package
 with the plugin. A polkit rule permits the active local user to update DNS domains
 and the default-route flag on numbered VPN interfaces without repeated prompts.
 
+Tailscale accepts the homelab's advertised host routes for access away from the
+LAN. Each workstation using CloudConnexa also needs the VPN coexistence exception
+in the [tailnet policy](https://github.com/jetersen/tailscale-acls#openvpn-coexistence)
+so Tailscale passes VPN replies to the host firewall.
+
 The inline VPN profiles and generated domain list are encrypted as `vpn-profile`,
 `vpn-profile-tcp`, and `vpn-domains` in the Framework's sops file. Import profiles
 once as the desktop user, then connect from the DMS widget:
