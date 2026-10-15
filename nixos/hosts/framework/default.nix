@@ -17,6 +17,12 @@
   ];
 
   networking.hostName = "framework";
+  # Ethernet and Wi-Fi can share a subnet while Ethernet remains preferred.
+  networking.firewall.checkReversePath = "loose";
+  boot.kernel.sysctl = {
+    "net.ipv4.conf.all.arp_ignore" = 1;
+    "net.ipv4.conf.all.arp_announce" = 2;
+  };
   boot.kernelPackages = pkgs.linuxPackages_latest;
   dotfiles.storage.swapSize = "72G";
 

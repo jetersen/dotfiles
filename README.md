@@ -59,6 +59,9 @@ fingerprints. Enroll a finger with `fprintd-enroll` after the first login.
 The Framework restarts its fingerprint service across sleep to avoid a stale
 Goodix device handle after resume.
 DMS's PolicyKit agent provides approval dialogs for `pkexec` in the desktop session.
+The Framework supports simultaneous Ethernet and Wi-Fi on the same subnet.
+ARP replies and announcements stay on the interface owning the address, and
+loose reverse-path checking permits replies through either connected interface.
 Its layout is a 2 GiB EFI partition plus a LUKS container containing LVM volumes
 for Btrfs and 72 GiB of swap for hibernation. The passphrase file used during
 installation is `/tmp/nixos-disk-password` in the live environment; it must not
