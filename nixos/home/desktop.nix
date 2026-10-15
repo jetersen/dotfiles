@@ -48,6 +48,12 @@ let
         "$current" <<< '{}' > "$temporary"
       if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
 
+      if [[ -s "$config_dir/gtk-3.0/dank-colors.css" && -s "$config_dir/gtk-4.0/dank-colors.css" ]]; then
+        export XDG_DATA_DIRS="${pkgs.adw-gtk3}/share:''${XDG_DATA_DIRS:-/run/current-system/sw/share}"
+        ${pkgs.bash}/bin/bash ${dmsSource}/quickshell/scripts/gtk.sh "$config_dir" apply false
+        ${pkgs.bash}/bin/bash ${dmsSource}/quickshell/scripts/gtk.sh "$config_dir" patch false
+      fi
+
       # Seed writable bindings from DMS's own factory template once.
       if [[ ! -s "$config_dir/niri/dms/binds.kdl" ]]; then
         install -m 644 ${factoryBinds} "$config_dir/niri/dms/binds.kdl"
@@ -63,7 +69,26 @@ in
   gtk = {
     enable = true;
     iconTheme.name = "Papirus-Dark";
+    gtk3.theme = {
+      name = "adw-gtk3-dark";
+      package = pkgs.adw-gtk3;
+    };
   };
+
+  home.packages = [
+    pkgs.pear-desktop
+    (pkgs.writeShellApplication {
+      name = "youtube-music";
+      runtimeInputs = [
+        pkgs.niri
+        pkgs.jq
+        pkgs.pear-desktop
+      ];
+      text = ''
+        exec ${pkgs.bash}/bin/bash ${../../home/dot_local/bin/executable_youtube-music} "$@"
+      '';
+    })
+  ];
 
   programs.mpv.enable = true;
 

@@ -63,6 +63,15 @@ jobs:
           nix build .#nixosConfigurations.framework.config.system.build.toplevel \
             --no-update-lock-file --out-link /nix/var/nix/gcroots/ci-framework \
             --print-out-paths > "$RUNNER_TEMP/framework-system"
+      - name: Build project development shells
+        shell: bash
+        run: |
+          set -euo pipefail
+          nix build .#devShells.x86_64-linux.python .#devShells.x86_64-linux.rust \
+            .#devShells.x86_64-linux.go .#devShells.x86_64-linux.jvm \
+            .#devShells.x86_64-linux.pulumi --no-update-lock-file \
+            --out-link /nix/var/nix/gcroots/ci-project-shells --print-out-paths \
+            > "$RUNNER_TEMP/project-shells"
       - name: Publish eligible system outputs
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash
@@ -73,15 +82,16 @@ jobs:
           umask 077
           mkdir -p "$HOME/.config/attic"
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
+          mapfile -t project_shells < "$RUNNER_TEMP/project-shells"
           # Locally generated paths may also exist upstream without having its
           # signature locally. Import it so Attic's upstream filter recognizes them.
           # Cache public misses for a day; private-cache lookups remain immediate.
           nix store copy-sigs --substituter https://cache.nixos.org \
             --option narinfo-cache-negative-ttl 86400 --recursive \
-            "$(cat "$RUNNER_TEMP/framework-system")"
+            "$(cat "$RUNNER_TEMP/framework-system")" "${project_shells[@]}"
           # Keep large outputs local to CI and let hosts build them as needed.
           nix path-info --recursive --json \
-            "$(cat "$RUNNER_TEMP/framework-system")" > "$RUNNER_TEMP/system-paths.json"
+            "$(cat "$RUNNER_TEMP/framework-system")" "${project_shells[@]}" > "$RUNNER_TEMP/system-paths.json"
           jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
             to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
           ' "$RUNNER_TEMP/system-paths.json" \

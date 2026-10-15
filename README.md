@@ -71,6 +71,19 @@ personal flake, and `nix develop /path/to/that/flake#shell-name` works from the
 project directory. For a temporary tool, use `nix shell nixpkgs#PACKAGE`.
 Neither approach requires committing Nix files to the project.
 
+Named shells in this flake provide Python (`ruff`, Pyright, debugpy), Rust
+(Cargo audit, bloat, machete, nextest, Trunk), Go (golangci-lint), JVM (Java 21,
+Maven, Gradle), and Pulumi provider tools (pulumictl, schema-tools,
+upgrade-provider). From any project, run:
+
+```sh
+nix develop ~/git/dotfiles#python --command fish
+```
+
+Replace `python` with `rust`, `go`, `jvm`, or `pulumi`. CI builds these shells and
+publishes their eligible outputs to Attic using the same size policy as NixOS.
+
+
 Fish, Bash, Zsh, and PowerShell share Docker aliases, clone-and-enter helpers,
 `cws`, `ride`, `open`, `dotenv`, and the existing development shortcuts.
 `ride` opens a solution or project in stable Rider. PowerShell's `posh-git`,
@@ -98,6 +111,8 @@ and lock-file hashes. They work without a mutable global tool installation.
 Snitch builds the pinned integration branch from `jetersen/snitch`; its NuGet
 dependencies are locked in `nixos/packages/snitch-deps.json`.
 
+Pear Desktop provides YouTube Music; `youtube-music` focuses or opens it.
+GTK3 apps use adw-gtk3 with DMS-generated colors, including virt-manager.
 TinyRDM, RustDesk, and Rider use stable packages. Dolphin opens PDFs in Zen,
 images in Gwenview, videos in MPV, and archives in Ark. KDE's archive service
 menus, archive browsing, and image/PDF/video thumbnail plugins are installed.
@@ -126,9 +141,9 @@ from Proton Pass. NixOS assembles it with sops-nix at runtime, outside the Nix
 store, and links both clients to the same file. Skills become available in a new
 agent session. Built-in client skills and cloud-synced Claude skills remain
 managed by their clients.
-Home activation configures the pinned CodeGraph MCP server for Claude and
-Codex while preserving their other settings. New agent sessions load the
-server; run `codegraph init --yes` in a project to create its local index.
+Home activation configures CodeGraph and the VictoriaLogs HTTP MCP server for
+Claude and Codex while preserving their other settings. The VictoriaLogs endpoint
+is deployed through sops-nix. New agent sessions load the servers; run `codegraph init --yes` in a project to create its local index.
 
 Proton Pass CLI is available as `pass-cli`. Sign in interactively with
 `pass-cli login` in a local terminal.
@@ -144,7 +159,7 @@ merge automatically with a linear history once the required
 `NixOS / framework (pull_request)` check passes. The PR must be up to date with
 `main`; rejected reviews block merging. Other dotfiles updates need manual merging.
 
-NixOS CI builds the Framework on Rocket. A persistent Docker volume retains
+NixOS CI builds the Framework and named project shells on Rocket. A persistent Docker volume retains
 the Nix store and fetched inputs for reuse across disposable jobs. Builds run
 serially to share the store safely. Nix is included in the homelab's shared job
 image, so no separate Nix container or preparation job is needed. Nix reclaims
@@ -154,7 +169,8 @@ This can refill the working store after cleanup or replacement. The NAS cache is
 disposable and has a dataset quota. Stop Nix jobs and invalidate their cached
 narinfo metadata when resetting the NAS cache.
 CI imports available public-cache signatures before uploading system outputs to
-private Attic. Attic skips paths signed by the public NixOS cache, and CI excludes outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
+private Attic. Attic skips paths signed by the public NixOS cache, and CI excludes
+outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
 (currently 512 MiB unpacked). This applies to every package, not just vendor
 repacks. Hosts download and package or compile excluded outputs locally when
 needed. CI retains them in its working store and NAS cache. CI then sends
@@ -182,7 +198,9 @@ The `FRAMEWORK_HOST` repository variable selects its fully qualified Tailscale
 hostname. SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
 key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for
-rollback. The boot menu is hidden; hold Space during startup to choose another
+rollback. Weekly garbage collection removes unrooted store paths; Comin's retained
+rollback generations stay protected. Store optimisation also runs automatically.
+The boot menu is hidden; hold Space during startup to choose another
 generation. To stop automatic updates while diagnosing a problem, run
 `sudo systemctl stop comin`; start it again after correcting or reverting the
 deployment revision. Reverting only the running system is temporary while Comin

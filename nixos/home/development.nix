@@ -49,6 +49,12 @@
     dotfilesPackages.dotnet-lambda
     dotfilesPackages.dotnet-script
     grpcurl
+    dive
+    popeye
+    duckdb
+    glab
+    ansible
+    snowflake-cli
     postgresql
     mariadb.client
     crane

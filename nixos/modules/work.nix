@@ -7,6 +7,7 @@
         "kube-config"
         "npm-config"
         "varlock-work-schema"
+        "victorialogs-mcp-url"
       ]
       (_: {
         owner = "joseph";

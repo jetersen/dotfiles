@@ -83,6 +83,14 @@
       url = "file+https://api.nuget.org/v3-flatcontainer/microsoft.dotnet.apicompat.tool/10.0.402/microsoft.dotnet.apicompat.tool.10.0.402.nupkg";
       flake = false;
     };
+    pulumi-schema-tools-source = {
+      url = "git+https://github.com/pulumi/schema-tools.git?ref=refs/tags/v0.8.1&shallow=1";
+      flake = false;
+    };
+    pulumi-upgrade-provider-source = {
+      url = "git+https://github.com/pulumi/upgrade-provider.git?rev=dba6f8dcc4fb020fd36b115c7efcfc278bb7eb14&shallow=1";
+      flake = false;
+    };
     powershell-posh-git = {
       url = "git+https://github.com/dahlbyk/posh-git.git?ref=refs/tags/v1.1.0&shallow=1";
       flake = false;
@@ -181,6 +189,21 @@
       };
       packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
       packages.x86_64-linux.codegraph = pkgsUnstable.codegraph;
+      packages.x86_64-linux.pulumi-schema-tools =
+        pkgs.callPackage ./nixos/packages/pulumi-schema-tools.nix
+          {
+            source = inputs.pulumi-schema-tools-source;
+            version = nixpkgs.lib.removePrefix "refs/tags/v" locked.nodes.pulumi-schema-tools-source.original.ref;
+          };
+      packages.x86_64-linux.pulumi-upgrade-provider =
+        pkgs.callPackage ./nixos/packages/pulumi-upgrade-provider.nix
+          {
+            source = inputs.pulumi-upgrade-provider-source;
+          };
+      devShells.x86_64-linux = import ./nixos/dev-shells.nix {
+        inherit pkgs;
+        dotfilesPackages = inputs.self.packages.x86_64-linux;
+      };
       packages.x86_64-linux.ci-tools = pkgs.attic-client;
       packages.x86_64-linux.pulumi-cli = pkgs.callPackage ./nixos/packages/pulumi-cli.nix { };
       packages.x86_64-linux.pulumi-language-dotnet =

@@ -487,6 +487,42 @@
         "url": "https://github.com/unmango/pulumipkgs.git"
       }
     },
+    "pulumi-schema-tools-source": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785167433,
+        "narHash": "sha256-biYUlb05V1J/pa0EJ2wqHVwVXb4gzywIMcJzSjkhkLE=",
+        "ref": "refs/tags/v0.8.1",
+        "rev": "14ec5dc4229c95c4cf19ae53ad2d3048bed06535",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pulumi/schema-tools.git"
+      },
+      "original": {
+        "ref": "refs/tags/v0.8.1",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pulumi/schema-tools.git"
+      }
+    },
+    "pulumi-upgrade-provider-source": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789819130,
+        "narHash": "sha256-Le9pMb2vG6IZ63DF5atey7cfG2n2wJDv8ZpGgsdwzog=",
+        "ref": "refs/heads/main",
+        "rev": "dba6f8dcc4fb020fd36b115c7efcfc278bb7eb14",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pulumi/upgrade-provider.git"
+      },
+      "original": {
+        "rev": "dba6f8dcc4fb020fd36b115c7efcfc278bb7eb14",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/pulumi/upgrade-provider.git"
+      }
+    },
     "root": {
       "inputs": {
         "apicompat-source": "apicompat-source",
@@ -510,6 +546,8 @@
         "powershell-childitemcolor": "powershell-childitemcolor",
         "powershell-posh-git": "powershell-posh-git",
         "pulumi-packages": "pulumi-packages",
+        "pulumi-schema-tools-source": "pulumi-schema-tools-source",
+        "pulumi-upgrade-provider-source": "pulumi-upgrade-provider-source",
         "skill-finder": "skill-finder",
         "skill-rea": "skill-rea",
         "skill-unslop": "skill-unslop",

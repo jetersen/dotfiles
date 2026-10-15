@@ -1,4 +1,4 @@
-"""Reconcile CodeGraph's MCP entry while preserving client-managed settings."""
+"""Reconcile shared MCP entries while preserving client-managed settings."""
 
 import json
 import os
@@ -24,17 +24,28 @@ def write_private(path, content):
 
 
 command = sys.argv[1]
+url = Path(sys.argv[2]).read_text().strip()
+managed = {
+    "codegraph": {"type": "stdio", "command": command, "args": ["serve", "--mcp"]},
+    "victorialogs": {"type": "http", "url": url},
+}
 home = Path.home()
 codex = Path(os.environ.get("CODEX_HOME", home / ".codex")) / "config.toml"
 settings = tomlkit.parse(codex.read_text()) if codex.exists() else tomlkit.document()
 servers = settings.setdefault("mcp_servers", tomlkit.table())
-entry = servers.setdefault("codegraph", tomlkit.table())
-entry["command"] = command
-entry["args"] = ["serve", "--mcp"]
+for name, server in managed.items():
+    entry = servers.setdefault(name, tomlkit.table())
+    for key in (["command", "args", "cwd"] if "url" in server else ["url"]):
+        entry.pop(key, None)
+    entry.update({key: value for key, value in server.items() if key != "type"})
 write_private(codex, tomlkit.dumps(settings))
 
 claude = home / ".claude.json"
 settings = json.loads(claude.read_text()) if claude.exists() else {}
-entry = settings.setdefault("mcpServers", {}).setdefault("codegraph", {})
-entry.update({"type": "stdio", "command": command, "args": ["serve", "--mcp"]})
+servers = settings.setdefault("mcpServers", {})
+for name, server in managed.items():
+    entry = servers.setdefault(name, {})
+    for key in (["command", "args", "cwd"] if "url" in server else ["url"]):
+        entry.pop(key, None)
+    entry.update(server)
 write_private(claude, json.dumps(settings, indent=2) + "\n")

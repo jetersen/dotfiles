@@ -10,10 +10,10 @@
 let
   codegraph = pkgsUnstable.codegraph;
   mcpPython = pkgs.python3.withPackages (p: [ p.tomlkit ]);
-  configureCodegraph = pkgs.writeShellApplication {
-    name = "configure-codegraph-mcp";
+  configureAiMcp = pkgs.writeShellApplication {
+    name = "configure-ai-mcp";
     text = ''
-      exec ${mcpPython}/bin/python3 ${./configure-codegraph-mcp.py} ${lib.getExe codegraph}
+      exec ${mcpPython}/bin/python3 ${./configure-ai-mcp.py} ${lib.getExe codegraph} ${osConfig.sops.secrets.victorialogs-mcp-url.path}
     '';
   };
   claudeCode = pkgs.claude-code.override {
@@ -33,8 +33,8 @@ in
     })
   ];
 
-  home.activation.configureCodegraph = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    run ${lib.getExe configureCodegraph}
+  home.activation.configureAiMcp = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${lib.getExe configureAiMcp}
   '';
 
   # Both clients discover the same immutable, pinned skill directories.

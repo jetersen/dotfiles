@@ -6,6 +6,12 @@
     "flakes"
   ];
   nix.optimise.automatic = true;
+  # Comin retains rollback generations; collect only paths no longer rooted.
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    randomizedDelaySec = "1h";
+  };
 
   time.timeZone = "Europe/Copenhagen";
   i18n.defaultLocale = "en_DK.UTF-8";
