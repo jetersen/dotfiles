@@ -11,6 +11,8 @@
   ];
 
   networking.hostName = "framework";
+  # Authenticate relay connections through the existing tailnet SSH policy.
+  services.tailscale.extraSetFlags = [ "--ssh=true" ];
   # Ethernet and Wi-Fi can share a subnet while Ethernet remains preferred.
   networking.firewall.checkReversePath = "loose";
   boot.kernel.sysctl = {
