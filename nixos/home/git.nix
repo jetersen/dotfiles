@@ -15,6 +15,7 @@ in
 
   # The private key is provisioned from Proton Pass outside the Nix store.
   home.file.".ssh/id_ed25519.pub".source = ../keys/joseph.pub;
+  xdg.configFile."git/aliases".source = ../../home/dot_config/git/aliases;
   xdg.configFile."git/gitignore".source = ../../home/dot_config/git/gitignore;
   # gh writes settings after authentication, so its config must remain writable.
   xdg.configFile."gh/config.yml".enable = lib.mkForce false;
@@ -33,7 +34,10 @@ in
       key = "~/.ssh/id_ed25519.pub";
       signByDefault = true;
     };
-    includes =
+    includes = [
+      { path = "~/.config/git/aliases"; }
+    ]
+    ++
       lib.concatMap
         (
           organization:
@@ -52,6 +56,11 @@ in
           "moviestarplanet-archives"
         ];
     settings = {
+      alias = {
+        home = "config user.email ${personalEmail}";
+        work = "config user.email ${workEmail}";
+      };
+      help.autocorrect = 1;
       user = {
         name = "Joseph Petersen";
         email = personalEmail;

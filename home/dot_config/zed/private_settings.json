@@ -1,36 +1,28 @@
-// Zed settings
-//
-// For information on how to configure Zed, see the Zed
-// documentation: https://zed.dev/docs/configuring-zed
-//
-// To see all of Zed's default settings without changing your
-// custom settings, run `zed: open default settings` from the
-// command palette (cmd-shift-p / ctrl-shift-p)
 {
   "autosave": "on_focus_change",
   "edit_predictions": {
-    "provider": "copilot",
+    "provider": "copilot"
   },
   "agent": {
     "commit_message_model": {
       "provider": "copilot_chat",
-      "model": "gpt-5-mini",
+      "model": "gpt-5-mini"
     },
-    "commit_message_instructions": "Write a concise imperative commit subject. Add a body only when it clarifies non-obvious context.",
+    "commit_message_instructions": "Write a concise imperative commit subject. Add a body only when it clarifies non-obvious context."
   },
   "agent_servers": {
     "github-copilot-cli": {
-      "type": "registry",
+      "type": "registry"
     },
     "claude-acp": {
-      "type": "registry",
+      "type": "registry"
     },
     "pi-acp": {
       "default_config_options": {
-        "thought_level": "low",
+        "thought_level": "low"
       },
-      "type": "registry",
-    },
+      "type": "registry"
+    }
   },
   "cli_default_open_behavior": "existing_window",
   "ui_font_size": 16,
@@ -38,23 +30,23 @@
   "theme": {
     "mode": "system",
     "light": "One Light",
-    "dark": "One Dark",
+    "dark": "One Dark"
   },
   "languages": {
     "PowerShell": {
       "formatter": "language_server",
-      "format_on_save": "on",
-    },
+      "format_on_save": "on"
+    }
   },
   "lsp": {
     "powershell-es": {
       "settings": {
         "powershell": {
           "codeFormatting": {
-            "preset": "OTBS",
-          },
-        },
-      },
-    },
-  },
+            "preset": "OTBS"
+          }
+        }
+      }
+    }
+  }
 }

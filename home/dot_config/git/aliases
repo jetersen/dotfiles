@@ -1,0 +1,20 @@
+[alias]
+	change-remote-to-ssh = !git remote set-url origin $(git remote get-url origin | sed "s#https://github.com/#git@github.com:#")
+	cp = cherry-pick
+	fix-working-tree = !git rm --cached -r . && git reset --hard
+	fixauthor = commit --amend --reset-author --no-edit
+	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+	missing = lg HEAD..main
+	new = lg main..HEAD
+	normalize = add --renormalize
+	oops = commit --amend --no-edit
+	p = push
+	pf = pushf
+	pushf = push --force-with-lease
+	rb = rebase
+	rba = rebase --abort
+	rbc = rebase --continue
+	rbs = rebase --skip
+	rerun-ci = !git commit -m 'Rerun CI' --allow-empty && git push
+	s = status
+	superoops = !git add -A && git oops && git pushf

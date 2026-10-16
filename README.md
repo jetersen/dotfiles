@@ -43,8 +43,10 @@ stable nixpkgs.
 Zen is pinned separately because it is not available in the stable package set.
 Slack, Discord, Zed, .NET 10, AWS CLI, kubectl, and Google Cloud CLI use stable
 packages. Google Cloud CLI includes the GKE authentication plugin for kubectl.
-Zed uses the packaged FHS wrapper for downloaded language servers, with C# and
-Nix extensions and the DMS theme. It handles plain text and JSON files; the
+Zed uses the packaged FHS wrapper for downloaded language servers, with C#,
+Nix, and PowerShell extensions and the DMS theme. Its shared preferences come
+from `home/dot_config/zed/private_settings.json`, with Nix-specific overrides.
+It handles plain text and JSON files; the
 terminal editor remains Neovim.
 
 Claude Code uses Anthropic's upstream release manifest with stable Nixpkgs'
@@ -142,6 +144,8 @@ the schema. Bitwarden CLI authentication stays local to each machine.
 
 `gh stack` uses unstable's current GitHub CLI extension to match its upstream
 skill. `git-dirty` reuses the shared script in `home/dot_local/bin/`.
+Git aliases are shared by chezmoi and Nix through `home/dot_config/git/aliases`;
+the `home` and `work` aliases use each configuration's email identities.
 Claude and Codex share pinned skills through `~/.agents/skills` and
 `~/.claude/skills`. Common instructions come from
 `home/.chezmoitemplates/ai-instructions.md`; chezmoi adds the private work section

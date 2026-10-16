@@ -1,5 +1,6 @@
 {
   dotfilesPackages,
+  lib,
   pkgs,
   ...
 }:
@@ -34,21 +35,25 @@
     extensions = [
       "csharp"
       "nix"
+      "powershell"
     ];
-    userSettings = {
-      auto_update = false;
-      ui_font_size = 16;
-      buffer_font_size = 15;
-      buffer_font_family = "JetBrainsMono Nerd Font";
-      theme = {
-        mode = "system";
-        dark = "DankShell Dark";
-        light = "DankShell Light";
-      };
-      languages.CSharp.language_servers = [ "roslyn" ];
-      languages.Nix.language_servers = [ "nixd" ];
-      languages.Nix.formatter.external.command = "nixfmt";
-    };
+    userSettings =
+      lib.recursiveUpdate
+        (builtins.fromJSON (builtins.readFile ../../home/dot_config/zed/private_settings.json))
+        {
+          auto_update = false;
+          ui_font_size = 16;
+          buffer_font_size = 15;
+          buffer_font_family = "JetBrainsMono Nerd Font";
+          theme = {
+            mode = "system";
+            dark = "DankShell Dark";
+            light = "DankShell Light";
+          };
+          languages.CSharp.language_servers = [ "roslyn" ];
+          languages.Nix.language_servers = [ "nixd" ];
+          languages.Nix.formatter.external.command = "nixfmt";
+        };
   };
 
   xdg.mimeApps.defaultApplications = {
