@@ -52,7 +52,7 @@
       flake = false;
     };
     skill-rea = {
-      url = "git+https://github.com/morluto/rea.git?rev=3406dc4d85bf29414319b33b98bd1421d573f663&shallow=1";
+      url = "git+https://github.com/morluto/rea.git?rev=2c7583599b9ac1c847bd77b1940930fd8d4594c7&shallow=1";
       flake = false;
     };
     lambda-tools-source = {
