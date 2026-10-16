@@ -107,6 +107,10 @@
       url = "git+https://github.com/jetersen/snitch.git?ref=integration&shallow=1";
       flake = false;
     };
+    local-git-sync-source = {
+      url = "git+ssh://git@github.com/jetersen/local-git-sync.git?ref=main&shallow=1";
+      flake = false;
+    };
     dms = {
       url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -187,6 +191,12 @@
       packages.x86_64-linux.snitch = pkgs.callPackage ./nixos/packages/snitch.nix {
         source = inputs.snitch-source;
       };
+      packages.x86_64-linux.local-git-sync = pkgs.callPackage ./nixos/packages/local-git-sync.nix {
+        source = inputs.local-git-sync-source;
+      };
+      # Publish the private, hash-pinned input alongside the package so deployment
+      # hosts can substitute it without receiving a repository credential.
+      localGitSyncSource = inputs.local-git-sync-source.outPath;
       packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
       packages.x86_64-linux.codegraph = pkgsUnstable.codegraph;
       packages.x86_64-linux.pulumi-schema-tools =
@@ -209,6 +219,15 @@
       packages.x86_64-linux.pulumi-language-dotnet =
         pkgs.callPackage "${inputs.pulumi-packages}/pkgs/languages/pulumi-dotnet/package.nix"
           { };
+
+      homeManagerModules.local-git-sync =
+        { lib, pkgs, ... }:
+        {
+          imports = [ ./nixos/home/local-git-sync.nix ];
+          services.local-git-sync.package =
+            lib.mkDefault
+              inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.local-git-sync;
+        };
 
       nixosModules = {
         common = {

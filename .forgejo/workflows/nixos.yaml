@@ -63,6 +63,10 @@ jobs:
           nix build .#nixosConfigurations.framework.config.system.build.toplevel \
             --no-update-lock-file --out-link /nix/var/nix/gcroots/ci-framework \
             --print-out-paths > "$RUNNER_TEMP/framework-system"
+          nix eval --raw .#localGitSyncSource --no-update-lock-file \
+            > "$RUNNER_TEMP/local-git-sync-source"
+          nix-store --realise "$(cat "$RUNNER_TEMP/local-git-sync-source")" \
+            --add-root /nix/var/nix/gcroots/ci-local-git-sync-source
       - name: Build project development shells
         shell: bash
         run: |
@@ -88,10 +92,12 @@ jobs:
           # Cache public misses for a day; private-cache lookups remain immediate.
           nix store copy-sigs --substituter https://cache.nixos.org \
             --option narinfo-cache-negative-ttl 86400 --recursive \
-            "$(cat "$RUNNER_TEMP/framework-system")" "${project_shells[@]}"
+            "$(cat "$RUNNER_TEMP/framework-system")" "${project_shells[@]}" \
+            "$(cat "$RUNNER_TEMP/local-git-sync-source")"
           # Keep large outputs local to CI and let hosts build them as needed.
           nix path-info --recursive --json \
-            "$(cat "$RUNNER_TEMP/framework-system")" "${project_shells[@]}" > "$RUNNER_TEMP/system-paths.json"
+            "$(cat "$RUNNER_TEMP/framework-system")" "${project_shells[@]}" \
+            "$(cat "$RUNNER_TEMP/local-git-sync-source")" > "$RUNNER_TEMP/system-paths.json"
           jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
             to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
           ' "$RUNNER_TEMP/system-paths.json" \

@@ -207,6 +207,20 @@ evaluation or build before fetching again; active work, manual suspension, and a
 stopped daemon are preserved. The notification account can only start that unit
 through a narrowly scoped sudo rule. Interactive Nix commands can still build
 normally.
+`local-git-sync` is built from its private repository at the revision in
+`flake.lock`. Before publishing a new source pin, a machine with repository access
+must copy that locked input to the NAS Nix cache. CI retains it and publishes it to
+Attic alongside the system, so deployment hosts can substitute the verified source
+without a GitHub credential. A missing source cache entry stops deployment.
+`nix eval --raw .#localGitSyncSource` prints the input to pass to `nix copy`.
+
+Framework enables the Git synchronization package and user service through Home
+Manager. Preserve previous executable links and service units before the first
+activation. Upgrades and rollbacks use the existing NixOS deployment generations.
+The SSH entry point is `~/.local/libexec/local-git-sync`.
+Its shared user slice limits the daemon and SSH payload servers together to 25%
+of one CPU. Enrollment, credentials and machine-local state stay outside Nix.
+
 CI requires an up-to-date lock file and does not receive the laptop's decryption
 or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 
