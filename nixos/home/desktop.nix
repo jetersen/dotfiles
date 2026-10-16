@@ -223,6 +223,7 @@ in
       ../../home/dot_config/DankMaterialShell/themes/catppuccin/theme.json;
     "niri/cfg/input.kdl".source = ../../home/dot_config/niri/cfg/input.kdl;
     "niri/cfg/misc.kdl".source = ../../home/dot_config/niri/cfg/misc.kdl;
+    "niri/cfg/keybinds.kdl".source = ../../home/dot_config/niri/cfg/keybinds.kdl;
     "niri/cfg/animation.kdl".source = ../../home/dot_config/niri/cfg/animation.kdl;
     "niri/cfg/decorations.kdl".source = ../../home/dot_config/niri/cfg/decorations.kdl;
     "niri/config.kdl".text = ''
@@ -264,14 +265,7 @@ in
       include optional=true "dms/cursor.kdl"
       include optional=true "dms/windowrules.kdl"
 
-      binds {
-        Mod+Return hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
-        Mod+B hotkey-overlay-title="Open Browser: Zen Browser" { spawn "zen-browser"; }
-        Mod+E hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
-        Mod+Print hotkey-overlay-title="Annotate Clipboard Screenshot: Satty" {
-          spawn-sh "wl-paste --type image/png | satty -f - --copy-command wl-copy --early-exit"
-        }
-      }
+      include "cfg/keybinds.kdl"
       include "cfg/animation.kdl"
       include "cfg/decorations.kdl"
     '';

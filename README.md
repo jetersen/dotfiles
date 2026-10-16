@@ -113,6 +113,11 @@ and lock-file hashes. They work without a mutable global tool installation.
 Snitch builds the pinned integration branch from `jetersen/snitch`; its NuGet
 dependencies are locked in `nixos/packages/snitch-deps.json`.
 
+NixOS and chezmoi share personal Niri bindings from
+`home/dot_config/niri/cfg/keybinds.kdl`, included after DMS defaults.
+Super+L locks, Super+D opens the overview, and Super+M opens or focuses music;
+Ctrl+Alt+Delete opens the task manager.
+
 Pear Desktop provides YouTube Music; `youtube-music` focuses or opens it.
 Home activation enables its tray, video hiding, Discord integration, and shortcut
 plugin while preserving local state and other preferences. Pear starts hidden

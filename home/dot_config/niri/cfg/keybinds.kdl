@@ -1,8 +1,8 @@
 // ────────────── Keybindings (supplement) ──────────────
 // DMS auto-generates the bulk of binds in dms/binds.kdl (shell actions,
 // window management, focus, workspaces, sizing, screenshots).
-// Only personal extras live here. Keys MUST NOT collide with dms/binds.kdl
-// or niri errors on a duplicate binding.
+// Personal bindings live here. Include this file after dms/binds.kdl so
+// these preferences override DMS defaults, including Mod+L and Mod+M.
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Key-Bindings
 
 binds {
@@ -10,7 +10,9 @@ binds {
   Mod+Return hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
   Mod+B      hotkey-overlay-title="Open Browser: Zen Browser" { spawn "zen-browser"; }
   Mod+E      hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
+  Mod+L      hotkey-overlay-title="Lock Screen" { spawn "dms" "ipc" "call" "lock" "lock"; }
   Mod+M      hotkey-overlay-title="Focus or Open YouTube Music" { spawn "youtube-music"; }
+  Mod+D      repeat=false { toggle-overview; }
 
   // Annotate a clipboard screenshot with Satty (DMS uses bare Print).
   Mod+Print  hotkey-overlay-title="Annotate Clipboard Screenshot: Satty" { spawn-sh "wl-paste --type image/png | satty -f - --copy-command wl-copy --early-exit"; }
