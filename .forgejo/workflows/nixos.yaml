@@ -135,7 +135,7 @@ jobs:
             -o ConnectTimeout=5 -o ConnectionAttempts=1 \
             -o ServerAliveInterval=5 -o ServerAliveCountMax=2 \
             -o StrictHostKeyChecking=yes -o HostKeyAlias=framework \
-            -o "UserKnownHostsFile=$known_hosts" "comin-notify@$FRAMEWORK_HOST" fetch; then
+            -o "UserKnownHostsFile=$known_hosts" "comin-notify@$FRAMEWORK_HOST" 'comin fetch'; then
             echo 'Framework accepted the deployment notification.'
           else
             echo '::warning::Framework could not accept the notification; it will check on boot, resume, or network reconnect.'

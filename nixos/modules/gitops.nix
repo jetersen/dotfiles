@@ -43,7 +43,7 @@ let
   startFetchCommand = "${pkgs.systemd}/bin/systemctl start comin-fetch.service";
   notify = pkgs.writeShellScript "comin-notify" ''
     set -euo pipefail
-    if [[ "''${SSH_ORIGINAL_COMMAND:-}" != fetch ]]; then
+    if [[ "''${SSH_ORIGINAL_COMMAND:-}" != fetch && "''${SSH_ORIGINAL_COMMAND:-}" != 'comin fetch' ]]; then
       echo 'Only the fetch notification is supported.' >&2
       exit 2
     fi
