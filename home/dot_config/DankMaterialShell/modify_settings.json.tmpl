@@ -11,7 +11,7 @@
 # script merges the overlay below over it. The overlay holds only the settings
 # that actually differ from DMS's shipped defaults — everything else is left to
 # the local app, including anything machine-specific (wallpapers, display
-# profiles, device pins, battery/AC timeouts).
+# profiles, device pins, lock/suspend timeouts).
 #
 # DMS 1.6 extracts its embedded UI at runtime. With DMS running, locate its
 # SettingsSpec.js under $XDG_RUNTIME_DIR/danklinux-shell/ and set DMS_SETTINGS_SPEC
@@ -163,7 +163,9 @@ overlay=$(cat <<'JSON'
       "trigger": "?"
     }
   },
-  "soundNewNotification": false
+  "soundNewNotification": false,
+  "acMonitorTimeout": 900,
+  "batteryMonitorTimeout": 900
 }
 JSON
 )

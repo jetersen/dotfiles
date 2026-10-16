@@ -94,6 +94,8 @@
   iconThemeLight = "Papirus-Dark";
   iconThemePerMode = false;
   inherit enableFprint;
+  acMonitorTimeout = 900;
+  batteryMonitorTimeout = 900;
   lockBeforeSuspend = true;
   greeterEnableFprint = false;
   greeterPamExternallyManaged = true;
