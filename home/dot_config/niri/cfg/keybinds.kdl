@@ -11,7 +11,7 @@ binds {
   Mod+B      hotkey-overlay-title="Open Browser: Zen Browser" { spawn "zen-browser"; }
   Mod+E      hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
   Mod+L      hotkey-overlay-title="Lock Screen" { spawn "dms" "ipc" "call" "lock" "lock"; }
-  Mod+M      hotkey-overlay-title="Focus or Open YouTube Music" { spawn "youtube-music"; }
+  Mod+M      hotkey-overlay-title="Focus or Open Music Assistant" { spawn "music-assistant-companion"; }
   Mod+D      repeat=false { toggle-overview; }
 
   // Annotate a clipboard screenshot with Satty (DMS uses bare Print).

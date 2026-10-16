@@ -115,7 +115,7 @@ dependencies are locked in `nixos/packages/snitch-deps.json`.
 
 NixOS and chezmoi share personal Niri bindings from
 `home/dot_config/niri/cfg/keybinds.kdl`, included after DMS defaults.
-Super+L locks, Super+D opens the overview, and Super+M opens or focuses music;
+Super+L locks, Super+D opens the overview, and Super+M opens or focuses Music Assistant;
 Ctrl+Alt+Delete opens the task manager.
 
 Pear Desktop provides YouTube Music; `youtube-music` focuses or opens it.
