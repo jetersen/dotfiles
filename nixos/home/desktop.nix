@@ -59,6 +59,16 @@ let
     substitute ${dmsSource}/core/internal/config/embedded/niri-binds.kdl "$out" \
       --replace-fail '{{TERMINAL_COMMAND}}' alacritty
   '';
+  dmsAppIdDefaults =
+    pkgs.runCommand "dms-app-id-defaults.json" { nativeBuildInputs = [ pkgs.nodejs ]; }
+      ''
+        node - '${dmsSource}/quickshell/Common/settings/SettingsSpec.js' > "$out" <<'JS'
+        const fs = require("node:fs");
+        const source = fs.readFileSync(process.argv[2], "utf8").replace(/^\s*\.(pragma|import)\b.*$/gm, "");
+        const defaults = new Function(source + "\nreturn SPEC.appIdSubstitutions.def;")();
+        process.stdout.write(JSON.stringify(defaults));
+        JS
+      '';
   dmsSettings = pkgs.writeText "dms-settings.json" (
     builtins.toJSON (
       (import ./dms-settings.nix {
@@ -84,7 +94,8 @@ let
       if [[ -s "$settings" ]]; then current="$settings"; fi
       temporary=$(mktemp "$config_dir/DankMaterialShell/.settings.XXXXXX")
       trap 'rm -f "$temporary"' EXIT
-      jq --slurpfile overlay ${dmsSettings} -f ${./merge-dms-settings.jq} \
+      jq --slurpfile overlay ${dmsSettings} --slurpfile appIdDefaults ${dmsAppIdDefaults} \
+        -f ${./merge-dms-settings.jq} \
         "$current" <<< '{}' > "$temporary"
       if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
 
