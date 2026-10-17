@@ -2,6 +2,8 @@
   dotfilesPackages,
   lib,
   pkgs,
+  pkgsMaster,
+  pkgsUnstable,
   ...
 }:
 {
@@ -11,7 +13,7 @@
     jetbrains.rider
     discord
     dotnet-sdk_10
-    proton-pass-cli
+    pkgsUnstable.proton-pass-cli
     dotfilesPackages.pulumi-cli
     dotfilesPackages.pulumi-language-dotnet
     awscli2
@@ -26,7 +28,8 @@
 
   programs.zed-editor = {
     enable = true;
-    package = pkgs.zed-editor.fhs;
+    # Keep the editor compatible with the preserved workstation profile.
+    package = pkgsMaster.zed-editor.fhs;
     extraPackages = with pkgs; [
       nixd
       nixfmt

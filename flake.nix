@@ -290,6 +290,10 @@
               useGlobalPkgs = true;
               useUserPackages = true;
               extraSpecialArgs = {
+                pkgsMaster = import inputs.nixpkgs-master {
+                  inherit (pkgs.stdenv.hostPlatform) system;
+                  config.allowUnfree = true;
+                };
                 pkgsUnstable = import inputs.nixpkgs-unstable {
                   inherit (pkgs.stdenv.hostPlatform) system;
                   config.allowUnfree = true;
