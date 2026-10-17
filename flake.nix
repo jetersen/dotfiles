@@ -227,7 +227,14 @@
         inherit pkgs pkgsUnstable;
         dotfilesPackages = inputs.self.packages.x86_64-linux;
       };
-      packages.x86_64-linux.ci-tools = pkgs.attic-client;
+      packages.x86_64-linux.ci-tools = pkgs.buildEnv {
+        name = "dotfiles-ci-tools";
+        paths = [
+          pkgs.attic-client
+          inputs.nixpkgs-master.legacyPackages.x86_64-linux.nixVersions.latest
+        ];
+        pathsToLink = [ "/bin" ];
+      };
       packages.x86_64-linux.pulumi-cli = pkgs.callPackage ./nixos/packages/pulumi-cli.nix { };
       packages.x86_64-linux.pulumi-language-dotnet =
         pkgs.callPackage "${inputs.pulumi-packages}/pkgs/languages/pulumi-dotnet/package.nix"

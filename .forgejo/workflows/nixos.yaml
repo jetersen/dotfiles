@@ -24,7 +24,6 @@ jobs:
         sandbox = false
         max-jobs = 2
         cores = 4
-        always-allow-substitutes = true
         substituters = https://cache.nixos.org
         narinfo-cache-negative-ttl = 0
         min-free = 10737418240
@@ -58,6 +57,7 @@ jobs:
           netrc-file = $RUNNER_TEMP/nix-netrc"
           tools=$(time nix build .#ci-tools --no-update-lock-file \
             --out-link /nix/var/nix/gcroots/ci-tools --print-out-paths)
+          "$tools/bin/nix" --version
           printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
           printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\nNIX_CONFIG_END\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
       - name: Build the Framework and Rocket systems
