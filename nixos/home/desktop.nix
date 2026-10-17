@@ -221,6 +221,7 @@ in
     "alacritty/alacritty.toml".source = ../../home/dot_config/alacritty/alacritty.toml;
     "DankMaterialShell/themes/catppuccin/theme.json".source =
       ../../home/dot_config/DankMaterialShell/themes/catppuccin/theme.json;
+    "niri/cfg/music.kdl".source = ../../home/dot_config/niri/cfg/music.kdl;
     "niri/cfg/input.kdl".source = ../../home/dot_config/niri/cfg/input.kdl;
     "niri/cfg/misc.kdl".source = ../../home/dot_config/niri/cfg/misc.kdl;
     "niri/cfg/keybinds.kdl".source = ../../home/dot_config/niri/cfg/keybinds.kdl;
@@ -236,6 +237,8 @@ in
       }
 
       workspace "browser"
+      workspace "music"
+      include "cfg/music.kdl"
 
       layout {
         center-focused-column "never"

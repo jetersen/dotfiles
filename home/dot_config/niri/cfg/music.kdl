@@ -1,0 +1,8 @@
+// Music apps open on the "music" workspace (pinned to its output in
+// layout.kdl). Undocked laptop: that output is absent, so niri falls back.
+window-rule {
+  match app-id=r#"^com\.github\.th-ch\.youtube-music$"#
+  match app-id=r#"^music-assistant-companion$"#
+  open-on-workspace "music"
+}
+

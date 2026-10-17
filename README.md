@@ -116,7 +116,8 @@ dependencies are locked in `nixos/packages/snitch-deps.json`.
 NixOS and chezmoi share personal Niri bindings from
 `home/dot_config/niri/cfg/keybinds.kdl`, included after DMS defaults.
 Super+L locks, Super+D opens the overview, and Super+M opens or focuses Music Assistant;
-Ctrl+Alt+Delete opens the task manager.
+Ctrl+Alt+Delete opens the task manager. Music Assistant and Pear Desktop open on
+the dedicated `music` workspace.
 
 Music Assistant companion uses software volume on framework, rocket, and worklaptop
 so its application volume stays independent of system volume. Home Manager and

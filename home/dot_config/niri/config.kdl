@@ -8,6 +8,7 @@ include "./cfg/input.kdl"
 include "./cfg/display.kdl"
 include "./cfg/layout.kdl"
 include "./cfg/rules.kdl"
+include "./cfg/music.kdl"
 include "./cfg/autostart.kdl"
 include "./cfg/misc.kdl"
 
