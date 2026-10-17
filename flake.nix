@@ -48,7 +48,7 @@
       flake = false;
     };
     skill-unslop = {
-      url = "git+https://github.com/cursor/plugins.git?rev=99743e9c151c8537cbbf1f98bb38f34ef3368453&shallow=1";
+      url = "git+https://github.com/cursor/plugins.git?rev=101b274dd991f694e1f7024be2157e5f3adf07de&shallow=1";
       flake = false;
     };
     skill-rea = {
