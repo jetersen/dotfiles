@@ -105,6 +105,8 @@ in
     # No wantedBy or repeating timer: only a notification/lifecycle event starts
     # this chain. Busy operations defer the requested fetch until they settle.
     systemd.timers.comin-fetch-retry = {
+      # Network event bursts may rearm this timer many times before it expires.
+      unitConfig.StartLimitIntervalSec = 0;
       timerConfig = {
         # Longer than the worker's 90s timeout: a notification arriving
         # during that worker cannot expire while its service is still active.

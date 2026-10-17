@@ -76,6 +76,7 @@ sys.exit(code)
         timer = module.split('systemd.timers.comin-fetch-retry = {', 1)[1].split(
             'systemd.services.comin-fetch-retry', 1)[0]
         self.assertIn('OnActiveSec = "120s"', timer)
+        self.assertIn('unitConfig.StartLimitIntervalSec = 0', timer)
         self.assertIn('TimeoutStartSec = 90', module)
         self.assertNotIn('ExecStartPost', module)  # Internal retry cannot request another retry.
         for setting in ('wantedBy', 'OnCalendar', 'OnUnitActiveSec', 'OnUnitInactiveSec', 'Persistent'):
