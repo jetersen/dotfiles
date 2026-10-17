@@ -11,7 +11,10 @@
     tiny-rdm
     rustdesk-flutter
     jetbrains.rider
-    discord
+    # Match the preserved Discord profile until nixpkgs catches up.
+    (pkgsMaster.discord.override {
+      source = builtins.fromJSON (builtins.readFile ../packages/discord-source.json);
+    })
     dotnet-sdk_10
     pkgsUnstable.proton-pass-cli
     dotfilesPackages.pulumi-cli
