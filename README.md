@@ -246,20 +246,17 @@ merge automatically with a linear history once the required
 NixOS CI builds Framework, Rocket, and named project shells on Rocket. A persistent Docker volume retains
 the Nix store and fetched inputs for reuse across disposable jobs. Builds run
 in a serialized job to share the store safely. Both systems use one Nix invocation
-to share evaluation and the build budget. Command timings separate realization,
-publication, and NAS archival costs. Nix is included in the homelab's shared job
+to share evaluation and the build budget. Command timings separate realization
+and publication costs. Nix is included in the homelab's shared job
 image, so no separate Nix container or preparation job is needed. Nix reclaims
-unrooted paths under disk pressure; the latest system and CI tools stay rooted. CI also reads
-and writes a Nix binary cache on the NAS over NFS, including build dependencies.
-This can refill the working store after cleanup or replacement. The NAS cache is
-disposable and has a dataset quota. Stop Nix jobs and invalidate their cached
-narinfo metadata when resetting the NAS cache.
+unrooted paths under disk pressure; the latest systems and CI tools stay rooted.
+CI substitutes missing paths from the public NixOS cache and private Attic cache.
 CI imports available public-cache signatures before uploading system outputs to
 private Attic. Attic skips paths signed by the public NixOS cache, and CI excludes
 outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
 (currently 512 MiB unpacked). This applies to every package, not just vendor
 repacks. Hosts download and package or compile excluded outputs locally when
-needed. CI retains them in its working store and NAS cache. CI then sends an SSH notification over Tailscale. Stock Comin fetches `main`
+needed. CI retains them in its working store. CI then sends an SSH notification over Tailscale. Stock Comin fetches `main`
 and builds and applies the latest revision. A boot, resume, or network check can
 see a newer revision before CI finishes, in which case missing outputs build
 locally. A failed build leaves the running generation intact. Every NixOS host follows `main`, including
@@ -280,10 +277,11 @@ through a narrowly scoped sudo rule. Interactive Nix commands can still build
 normally.
 `local-git-sync` is built from its private repository at the revision in
 `flake.lock`. Before publishing a new source pin, a machine with repository access
-must copy that locked input to the NAS Nix cache. CI retains it and publishes it to
-Attic alongside the system, so deployment hosts can substitute the verified source
-without a GitHub credential. A missing source cache entry stops deployment.
-`nix eval --raw .#localGitSyncSource` prints the input to pass to `nix copy`.
+must publish that locked input to the private Attic cache using an authenticated
+Attic client: `attic push homelab:workstations "$(nix eval --raw .#localGitSyncSource)"`.
+CI retains it and publishes it alongside the system, so deployment hosts can
+substitute the verified source without a GitHub credential. A missing source cache
+entry stops deployment.
 
 Framework enables the Git synchronization package and user service through Home
 Manager. Preserve previous executable links and service units before the first

@@ -14,7 +14,6 @@ jobs:
     container:
       volumes:
         - dotfiles-nix-cache:/nix
-        - /var/cache/nix-nas:/var/cache/nix-nas
     timeout-minutes: 90
     env:
       XDG_CACHE_HOME: /nix/var/nix/ci-cache
@@ -26,7 +25,7 @@ jobs:
         max-jobs = 2
         cores = 4
         always-allow-substitutes = true
-        substituters = file:///var/cache/nix-nas?trusted=true https://cache.nixos.org
+        substituters = https://cache.nixos.org
         narinfo-cache-negative-ttl = 0
         min-free = 10737418240
         max-free = 32212254720
@@ -52,7 +51,6 @@ jobs:
               cp "/sys/fs/cgroup/$metric" "$RUNNER_TEMP/ci-start-$metric"
             fi
           done
-          nix store info --store file:///var/cache/nix-nas
           printf 'machine nix-cache.jetersen.dev login attic password %s\n' "$CACHE_TOKEN" > "$RUNNER_TEMP/nix-netrc"
           export NIX_CONFIG="$NIX_CONFIG
           extra-substituters = https://nix-cache.jetersen.dev/workstations
@@ -144,9 +142,6 @@ jobs:
           else
             echo '::warning::Framework could not accept the notification; it will check on boot, resume, or network reconnect.'
           fi
-      - name: Cache build inputs and outputs on the NAS
-        shell: bash
-        run: time nix copy --all --to 'file:///var/cache/nix-nas?compression=zstd&compression-level=1'
       - name: Report job resource use
         if: always()
         shell: bash
