@@ -100,13 +100,15 @@ are not part of this procedure. Never use the Framework disk configuration.
 
    ```sh
    system=$(cat /mnt/rocket-games/rocket-nixos-install-cache/rocket-system)
-   nix --extra-experimental-features 'nix-command flakes' copy \
+   nix --extra-experimental-features 'nix-command flakes' copy --no-check-sigs \
      --from 'file:///mnt/rocket-games/rocket-nixos-install-cache?trusted=true' \
      --to 'local?root=/mnt/nixos' "$system"
    nixos-install --root /mnt/nixos --system "$system" --no-root-passwd
    ```
 
-   This writes NixOS boot files and EFI boot configuration.
+   The copy accepts unsigned paths from this locally built cache and still
+   validates their content hashes. Installation writes NixOS boot files and EFI
+   boot configuration.
    Keep the existing CachyOS loader files and the archived EFI tree. Do not
    change the Btrfs default subvolume or delete the old OS.
 5. Complete the reviewed offline home handover before the first user login.
