@@ -42,7 +42,7 @@ elif a[0] == 'build':
         sys.exit(42)
     print(os.environ['SYSTEM_OUTPUTS'])
 else:
-    print('/nix/store/source', end='')
+    sys.exit('Unexpected nix command: ' + repr(a))
 ''')
             store = bin_dir / 'nix-store'
             store.write_text('''#!/usr/bin/env python3
@@ -76,13 +76,12 @@ with open(os.environ['CALLS'], 'a') as f:
             {'outputs': {'out': '/nix/store/bbb-nixos-system-framework-26.05'}},
         ])
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(len(calls), 3)
+        self.assertEqual(len(calls), 2)
         self.assertNotEqual(caches[0], caches[1])
         for call, host, store_hash in zip(calls[:2], ['framework', 'rocket'], ['bbb', 'aaa']):
             self.assertEqual(call[:3], ['--realise', f'/nix/store/{store_hash}-nixos-system-{host}-26.05', '--add-root'])
             self.assertTrue(call[3].endswith('/ci-' + host))
             self.assertIn(f'/nix/store/aaa-nixos-system-{host}-26.05.drv^*', build)
-        self.assertEqual(calls[2][1], '/nix/store/source')
 
     def test_build_failure_or_ambiguous_outputs_leave_named_roots_untouched(self):
         framework = {'outputs': {'out': '/nix/store/aaa-nixos-system-framework-26.05'}}

@@ -94,12 +94,10 @@ jobs:
           # Cache public misses for a day; private-cache lookups remain immediate.
           time nix store copy-sigs --substituter https://cache.nixos.org \
             --option narinfo-cache-negative-ttl 86400 --recursive \
-            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}" \
-            "$(cat "$RUNNER_TEMP/local-git-sync-source")"
+            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}"
           # Keep large outputs local to CI and let hosts build them as needed.
           time nix path-info --recursive --json \
-            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}" \
-            "$(cat "$RUNNER_TEMP/local-git-sync-source")" > "$RUNNER_TEMP/system-paths.json"
+            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}" > "$RUNNER_TEMP/system-paths.json"
           time jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
             to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
           ' "$RUNNER_TEMP/system-paths.json" \

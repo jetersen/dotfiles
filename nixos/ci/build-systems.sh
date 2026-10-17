@@ -56,8 +56,3 @@ for host in framework rocket; do
   nix-store --realise "$(cat "$RUNNER_TEMP/$host-system")" \
     --add-root "$roots/ci-$host"
 done
-
-time nix eval --raw .#localGitSyncSource --no-update-lock-file \
-  > "$RUNNER_TEMP/local-git-sync-source"
-nix-store --realise "$(cat "$RUNNER_TEMP/local-git-sync-source")" \
-  --add-root "$roots/ci-local-git-sync-source"

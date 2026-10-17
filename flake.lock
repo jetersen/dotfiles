@@ -345,24 +345,6 @@
         "url": "https://github.com/nix-community/lanzaboote.git"
       }
     },
-    "local-git-sync-source": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792153944,
-        "narHash": "sha256-KR7tRj27rKhmWV5R9NnjeWJS0XUmG5m3G8gDT1wF9HM=",
-        "ref": "main",
-        "rev": "004a2c9111541abcd260006d1eb60593ee8ab6ce",
-        "shallow": true,
-        "type": "git",
-        "url": "ssh://git@github.com/jetersen/local-git-sync.git"
-      },
-      "original": {
-        "ref": "main",
-        "shallow": true,
-        "type": "git",
-        "url": "ssh://git@github.com/jetersen/local-git-sync.git"
-      }
-    },
     "nixos-hardware": {
       "inputs": {
         "nixpkgs": [
@@ -573,7 +555,6 @@
         "home-manager": "home-manager",
         "lambda-tools-source": "lambda-tools-source",
         "lanzaboote": "lanzaboote",
-        "local-git-sync-source": "local-git-sync-source",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "nixpkgs-master": "nixpkgs-master",

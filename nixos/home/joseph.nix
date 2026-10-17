@@ -1,4 +1,4 @@
-{ pkgs, dotfilesPackages, ... }:
+{ pkgs, ... }:
 {
   imports = [
     ./ai-tools.nix
@@ -6,7 +6,6 @@
     ./development.nix
     ./direnv.nix
     ./git.nix
-    ./local-git-sync.nix
     ./remote-clipboard.nix
     ./niri.nix
     ./music-assistant.nix
@@ -18,11 +17,6 @@
   home.username = "joseph";
   home.homeDirectory = "/home/joseph";
   home.stateVersion = "26.05";
-
-  services.local-git-sync = {
-    enable = true;
-    package = dotfilesPackages.local-git-sync;
-  };
 
   home.sessionVariables = {
     EDITOR = "zeditor --wait";
