@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read metadata only; report the handover boundaries without changing home files."""
 import argparse
+from fnmatch import fnmatchcase
 import json
 import os
 from pathlib import Path
@@ -60,6 +61,9 @@ def audit(home, managed):
                                'force': item.get('force', False)})
             if backup or item.get('force', False):
                 blockers.append({'reason': 'Existing backup or forced replacement needs review', 'path': name})
+            if current['kind'] == 'symlink' and not fnmatchcase(
+                    current['link'], '/nix/store/*-home-manager-files/*'):
+                blockers.append({'reason': 'Non-Home-Manager symlink requires handover review', 'path': name})
     profiles = []
     for pattern in ('.mozilla/firefox/*', '.zen/*', '.config/BraveSoftware/*'):
         for path in home.glob(pattern):

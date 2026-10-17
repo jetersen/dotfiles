@@ -19,6 +19,8 @@ in {
   tailscale = c.services.tailscale.package.version;
   automaticComin = c.systemd.services.comin.wantedBy;
   automaticFetch = c.systemd.services.comin-fetch.wantedBy;
+  desktopComin = c.services.comin.desktop.enable;
+  bootTimeout = c.boot.loader.timeout;
   docker = c.virtualisation.docker.enable;
   rootlessDocker = c.virtualisation.docker.rootless.enable;
   managedHomeTargets = map (v: v.target) (builtins.filter (v: v.enable) (builtins.attrValues c.home-manager.users.joseph.home.file));
@@ -53,6 +55,8 @@ class RocketHostTests(unittest.TestCase):
     self.assertEqual(set(c['secrets']), {'joseph-password', 'nix-cache-netrc'})
     self.assertEqual(c['automaticComin'], [])
     self.assertEqual(c['automaticFetch'], [])
+    self.assertFalse(c['desktopComin'])
+    self.assertEqual(c['bootTimeout'], 0)
     self.assertGreaterEqual(tuple(map(int, c['tailscale'].split('.'))), (1, 104, 1))
     self.assertTrue(c['docker'])
     self.assertFalse(c['rootlessDocker'])

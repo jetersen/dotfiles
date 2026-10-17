@@ -31,7 +31,8 @@
     configurationLimit = 5;
   };
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 5;
+  # Hide the menu; hold Space at startup to select NixOS or CachyOS.
+  boot.loader.timeout = 0;
 
   # Match the preserved home/data ownership rather than NixOS's default primary group.
   users.groups.joseph.gid = 1000;
@@ -47,5 +48,6 @@
   # Build and inspect the host first. Enable automatic deployment only after migration.
   systemd.services.comin.wantedBy = lib.mkForce [ ];
   systemd.services.comin-fetch.wantedBy = lib.mkForce [ ];
+  services.comin.desktop.enable = lib.mkForce false;
   system.stateVersion = "26.05";
 }

@@ -65,6 +65,10 @@ replacement or overwrite an earlier backup. Review whole-directory targets such
 as pinned skills, PowerShell modules, GitHub CLI extensions, and Wallpapers.
 Keep extra user-created content from their backups or move it to an unmanaged
 location before adoption. Do not restore the entire old directory over a Nix link.
+Existing symlinks outside a Home Manager generation need separate review: Home
+Manager's automatic backup does not move them. After verifying the offline backup,
+move conflicting legacy links aside before activation. Keep retired autostart
+links in the private handover directory, outside systemd's `*.wants` directories.
 
 Some files are updated in place after linking, so they are not ordinary symlink
 collisions: Codex `config.toml`, `.claude.json`, GitHub CLI settings, DMS settings,

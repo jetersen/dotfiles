@@ -11,6 +11,25 @@ spec.loader.exec_module(audit)
 
 
 class HomeAuditTests(unittest.TestCase):
+    def test_legacy_symlink_needs_review_without_reading_its_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            legacy = home / '.claude/CLAUDE.md'
+            legacy.parent.mkdir()
+            legacy.symlink_to('../.config/ai/AGENTS.md')
+            managed = home / '.codex/AGENTS.md'
+            managed.parent.mkdir()
+            managed.symlink_to('/nix/store/example-home-manager-files/.codex/AGENTS.md')
+            result = audit.audit(home, {
+                'legacy': {'target': '.claude/CLAUDE.md'},
+                'managed': {'target': '.codex/AGENTS.md'},
+            })
+            self.assertEqual(result['blockers'], [{
+                'reason': 'Non-Home-Manager symlink requires handover review',
+                'path': '.claude/CLAUDE.md',
+            }])
+            self.assertTrue(legacy.is_symlink())
+
     def test_preserved_sessions_and_volatile_profiles(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
