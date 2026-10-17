@@ -29,6 +29,11 @@ in {
   runnerWantedBy = c.systemd.services.forgejo-runner.wantedBy;
   runnerDelay = c.systemd.timers.forgejo-runner.timerConfig.OnBootSec;
   runnerRetry = c.systemd.services.forgejo-runner.serviceConfig.Restart;
+  autoLogin = c.services.displayManager.autoLogin;
+  otherHostAutoLogin = flake.nixosConfigurations.framework.config.services.displayManager.autoLogin.enable;
+  defaultSession = c.services.displayManager.defaultSession;
+  initialSession = c.services.greetd.settings.initial_session;
+  restartGreeter = c.services.greetd.restart;
 }
 '''
 
@@ -72,6 +77,15 @@ class RocketHostTests(unittest.TestCase):
     self.assertEqual(c['runnerWantedBy'], [])
     self.assertEqual(c['runnerDelay'], '30s')
     self.assertEqual(c['runnerRetry'], 'on-failure')
+
+  def test_desktop_autologin_starts_niri_once(self):
+    c = self.config
+    self.assertTrue(c['autoLogin']['enable'])
+    self.assertEqual(c['autoLogin']['user'], 'joseph')
+    self.assertEqual(c['initialSession']['user'], 'joseph')
+    self.assertEqual(c['defaultSession'], 'niri')
+    self.assertFalse(c['restartGreeter'])
+    self.assertFalse(c['otherHostAutoLogin'])
 
   def test_ai_session_trees_are_not_home_manager_targets(self):
     targets = [str(Path(p)) for p in self.config['managedHomeTargets']]

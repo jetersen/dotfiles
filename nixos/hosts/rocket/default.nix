@@ -24,6 +24,11 @@
         '';
   };
   networking.hostName = "rocket";
+  # Keep the login keyring encrypted; unlock it separately after desktop login.
+  services.displayManager.autoLogin = {
+    enable = true;
+    user = "joseph";
+  };
   services.tailscale.extraSetFlags = [ "--ssh=true" ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.loader.systemd-boot = {
