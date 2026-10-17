@@ -136,14 +136,15 @@ in
     (pkgs.callPackage ../packages/music-assistant-desktop.nix { })
     pkgs.pear-desktop
     (pkgs.writeShellApplication {
-      name = "youtube-music";
+      name = "focus-music-assistant";
       runtimeInputs = [
         pkgs.niri
         pkgs.jq
-        pkgs.pear-desktop
+        pkgs.systemd
+        (pkgs.callPackage ../packages/music-assistant-desktop.nix { })
       ];
       text = ''
-        exec ${pkgs.bash}/bin/bash ${../../home/dot_local/bin/executable_youtube-music} "$@"
+        exec ${pkgs.bash}/bin/bash ${../../home/dot_local/bin/executable_focus-music-assistant} "$@"
       '';
     })
   ];
