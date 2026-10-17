@@ -13,22 +13,13 @@ if ($scope -ne 'RemoteSigned') {
     # Silently continue if execution policy setting fails
   }
 }
-# Check if Proton Pass CLI is installed, if not, install it using winget
-if (-not (Get-Command "pass-cli" -ErrorAction SilentlyContinue)) {
-  Write-Host "Installing Proton Pass CLI..."
-  winget install --id Proton.ProtonPass.CLI --silent --source winget --accept-package-agreements --accept-source-agreements
-}
+# gsudo is needed by the explicit Windows application installation phase.
 if (-not (Get-Command "gsudo" -ErrorAction SilentlyContinue)) {
-  Write-Host "Installing gsudo..."
   winget install --id gerardog.gsudo --silent --source winget --accept-package-agreements --accept-source-agreements
 }
-# Check login status of Proton Pass CLI, if not logged in, prompt the user to log in
-pass-cli info >$null 2>&1
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "Please log in to Proton Pass CLI..."
-  $loginOutput = pass-cli login 2>&1
-  if ($LASTEXITCODE -ne 0 -and ($loginOutput -join "`n") -notmatch 'Already authenticated') {
-    Write-Error ($loginOutput -join "`n")
-    exit 1
+# SOPS/age and Python are explicit prerequisites, never installed by source reads.
+foreach ($tool in @('chezmoi', 'sops', 'age', 'python')) {
+  if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+    throw "Missing prerequisite: $tool"
   }
 }

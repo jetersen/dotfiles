@@ -1,2 +1,0 @@
-{{- $work := output "pass-cli" "item" "view" "--vault-name" "Work" "--item-title" "AI Work Repository Instructions" "--field" "note" | trim -}}
-{{ include ".chezmoitemplates/ai-instructions.md" | replace "@AI_WORK_INSTRUCTIONS@" $work -}}

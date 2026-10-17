@@ -24,15 +24,17 @@ def write_private(path, content):
 
 
 command = sys.argv[1]
-url = Path(sys.argv[2]).read_text().strip()
 managed = {
     "codegraph": {"type": "stdio", "command": command, "args": ["serve", "--mcp"]},
-    "victorialogs": {"type": "http", "url": url},
 }
+if len(sys.argv) > 2:
+    managed["victorialogs"] = {"type": "http", "url": Path(sys.argv[2]).read_text().strip()}
 home = Path.home()
 codex = Path(os.environ.get("CODEX_HOME", home / ".codex")) / "config.toml"
 settings = tomlkit.parse(codex.read_text()) if codex.exists() else tomlkit.document()
 servers = settings.setdefault("mcp_servers", tomlkit.table())
+if "victorialogs" not in managed:
+    servers.pop("victorialogs", None)
 for name, server in managed.items():
     entry = servers.setdefault(name, tomlkit.table())
     for key in (["command", "args", "cwd"] if "url" in server else ["url"]):
@@ -43,6 +45,8 @@ write_private(codex, tomlkit.dumps(settings))
 claude = home / ".claude.json"
 settings = json.loads(claude.read_text()) if claude.exists() else {}
 servers = settings.setdefault("mcpServers", {})
+if "victorialogs" not in managed:
+    servers.pop("victorialogs", None)
 for name, server in managed.items():
     entry = servers.setdefault(name, {})
     for key in (["command", "args", "cwd"] if "url" in server else ["url"]):

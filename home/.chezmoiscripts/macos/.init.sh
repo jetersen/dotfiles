@@ -1,23 +1,6 @@
 #!/usr/bin/env bash
-
-# Check if Proton Pass cli ie. "pass-cli" is installed
-if ! command -v pass-cli &> /dev/null; then
-  echo "installing pass-cli"
-  # check if brew is installed
-  if ! command -v brew &> /dev/null; then
-    echo "Homebrew is not installed. Please install Homebrew first: https://brew.sh"
-    exit 1
-  fi
-  brew install protonpass/tap/pass-cli --quiet
-fi
-
-# Check login status of Proton Pass CLI, if not logged in, prompt the user to log in
-if ! pass-cli info &> /dev/null; then
-  echo "Please log in to Proton Pass CLI..."
-  if ! login_output=$(pass-cli login 2>&1); then
-    if [[ $login_output != *"Already authenticated"* ]]; then
-      echo "$login_output" >&2
-      exit 1
-    fi
-  fi
-fi
+set -euo pipefail
+# Explicit prerequisite check. Install these tools using the platform package manager.
+for tool in chezmoi sops age python3; do
+  command -v "$tool" >/dev/null || { echo "Missing prerequisite: $tool" >&2; exit 1; }
+done

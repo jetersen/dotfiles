@@ -2,18 +2,18 @@
 {
   imports = [
     ./ai-tools.nix
-    ./cloud.nix
     ./desktop.nix
     ./development.nix
     ./direnv.nix
     ./git.nix
     ./local-git-sync.nix
+    ./remote-clipboard.nix
+    ./niri.nix
     ./music-assistant.nix
     ./shell.nix
     ./ssh.nix
     ./prompt.nix
-    ./workstation.nix
-    ./work-environment.nix
+    ./applications.nix
   ];
   home.username = "joseph";
   home.homeDirectory = "/home/joseph";

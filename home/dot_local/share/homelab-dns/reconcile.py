@@ -23,11 +23,26 @@ def retain_domains(path, domains):
         temporary.replace(path)
 
 
+def magic_suffix(config):
+    if "magic_suffix" in config:
+        suffix = config["magic_suffix"]
+    else:
+        status = json.loads(run("tailscale", "status", "--json"))
+        if not isinstance(status, dict):
+            raise ValueError("Invalid Tailscale status")
+        tailnet = status.get("CurrentTailnet") or {}
+        suffix = (tailnet.get("MagicDNSSuffix") if isinstance(tailnet, dict) else None)
+        suffix = suffix or status.get("MagicDNSSuffix")
+    if not isinstance(suffix, str) or not re.fullmatch(r"[a-z0-9-]+\.ts\.net", suffix):
+        raise ValueError("Missing or invalid MagicDNS suffix")
+    return suffix
+
+
 def reconcile(config):
     domains = json.loads(run("resolvectl", "--json=short", "domain"))
     if not Path("/sys/class/net/tailscale0").exists():
         return
-    suffix = config["magic_suffix"]
+    suffix = magic_suffix(config)
     current_domains = next((x.get("searchDomains") or [] for x in domains
                             if x.get("ifname") == "tailscale0"), [])
     servers = json.loads(run("resolvectl", "--json=short", "dns"))
@@ -47,7 +62,8 @@ def main():
     args = parser.parse_args()
     config = json.loads(Path("/etc/homelab-dns/config.json").read_text())
     assert config["mode"] == "magic-only"
-    assert re.fullmatch(r"[a-z0-9-]+\.ts\.net", config["magic_suffix"])
+    if "magic_suffix" in config:
+        magic_suffix(config)
     last_error = None
     while True:
         try:

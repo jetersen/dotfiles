@@ -4,11 +4,9 @@
 {{- "" -}}
 
 {{- $hostname := .chezmoi.hostname -}}
-{{- if eq $hostname "rocket" -}}
-{{-   $isPersonal = true -}}
-{{- else -}}
-{{-   $isWork = true -}}
-{{- end -}}
+{{/* Work secrets require explicit opt-in, including on previously work-only hosts. */}}
+{{- $isWork = eq (env "DOTFILES_WORK") "1" -}}
+{{- $isPersonal = not $isWork -}}
 
 {{- $isWindows := eq .chezmoi.os "windows" -}}
 {{- $isLinux := eq .chezmoi.os "linux" -}}
@@ -61,7 +59,6 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/dotfiles/home"
   isCodespaces = {{ $isCodespaces }}
   isHyprland = {{ $isHyprland }}
   isNiri = {{ $isNiri }}
-  passUriPrefix = "pass://Personal"
 
 [interpreters.ps1]
   command = "pwsh"
@@ -69,17 +66,3 @@ sourceDir = "{{ .chezmoi.homeDir}}/git/dotfiles/home"
 
 [github]
   refreshPeriod = "12h"
-
-[hooks.read-source-state.pre]
-{{ if $isLinux }}
-    command = "/usr/bin/env"
-    args = ["-S","bash", "-euo", "pipefail", {{ joinPath .chezmoi.sourceDir ".chezmoiscripts/linux/.init.sh" | toToml }}]
-{{ end }}
-{{ if $isWindows }}
-    command = {{ joinPath (env "SystemRoot") "System32/WindowsPowerShell/v1.0/powershell.exe" | toToml }}
-    args = ["-NoLogo", "-NoProfile", {{ joinPath .chezmoi.sourceDir ".chezmoiscripts/windows/.init.ps1" | toToml }}]
-{{ end }}
-{{ if $isMacOS }}
-    command = "/usr/bin/env"
-    args = ["-S","bash", "-euo", "pipefail", {{ joinPath .chezmoi.sourceDir ".chezmoiscripts/macos/.init.sh" | toToml }}]
-{{ end }}

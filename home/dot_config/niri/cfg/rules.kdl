@@ -1,0 +1,8 @@
+// Shared desktop rules are also used directly by NixOS.
+include "shared-rules.kdl"
+include "gaming-rules.kdl"
+
+window-rule {
+  match app-id="sc2_x64.exe"
+  open-on-output "DP-1"
+}

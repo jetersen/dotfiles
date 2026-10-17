@@ -12,6 +12,11 @@ Host rocket
   HostKeyAlias rocket
   User {{ .chezmoi.username }}
 
+Host framework
+  HostName framework{{ $tailnet }}
+  HostKeyAlias framework
+  User {{ .chezmoi.username }}
+
 Host worklaptop
   HostName worklaptop{{ $tailnet }}
   HostKeyAlias worklaptop

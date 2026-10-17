@@ -18,5 +18,16 @@
     "repo": "dmno-dev/varlock",
     "version": "varlock@1.23.0",
     "sha256": "a40d86ceddde2f032cd8bdc594feca74f60754d01615c1a11031c9f4ca97e8ed"
+  },
+  "proton-ge": {
+    "repo": "GloriousEggroll/proton-ge-custom",
+    "version": "GE-Proton11-9",
+    "sha512": "30160946a5e4ffdf1f29d6f83a3d27108f6aa71b6aa59095b2c2260fe3a003b62acf8fdcb02a3dfc602b28473f5679d8a3eaee5a8adb141c1dfa01c42888da2d"
+  },
+  "t3code": {
+    "repo": "pingdotgg/t3code",
+    "version": "v0.1.0",
+    "cliSha256": "f7703ff1bb8f6243580058b3ccf2c02abb62eba4b991e26bbb1da22f4b56d9b1",
+    "desktopSha256": "e38d9c5fb513b1ece0a708b906d3383b5b47ed199575b39a31e41ab8834eb744"
   }
 }

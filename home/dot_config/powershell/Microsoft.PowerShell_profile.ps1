@@ -287,7 +287,7 @@ function Invoke-GitHubAutoMerge {
       $approved = (gh api "repos/{owner}/{repo}/pulls/$($pr.number)/reviews" --jq "[.[] | select(.user.login == `"$myLogin`" and .state == `"APPROVED`")] | length")
       if ($approved -eq 0) { gh pr review $pr.number --approve }
     }
-    if (-not $pr.autoMergeRequest) { gh pr merge $pr.number --squash --auto }
+    if (-not $pr.autoMergeRequest) { gh pr merge $pr.number --rebase --auto }
   }
 }
 

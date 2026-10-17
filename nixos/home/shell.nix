@@ -25,7 +25,10 @@ let
   };
 in
 {
-  home.packages = [ pkgs.fd ];
+  home.packages = [
+    pkgs.fd
+    pkgs.fastfetch
+  ];
   home.sessionVariables = {
     SUDO_EDITOR = "nvim";
     PACKAGEOUTPUTPATH = "${config.home.homeDirectory}/.nuget/local";
@@ -41,6 +44,9 @@ in
     initExtra = ''
       export CDPATH="$HOME/git"
       source ${./shell/bash.sh}
+      if [[ $TERM == alacritty && -t 1 ]]; then
+        ${lib.getExe pkgs.fastfetch}
+      fi
     '';
   };
   programs.zsh = {
@@ -48,6 +54,9 @@ in
     initContent = ''
       export CDPATH="$HOME/git"
       source ${./shell/bash.sh}
+      if [[ $TERM == alacritty && -t 1 ]]; then
+        ${lib.getExe pkgs.fastfetch}
+      fi
     '';
   };
   programs.fish = {
@@ -56,9 +65,20 @@ in
     interactiveShellInit = ''
       set -gx CDPATH $HOME/git
       source ${./shell/fish.fish}
+      if test "$TERM" = alacritty; and isatty stdout
+        ${lib.getExe pkgs.fastfetch}
+      end
     '';
   };
-  xdg.configFile."powershell/profile.ps1".text = lib.mkBefore (builtins.readFile ./shell/profile.ps1);
+  xdg.configFile."powershell/profile.ps1".text = lib.mkBefore (
+    builtins.readFile ./shell/profile.ps1
+    + ''
+
+      if ($env:TERM -eq 'alacritty' -and -not [Console]::IsOutputRedirected) {
+        & '${lib.getExe pkgs.fastfetch}'
+      }
+    ''
+  );
   xdg.dataFile = lib.mapAttrs' (
     name: source: lib.nameValuePair "powershell/Modules/${name}" { inherit source; }
   ) powershellModules;

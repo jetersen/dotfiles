@@ -150,6 +150,10 @@
     let
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
       pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+      pkgsAi = import nixpkgs {
+        system = "x86_64-linux";
+        config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "claude-code";
+      };
       locked = builtins.fromJSON (builtins.readFile ./flake.lock);
       nugetTool =
         inputName: pname: nugetName:
@@ -169,6 +173,7 @@
       packages.x86_64-linux.nixos-anywhere = pkgs.nixos-anywhere;
       packages.x86_64-linux.ssh-to-age = pkgs.ssh-to-age;
       packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
+      packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix { };
       packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix { };
       packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix { };
       packages.x86_64-linux.dotnet-lambda =
@@ -198,6 +203,12 @@
       # hosts can substitute it without receiving a repository credential.
       localGitSyncSource = inputs.local-git-sync-source.outPath;
       packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
+      packages.x86_64-linux.t3code = pkgs.callPackage ./nixos/packages/t3code.nix {
+        codex = pkgsUnstable.codex;
+        claude-code = pkgsAi.claude-code.override {
+          manifest = builtins.fromJSON (builtins.readFile ./nixos/packages/claude-code-manifest.json);
+        };
+      };
       packages.x86_64-linux.codegraph = pkgsUnstable.codegraph;
       packages.x86_64-linux.pulumi-schema-tools =
         pkgs.callPackage ./nixos/packages/pulumi-schema-tools.nix
@@ -211,7 +222,7 @@
             source = inputs.pulumi-upgrade-provider-source;
           };
       devShells.x86_64-linux = import ./nixos/dev-shells.nix {
-        inherit pkgs;
+        inherit pkgs pkgsUnstable;
         dotfilesPackages = inputs.self.packages.x86_64-linux;
       };
       packages.x86_64-linux.ci-tools = pkgs.attic-client;
@@ -230,8 +241,11 @@
         };
 
       nixosModules = {
-        common = {
+        common = { pkgs, ... }: {
           system.configurationRevision = inputs.self.rev or inputs.self.dirtyRev or null;
+          # Includes the upstream IPv6 link-local batching fix; no custom daemon.
+          services.tailscale.package =
+            inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.tailscale;
           imports = [
             sops-nix.nixosModules.sops
             ./nixos/modules/common.nix
@@ -278,17 +292,13 @@
             imports = [
               inputs.self.nixosModules.common
               inputs.self.nixosModules.desktop
-              inputs.self.nixosModules.company-vpn
               home-manager.nixosModules.home-manager
               inputs.comin.nixosModules.comin
-              ./nixos/modules/containers.nix
-              ./nixos/modules/work.nix
-              ./nixos/modules/gitops.nix
+              ./nixos/profiles/workstation.nix
             ];
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
-              users.joseph = import ./nixos/home/joseph.nix;
               extraSpecialArgs = {
                 pkgsUnstable = import inputs.nixpkgs-unstable {
                   inherit (pkgs.stdenv.hostPlatform) system;
@@ -309,18 +319,37 @@
               };
             };
           };
+        work = {
+          imports = [
+            inputs.self.nixosModules.company-vpn
+            ./nixos/profiles/work.nix
+          ];
+        };
+        gaming = import ./nixos/profiles/gaming.nix;
         framework = {
           imports = [
             inputs.self.nixosModules.workstation
+            inputs.self.nixosModules.work
             inputs.self.nixosModules.encrypted-laptop
             inputs.self.nixosModules.secure-boot
             nixos-hardware.nixosModules.framework-intel-core-ultra-series3
             ./nixos/hosts/framework
           ];
         };
+        rocket = {
+          imports = [
+            inputs.self.nixosModules.workstation
+            inputs.self.nixosModules.gaming
+            ./nixos/hosts/rocket
+          ];
+        };
       };
 
       nixosConfigurations = {
+        rocket = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          modules = [ inputs.self.nixosModules.rocket ];
+        };
         framework = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           modules = [ inputs.self.nixosModules.framework ];

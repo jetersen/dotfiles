@@ -39,6 +39,15 @@
   '';
   home-manager.users.joseph = {
     dotfiles.prompt.showBattery = true;
+    # Reuse the work dock's serial-based names, independent of connector numbering.
+    dotfiles.niri.workspaceOutputs = {
+      browser = "Dell Inc. DELL P2725D 24CRZ64";
+      chat = "Dell Inc. DELL P2725D 24CRZ64";
+      music = "Dell Inc. DELL P2725D 3S5S864";
+    };
+    dotfiles.niri.extraConfig = ''
+      spawn-at-startup "slack" "--ozone-platform=wayland"
+    '';
     xdg.configFile."niri/config.kdl".text = lib.mkBefore ''
       output "eDP-1" { scale 1.5; }
     '';

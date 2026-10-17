@@ -21,7 +21,7 @@ Installation instructions are in `README.md`.
 - Keep plaintext secrets and private keys out of Nix expressions and the Nix store.
   Use sops-nix for deployed secrets.
 - `.tmpl` files use Go templates; check relevant OS and `isWork` variants. `modify_` scripts transform an existing file supplied on stdin, so preserve unmanaged settings.
-- Inspect the source-state hook in `home/.chezmoi.toml.tmpl` before invoking chezmoi. Even read commands can trigger Proton Pass login. Avoid a whole-repository apply for a focused change; deployment scripts can install packages and change system settings.
+- Inspect `home/.chezmoi.toml.tmpl` before invoking chezmoi. Work templates decrypt SOPS during rendering; use fixture configurations when validating without real secrets. Avoid a whole-repository apply for a focused change; deployment scripts can install packages and change system settings.
 
 ## Conventions that matter
 

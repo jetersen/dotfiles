@@ -1,21 +1,19 @@
 { config, lib, ... }:
+let
+  schema = builtins.fromJSON (builtins.readFile ../secrets/work-schema.json);
+in
 {
   sops.secrets =
     lib.genAttrs
-      [
-        "aws-config"
-        "kube-config"
-        "npm-config"
-        "varlock-work-schema"
-        "victorialogs-mcp-url"
-      ]
+      schema.userSecrets
       (_: {
+        sopsFile = ../secrets/work.yaml;
         owner = "joseph";
         group = "users";
         mode = "0600";
       })
     // {
-      ai-work-instructions = { };
+      "${schema.aiSecret}".sopsFile = ../secrets/work.yaml;
     };
   sops.templates.ai-instructions = {
     owner = "joseph";

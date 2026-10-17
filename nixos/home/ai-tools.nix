@@ -1,6 +1,7 @@
 {
   agentSkillSources,
   config,
+  dotfilesPackages,
   lib,
   osConfig,
   pkgs,
@@ -8,29 +9,38 @@
   ...
 }:
 let
+  workEnabled = osConfig.dotfiles.work.enable;
+  personalInstructions = builtins.replaceStrings [ "@AI_WORK_INSTRUCTIONS@" ] [ "" ] (
+    builtins.readFile ../../home/.chezmoitemplates/ai-instructions.md
+  );
   codegraph = pkgsUnstable.codegraph;
   mcpPython = pkgs.python3.withPackages (p: [ p.tomlkit ]);
   configureAiMcp = pkgs.writeShellApplication {
     name = "configure-ai-mcp";
     text = ''
-      exec ${mcpPython}/bin/python3 ${./configure-ai-mcp.py} ${lib.getExe codegraph} ${osConfig.sops.secrets.victorialogs-mcp-url.path}
+      exec ${mcpPython}/bin/python3 ${./configure-ai-mcp.py} ${lib.getExe codegraph} ${lib.optionalString workEnabled (lib.escapeShellArg osConfig.sops.secrets.victorialogs-mcp-url.path)}
     '';
   };
+  instructions =
+    if workEnabled then
+      {
+        source = config.lib.file.mkOutOfStoreSymlink osConfig.sops.templates.ai-instructions.path;
+      }
+    else
+      {
+        text = personalInstructions;
+      };
   claudeCode = pkgs.claude-code.override {
     manifest = builtins.fromJSON (builtins.readFile ../packages/claude-code-manifest.json);
   };
 in
 {
-  # Claude follows upstream directly; Codex and T3 use the faster Nixpkgs branch.
+  # Claude and T3 follow pinned upstream releases; Codex uses unstable.
   home.packages = [
     claudeCode
     pkgsUnstable.codex
     codegraph
-    (pkgsUnstable.t3code.override {
-      enableClaude = true;
-      claude-code = claudeCode;
-      inherit (pkgs) git gh;
-    })
+    dotfilesPackages.t3code
   ];
 
   home.activation.configureAiMcp = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
@@ -49,12 +59,9 @@ in
         }
       )
       {
-        ".codex/AGENTS.md".source =
-          config.lib.file.mkOutOfStoreSymlink osConfig.sops.templates.ai-instructions.path;
-        ".claude/CLAUDE.md".source =
-          config.lib.file.mkOutOfStoreSymlink osConfig.sops.templates.ai-instructions.path;
-        ".config/ai/AGENTS.md".source =
-          config.lib.file.mkOutOfStoreSymlink osConfig.sops.templates.ai-instructions.path;
+        ".codex/AGENTS.md" = instructions;
+        ".claude/CLAUDE.md" = instructions;
+        ".config/ai/AGENTS.md" = instructions;
       }
       (
         agentSkillSources

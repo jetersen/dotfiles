@@ -4,6 +4,8 @@
 
 {{ if not .isLinux }}
 .chezmoiscripts/linux/**
+.local/bin/remote-clip
+.local/bin/argocd-remote-sso
 {{ end }}
 {{ if not .isMacOS }}
 .chezmoiscripts/macos/**
@@ -40,4 +42,11 @@ Pictures
 {{/* Music Assistant companion is managed here only on the CachyOS clients. */}}
 {{ if or (not .isLinux) (not (or (eq .hostname "rocket") (eq .hostname "worklaptop"))) }}
 .config/music-assistant-companion
+{{ end }}
+
+{{/* Personal configurations remain unmanaged when work secrets are not enabled. */}}
+{{ if not .isWork }}
+.aws/config
+.kube/config
+.config/varlock/work/.env.schema
 {{ end }}

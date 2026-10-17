@@ -58,7 +58,7 @@ function github-auto-merge
       end
     end
     if test "$has_auto_merge" -eq 0
-      command gh pr merge $pr --squash --auto
+      command gh pr merge $pr --rebase --auto
     end
   end
 end

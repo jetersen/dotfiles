@@ -17,6 +17,7 @@
   xdg.portal = {
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
     config.niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "kde";
+    config.niri."org.freedesktop.impl.portal.ScreenCast" = "gnome";
   };
 
   programs.dms-greeter = {
@@ -77,6 +78,7 @@
 
   environment.systemPackages = with pkgs; [
     alacritty
+    xwayland-satellite
     kdePackages.dolphin
     kdePackages.ark
     kdePackages.kio-extras

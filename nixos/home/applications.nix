@@ -9,7 +9,6 @@
     tiny-rdm
     rustdesk-flutter
     jetbrains.rider
-    slack
     discord
     dotnet-sdk_10
     proton-pass-cli

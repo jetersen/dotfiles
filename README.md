@@ -4,6 +4,15 @@ NixOS uses the root Nix flake and configuration under `nixos/`.
 Other Linux distributions, macOS, and Windows use [chezmoi](https://www.chezmoi.io/)
 with `home/` as its source root.
 
+NixOS composes the ordinary desktop and development environment through the
+`workstation` profile. The optional `work` profile adds company VPN, credentials,
+AI work instructions, and the DMS storage widget; Framework imports it explicitly.
+The optional `gaming` profile enables NixOS Steam integration and installs Lutris,
+Protontricks, and GE-Proton. Game libraries and Wine prefixes remain local data.
+Profile composition
+lives under `nixos/profiles/`, reusable system modules under `nixos/modules/`,
+and user applications and settings under `nixos/home/`.
+
 ## NixOS
 
 Build the stable NixOS installer with SSH access using `nixos/keys/joseph.pub`:
@@ -28,12 +37,12 @@ sudo bash /mnt/zalman/nixos-enable-ssh.sh
 ```
 
 The reusable `nixosModules.workstation` profile provides the desktop, development
-and work tools, rootless containers, Home Manager, and GitOps deployment. Each
+tools, rootless containers, Home Manager, and GitOps deployment. Each
 host supplies its own hardware, storage, password and sops file. Framework's
 panel scaling, battery prompt, kernel and fingerprint sleep workaround stay in
-its host directory. To add Rocket, generate its hardware configuration and
-supply its verified disk identity and host-specific secrets, then add its system
-build and notification target to CI.
+its host directory. Rocket has its own generated hardware, preserved-filesystem layout, and secrets.
+Its personal base excludes the optional work profile; automatic deployment stays
+disabled until migration is complete.
 
 The Framework configuration uses Niri, DankMaterialShell, DankGreeter, Disko,
 and sops-nix.
@@ -53,9 +62,13 @@ Claude Code uses Anthropic's upstream release manifest with stable Nixpkgs'
 native packaging. Run `nixos/packages/update-claude-code.sh` to pin the latest
 release, or pass a specific version. Review the manifest diff and rebuild NixOS;
 Nix verifies the binary against the manifest's checksum.
-Codex CLI, T3 Code, and CodeGraph use a separate pinned `nixpkgs-unstable` input. Update them
+Codex CLI and CodeGraph use a separate pinned `nixpkgs-unstable` input. Update them
 with `nix flake update nixpkgs-unstable`, then rebuild NixOS.
-T3 Code includes both provider CLIs on its runtime path, using the same Claude
+T3 Code's desktop and standalone CLI use the same checksum-pinned upstream
+release from `nixos/packages/workstation-manifest.json`. Run
+`nixos/packages/update-t3code.sh VERSION` to update both artifacts. Nix provides
+their Linux runtime; automatic application updates are disabled. T3 Code includes
+both provider CLIs on its runtime path, using the same Claude
 version as the terminal. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs
 the web interface. Sign in locally with `claude auth login` and `codex login`.
 Credentials and application state remain user-managed outside the Nix store.
@@ -82,7 +95,9 @@ upgrade-provider). From any project, run:
 nix develop ~/git/dotfiles#python --command fish
 ```
 
-Replace `python` with `rust`, `go`, `jvm`, or `pulumi`. CI builds these shells and
+Replace `python` with `rust`, `go`, `jvm`, `pulumi`, or `dotnet-preview`.
+The preview shell uses the pinned unstable .NET 11 SDK and overrides `DOTNET_ROOT`
+for that session; .NET 10 remains the global default. CI builds these shells and
 publishes their eligible outputs to Attic using the same size policy as NixOS.
 
 
@@ -94,7 +109,8 @@ profiles never install modules at startup. Direnv integrates with all four shell
 
 Fish, Bash, Zsh, and PowerShell use the same compact Starship layout. Identity
 appears in remote or changed-user sessions; Framework's battery percentage
-appears when unplugged. Start a new shell after a configuration update.
+appears when unplugged. Fastfetch runs in interactive Alacritty shells. Start a
+new shell after a configuration update.
 Vite Plus (`vp`), topf, Freelens, and Varlock use checksum-pinned upstream releases in
 `nixos/packages/workstation-manifest.json`; Renovate updates both versions and
 checksums. Vite Plus and Freelens use FHS wrappers for upstream runtime binaries.
@@ -115,6 +131,24 @@ dependencies are locked in `nixos/packages/snitch-deps.json`.
 
 NixOS and chezmoi share personal Niri bindings from
 `home/dot_config/niri/cfg/keybinds.kdl`, included after DMS defaults.
+Workspace output preferences live in each host's `dotfiles.niri.workspaceOutputs`.
+Framework reuses the work dock's monitor serials; undocked sessions fall back to
+available outputs. Slack and Discord share the `chat` workspace. Shared floating
+and routing rules under `home/dot_config/niri/cfg/` serve both Chezmoi and NixOS.
+Framework starts Slack natively on Wayland. Its Nixpkgs launcher enables PipeWire
+capture, and Niri uses the GNOME ScreenCast portal; verify sharing in a Slack
+huddle after deployment.
+
+The gaming profile exposes the checksum-pinned upstream release as `GE-Proton`
+in Steam compatibility settings. Select it for the desired games and restart
+Steam after configuration updates; the selection name stays stable across releases. Renovate tracks its release and checksum in
+`nixos/packages/workstation-manifest.json`; updates arrive with configuration
+updates. CI builds the pinned compatibility tool before merging dependency
+updates. ProtonUp-Qt is not needed. The profile also adds the Battle.net helper-window
+workaround. `nixos/hosts/rocket/desktop.nix` contains Rocket's desktop choices;
+its hardware and storage configuration live alongside it. Input-remapper is available
+on Rocket but starts only on request, with no tracked presets or autoload rules.
+
 Super+L locks, Super+D opens the overview, and Super+M opens or focuses Music Assistant;
 Ctrl+Alt+Delete opens the task manager. Music Assistant and Pear Desktop open on
 the dedicated `music` workspace.
@@ -144,9 +178,33 @@ QEMU runs unprivileged; UEFI firmware, a software TPM, virtiofs shared folders,
 and SPICE USB redirection are available. The standard `default` NAT network
 autostarts. VM definitions and disks remain local state under `/var/lib/libvirt`.
 
-SSH aliases `rocket`, `worklaptop`, and `truenasadmin` use Tailscale hostnames.
+SSH aliases `rocket`, `framework`, `worklaptop`, and `truenasadmin` use Tailscale hostnames.
 The NAS alias logs in as `truenas_admin`; its host key is pinned. Keep additional
 machine-local aliases in `~/.ssh/local.config`.
+
+On Linux Wayland desktops, `remote-clip framework` fetches an image or plain text
+and copies it locally. It prefers images when both types are offered; use
+`--type text` to request text. Captures use private files under the runtime
+directory (or a private temporary directory). Use `-o FILE` to keep a copy,
+`-o -` for raw stdout, or `--no-copy` to save without changing the local clipboard.
+Both machines need Python 3, systemd user sessions, and wl-clipboard.
+
+`argocd-remote-sso framework --vpn-profile moviestarplanet` logs in through
+Framework's browser and merges only the selected context locally. It uses
+Framework's current context to choose the server; pass `--server HOSTNAME` for
+an initial login, `--context NAME` to select a named context, or `--copy-only`
+to reuse a login. On CachyOS, use the actual local VPN profile, such as `work`.
+The remote desktop needs Argo CD, Python 3, and Mike Farah yq v4; the local
+machine needs Python 3, yq v4, and OpenVPN 3. Nix deploys this helper with the
+work profile. Unrelated local contexts are preserved; incompatible shared server
+settings require a separate `--config` file.
+
+These helpers transfer directly over Tailscale SSH, which verifies the remote
+host key through the tailnet. They require an authenticated Tailscale client and
+an SSH policy permitting the connection. Clipboard transfers have a 30-second
+limit; remote browser login allows four minutes. They replace the old
+`worklaptop-clip` and `argocd-worklaptop-sso` commands and work with either desktop
+as the remote host.
 
 The private npm registry configuration and Varlock work schema are deployed by
 sops-nix. Run `bw login` once in a local terminal, then use
@@ -161,7 +219,7 @@ the `home` and `work` aliases use each configuration's email identities.
 Claude and Codex share pinned skills through `~/.agents/skills` and
 `~/.claude/skills`. Common instructions come from
 `home/.chezmoitemplates/ai-instructions.md`; chezmoi adds the private work section
-from Proton Pass. NixOS assembles it with sops-nix at runtime, outside the Nix
+from the shared encrypted `nixos/secrets/work.yaml`. NixOS assembles it with sops-nix at runtime, outside the Nix
 store, and links both clients to the same file. Skills become available in a new
 agent session. Built-in client skills and cloud-synced Claude skills remain
 managed by their clients.
@@ -183,7 +241,7 @@ merge automatically with a linear history once the required
 `NixOS / framework (pull_request)` check passes. The PR must be up to date with
 `main`; rejected reviews block merging. Other dotfiles updates need manual merging.
 
-NixOS CI builds the Framework and named project shells on Rocket. A persistent Docker volume retains
+NixOS CI builds Framework, Rocket, and named project shells on Rocket. A persistent Docker volume retains
 the Nix store and fetched inputs for reuse across disposable jobs. Builds run
 serially to share the store safely. Nix is included in the homelab's shared job
 image, so no separate Nix container or preparation job is needed. Nix reclaims
@@ -197,8 +255,10 @@ private Attic. Attic skips paths signed by the public NixOS cache, and CI exclud
 outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
 (currently 512 MiB unpacked). This applies to every package, not just vendor
 repacks. Hosts download and package or compile excluded outputs locally when
-needed. CI retains them in its working store and NAS cache. CI then sends
-an SSH notification over Tailscale. Comin pulls `main` and applies the update. Every NixOS host follows `main`, including
+needed. CI retains them in its working store and NAS cache. CI then sends an SSH notification over Tailscale. Stock Comin fetches `main`
+and builds and applies the latest revision. A boot, resume, or network check can
+see a newer revision before CI finishes, in which case missing outputs build
+locally. A failed build leaves the running generation intact. Every NixOS host follows `main`, including
 future hosts. The notification key can only request a fetch;
 it cannot select a revision or run arbitrary commands. The laptop also checks
 on boot, resume, and NetworkManager connection events, so offline machines catch
@@ -210,8 +270,8 @@ up to four cores. Missing cache entries can therefore build locally. Nix does no
 retain negative cache lookups, so
 newly published paths are immediately available. One local systemd unit handles
 SSH notifications and lifecycle events. It restarts an idle Comin after a failed
-evaluation or build before fetching again; active work, manual suspension, and a
-stopped daemon are preserved. The notification account can only start that unit
+evaluation or build before fetching again; active work defers a requested retry until it settles. Manual suspension and a
+stopped daemon end the retry chain. The notification account can only start that unit
 through a narrowly scoped sudo rule. Interactive Nix commands can still build
 normally.
 `local-git-sync` is built from its private repository at the revision in
@@ -231,7 +291,7 @@ of one CPU. Enrollment, credentials and machine-local state stay outside Nix.
 CI requires an up-to-date lock file and does not receive the laptop's decryption
 or Secure Boot private keys. Kernel changes still require a reboot to take effect.
 
-The CI-only `NIXOS_DEPLOY_NOTIFY_KEY` secret matches `nixos/keys/deploy-notify.pub`.
+The CI-only `NIXOS_DEPLOY_NOTIFY_KEY` matches `nixos/keys/deploy-notify.pub`.
 The `FRAMEWORK_HOST` repository variable selects its fully qualified Tailscale
 hostname. SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
@@ -275,7 +335,7 @@ noninteractive command; automation should select its context explicitly.
 Other platforms retain their existing Oh My Posh setup.
 
 The Framework's AWS SSO profiles and Kubernetes configuration are encrypted in
-`nixos/secrets/framework.yaml` as `aws-config` and `kube-config`. Home Manager
+`nixos/secrets/work.yaml` as `aws-config` and `kube-config`. Home Manager
 links the decrypted, user-owned files into `~/.aws/config` and `~/.kube/config`.
 Update these definitions with sops. AWS SSO and other login caches remain
 user-managed. Use `aws sso login --profile default --region eu-west-1` to sign
@@ -311,7 +371,7 @@ in the [tailnet policy](https://github.com/jetersen/tailscale-acls#openvpn-coexi
 so Tailscale passes VPN replies to the host firewall.
 
 The inline VPN profiles and generated domain list are encrypted as `vpn-profile`,
-`vpn-profile-tcp`, and `vpn-domains` in the Framework's sops file. Import profiles
+`vpn-profile-tcp`, and `vpn-domains` in `nixos/secrets/work.yaml`. Import profiles
 once as the desktop user, then connect from the DMS widget:
 
 ```sh
@@ -390,26 +450,58 @@ sudo nixos-rebuild switch --flake .#framework
 ```
 
 Update pinned dependencies with `nix flake update`. Keep `system.stateVersion`
-and `home.stateVersion` unchanged when updating packages. Shared NixOS modules
-and the Home Manager configuration can also be used by a future Rocket host.
+and `home.stateVersion` unchanged when updating packages. Shared NixOS modules and Home Manager serve both hosts.
+
+## Rocket migration
+
+See [the backup, installation, and restore procedure](docs/rocket-install.md)
+and [the home and AI state handover](docs/rocket-home.md).
+
+Rocket uses new Btrfs subvolumes `@nixos`, `@nixos-nix`, and `@nixos-snapshots`
+on its existing OS filesystem. Keep the CachyOS root and snapshots, reuse
+`@home` and `@srv`, and mount the existing games filesystem and Steam bind mount.
+Do not run Disko or format either disk. Verify persistent disk IDs and filesystem
+UUIDs against `nixos/hosts/rocket/filesystems.nix` from the live installer first.
+Keep independent backups before changing boot files or mounting preserved data.
+
+Stage the existing SSH host key securely, matching `nixos/keys/rocket-host.pub`,
+so sops-nix can decrypt Rocket's host secrets. Preserve Tailscale enrollment,
+libvirt definitions, VM disks, UEFI variables, and TPM state. Restore VM files
+with ownership appropriate for NixOS's unprivileged QEMU. Restore the private
+`/etc/pc2mqtt/config.json` with mode 0600 to retain device identity and MQTT login;
+the service loads it as a systemd credential outside the Nix store.
+
+Use a fresh host Docker data root. Preserve only the managed runner's
+`homelab-forgejo-runner_runner-data` and `homelab-forgejo-runner_docker-cache`
+volumes and registration; recreate disposable test environments. Do not transplant
+old host Docker/containerd metadata into a different engine version. The runner
+uses the Compose configuration in `~/git/homelab/infrastructure/forgejo/runner/`,
+with registration under `~/.local/state/forgejo-runner/registration`. Create
+`/var/lib/forgejo-runner/migration-ready` only after restoring and verifying these
+files and volumes. Compose recreates the NFS cache mount.
 
 ## Chezmoi installation
 
-### Linux / macOS
+Install Git, chezmoi, SOPS, age, and Python 3 through the platform package manager.
+Linux setup also needs Fish. Clone this repository to `~/git/dotfiles`, then run
+`chezmoi --source ~/git/dotfiles/home init`. For a work machine, set
+`DOTFILES_WORK=1` before this initialization; personal installations do not
+render work secrets.
 
-```sh
-sh -c "$(curl -fsLS get.chezmoi.io/lb)" -- init --apply jetersen
-```
+Run the platform bootstrap explicitly before applying:
+`bash home/.chezmoiscripts/linux/.init.sh` or the corresponding macOS script. On Windows,
+run `home/.chezmoiscripts/windows/.init.ps1` from built-in Windows PowerShell;
+it installs PowerShell 7 and gsudo before the apply phase needs them.
 
-### Windows
+Restore your age identity separately before rendering work files. SOPS uses its
+standard age key location or `SOPS_AGE_KEY_FILE`. Shared work settings and private
+AI instructions come from `nixos/secrets/work.yaml`; ordinary source reads never
+log in to Proton Pass. Edit encrypted values with SOPS. Enroll an additional
+work host by adding its age recipient and running `sops updatekeys` for that file;
+Rocket is not currently a work-secret recipient.
 
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force;
-iex "&{$(irm 'https://get.chezmoi.io/ps1')} init --apply jetersen"
-```
-
-## Chezmoi updates
-
-```sh
-chezmoi update
-```
+Restore an SSH key and its matching `.pub` explicitly with
+`python3 home/.chezmoiscripts/.init-ssh.py /path/to/backup-key`. The importer
+refuses to overwrite existing keys. Review `chezmoi diff`, then run `chezmoi apply`.
+Application installation scripts can change system settings. Subsequent updates
+use `chezmoi update`.

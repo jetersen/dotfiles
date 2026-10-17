@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""Log in through a remote Linux desktop browser and copy one Argo CD context."""
+
+import argparse
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import subprocess
+import sys
+import tempfile
+
+REMOTE_SCRIPT = r'''
+import json, os, pathlib, subprocess, sys
+options = json.loads(sys.argv[1])
+path = pathlib.Path.home() / '.config/argocd/config'
+def load():
+  if not path.exists():
+    return {}
+  return json.loads(subprocess.check_output(['yq', '-o=json', '.', str(path)], timeout=10)) or {}
+def select(settings):
+  contexts = settings.get('contexts', [])
+  if options['context']:
+    matches = [c for c in contexts if c['name'] == options['context']]
+  elif options['server']:
+    matches = [c for c in contexts if c['server'] == options['server']]
+    current = [c for c in matches if c['name'] == settings.get('current-context')]
+    if current:
+      matches = current
+  else:
+    matches = [c for c in contexts if c['name'] == settings.get('current-context')]
+  if len(matches) != 1:
+    raise ValueError('select one remote context with --context or --server')
+  if options['server'] and matches[0]['server'] != options['server']:
+    raise ValueError('selected context does not use the requested server')
+  return matches[0]
+settings = load()
+if not options['copy_only']:
+  if options['server']:
+    server = options['server']
+    name = options['context'] or server
+  else:
+    selected = select(settings)
+    server = selected['server']
+    name = selected['name']
+  session = json.loads(subprocess.check_output(
+    ['systemctl', '--user', 'show-environment', '--output=json'], timeout=5))
+  env = os.environ.copy()
+  for key in ('WAYLAND_DISPLAY', 'DISPLAY', 'XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS',
+              'XDG_CURRENT_DESKTOP', 'XDG_SESSION_TYPE', 'PATH', 'BROWSER'):
+    if key in session:
+      env[key] = session[key]
+  subprocess.run(['argocd', 'login', server, '--name', name, '--sso',
+                  '--sso-launch-browser', '--sso-port', '8085', '--grpc-web'],
+                 env=env, stdout=sys.stderr, check=True, timeout=240)
+  options['context'] = name
+  settings = load()
+context = select(settings)
+servers = [s for s in settings.get('servers', []) if s['server'] == context['server']]
+users = [u for u in settings.get('users', []) if u['name'] == context['user']]
+if len(servers) != 1 or len(users) != 1 or not users[0].get('auth-token'):
+  raise ValueError('remote context has no unique server and token-bearing user')
+print(json.dumps({'context': context, 'server': servers[0], 'user': users[0]}))
+'''
+
+
+def read_config(path):
+  if not path.exists():
+    return {}
+  return json.loads(subprocess.check_output(['yq', '-o=json', '.', str(path)], timeout=10)) or {}
+
+
+def merge_context(settings, bundle):
+  context, server, user = (bundle[key] for key in ('context', 'server', 'user'))
+  if (not context.get('name') or context.get('server') != server.get('server')
+      or not context.get('user') or context.get('user') != user.get('name')
+      or not user.get('auth-token')):
+    raise ValueError('received an incomplete or inconsistent context')
+  # A remote username may also name a different local login. Give the imported
+  # user a distinct identity rather than changing credentials for other contexts.
+  other_contexts = [value for value in settings.get('contexts', [])
+                    if value['name'] != context['name']]
+  local_users = {value['name']: value for value in settings.get('users', [])}
+  original_name = user['name']
+  if (original_name in local_users and local_users[original_name] != user
+      and any(value['user'] == original_name for value in other_contexts)):
+    user = dict(user)
+    context = dict(context)
+    candidate = original_name + '@' + context['name']
+    suffix = 1
+    while any(value['user'] == candidate for value in other_contexts):
+      candidate = original_name + '@' + context['name'] + '-' + str(suffix)
+      suffix += 1
+    user['name'] = candidate
+    context['user'] = candidate
+  for existing in settings.get('servers', []):
+    if (existing['server'] == server['server'] and existing != server
+        and any(value['server'] == server['server'] for value in other_contexts)):
+      raise ValueError('server settings conflict with another local context; use a separate --config')
+  for collection, key, entry in (
+      ('contexts', 'name', context), ('servers', 'server', server), ('users', 'name', user)):
+    settings[collection] = [value for value in settings.get(collection, [])
+                            if value[key] != entry[key]] + [entry]
+  settings['current-context'] = context['name']
+  return settings
+
+
+def main():
+  parser = argparse.ArgumentParser(description=__doc__)
+  parser.add_argument('host', help='remote browser host, for example framework')
+  parser.add_argument('--vpn-profile', required=True, help='connected local OpenVPN 3 profile')
+  parser.add_argument('--server', help='Argo CD hostname[:port]; defaults to the remote context server')
+  parser.add_argument('--context', help='remote context name; defaults to current context')
+  parser.add_argument('--copy-only', action='store_true', help='copy without opening the remote browser')
+  parser.add_argument('--config', type=Path, default=Path.home() / '.config/argocd/config',
+                      help='local Argo CD configuration path')
+  args = parser.parse_args()
+  if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.@-]*', args.host):
+    parser.error('host must be a Tailscale hostname or user@hostname')
+  status = subprocess.check_output(['openvpn3', 'sessions-list'], text=True, timeout=10)
+  profile, connected = '', False
+  for line in status.splitlines():
+    if 'Config name:' in line:
+      profile = line.split('Config name:', 1)[1].strip()
+    if 'Status:' in line and profile == args.vpn_profile and 'Client connected' in line:
+      connected = True
+  if not connected:
+    raise ValueError(f'OpenVPN profile {args.vpn_profile!r} is not connected')
+  options = {key: getattr(args, key) for key in ('server', 'context', 'copy_only')}
+  response = subprocess.run(
+    ['tailscale', 'ssh', args.host, '-T', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8',
+     '-o', 'ServerAliveInterval=5', '-o', 'ServerAliveCountMax=2',
+     shlex.join(['python3', '-', json.dumps(options)])],
+    input=REMOTE_SCRIPT, stdout=subprocess.PIPE, text=True, check=True,
+    timeout=30 if args.copy_only else 270,
+  ).stdout
+  bundle = json.loads(response)
+  config = args.config.expanduser()
+  config.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+  # Serialize this helper's read/merge/replace operations without locking Argo CD itself.
+  lock = os.open(config.with_name('.remote-sso.lock'), os.O_CREAT | os.O_RDWR, 0o600)
+  with os.fdopen(lock, 'w') as stream:
+    fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    settings = merge_context(read_config(config), bundle)
+    content = subprocess.check_output(
+      ['yq', '-p=json', '-o=yaml', '-P', '.'], input=json.dumps(settings), text=True, timeout=10)
+    descriptor, temporary = tempfile.mkstemp(prefix='.remote-sso-', dir=config.parent)
+    try:
+      with os.fdopen(descriptor, 'w') as output:
+        output.write(content)
+      os.replace(temporary, config)
+    finally:
+      if os.path.exists(temporary):
+        os.unlink(temporary)
+  print(f"Context {bundle['context']['name']!r} copied from {args.host}.")
+
+
+if __name__ == '__main__':
+  try:
+    main()
+  except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError) as error:
+    # Do not include transfer output, which contains the authentication token.
+    print(f'argocd-remote-sso: {error}', file=sys.stderr)
+    sys.exit(1)

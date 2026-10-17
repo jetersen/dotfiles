@@ -87,7 +87,7 @@ github-auto-merge() {
       fi
     fi
     if [[ "$has_auto_merge" -eq 0 ]]; then
-      command gh pr merge "$pr" --squash --auto
+      command gh pr merge "$pr" --rebase --auto
     fi
   done <<< "$prs"
 }

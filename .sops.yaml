@@ -1,9 +1,21 @@
 keys:
   - &joseph age1u0m8ryqg7hfhuykraxe35v4xzw92a03w9jpt75yv3m57g6pvpp0sf24mdy
   - &framework age1pfgn5heah9k39x50g6ta54dhwp8l36kdw2lmgt0jacgvc2jfza2sf4qwlj
+  - &rocket age1tgy54hnfd4c7js9zfs4ewzanv5kv68d2qqcf6lzy0f5mq73rdu8qt5qvnw
 creation_rules:
   - path_regex: ^nixos/secrets/framework\.yaml$
     key_groups:
       - age:
           - *joseph
           - *framework
+  # Add one age recipient per authorized work machine. Joseph is the recovery recipient.
+  - path_regex: ^nixos/secrets/work\.yaml$
+    key_groups:
+      - age:
+          - *joseph
+          - *framework
+  - path_regex: ^nixos/secrets/rocket\.yaml$
+    key_groups:
+      - age:
+          - *joseph
+          - *rocket

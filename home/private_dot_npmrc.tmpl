@@ -1,4 +1,4 @@
 prefix={{ .chezmoi.homeDir }}/.npm-global
 {{ if .isWork -}}
-@msp:registry={{ output "pass-cli" "item" "view" "--vault-name" "Work" "--item-title" "MSP npm registry" "--field" "note" | trim }}
+{{ includeTemplate "work-secret" (dict "root" .chezmoi.sourceDir "key" "npm-config") -}}
 {{ end -}}

@@ -1,1 +1,2 @@
 *.zwc
+__pycache__/

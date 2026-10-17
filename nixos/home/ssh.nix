@@ -10,6 +10,11 @@
         HostKeyAlias = "rocket";
         User = config.home.username;
       };
+      framework = {
+        HostName = "framework";
+        HostKeyAlias = "framework";
+        User = config.home.username;
+      };
       worklaptop = {
         HostName = "worklaptop";
         HostKeyAlias = "worklaptop";

@@ -1,0 +1,5 @@
+{{- $work := "" -}}
+{{- if .isWork -}}
+{{- $work = includeTemplate "work-secret" (dict "root" .chezmoi.sourceDir "key" "ai-work-instructions") -}}
+{{- end -}}
+{{ include ".chezmoitemplates/ai-instructions.md" | replace "@AI_WORK_INSTRUCTIONS@" $work -}}
