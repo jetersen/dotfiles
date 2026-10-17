@@ -29,7 +29,11 @@
     enable = true;
     user = "joseph";
   };
-  services.tailscale.extraSetFlags = [ "--ssh=true" ];
+  # This desktop stays on the homelab LAN; use its local service VIPs directly.
+  services.tailscale.extraSetFlags = lib.mkForce [
+    "--accept-routes=false"
+    "--ssh=true"
+  ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.loader.systemd-boot = {
     enable = true;

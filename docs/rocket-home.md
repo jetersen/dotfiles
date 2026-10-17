@@ -33,6 +33,10 @@ Rocket automatically logs into the Niri desktop. Its login keyring keeps its
 password, so unlock it when an application first requests saved credentials.
 Desktop autologin does not unlock the keyring; no TPM unlock is configured.
 
+Rocket uses direct LAN routes to homelab services and does not accept Tailscale
+subnet routes. Tailscale connectivity and SSH remain enabled. Framework accepts
+subnet routes so the same services remain reachable away from home.
+
 Codex's [configuration documentation](https://learn.chatgpt.com/docs/config-file/config-advanced)
 describes `CODEX_HOME`; preserve an explicitly configured location as well as
 any custom SQLite location. Claude stores resumable transcripts per project;

@@ -17,6 +17,8 @@ in {
   work = c.dotfiles.work.enable;
   secrets = builtins.attrNames c.sops.secrets;
   tailscale = c.services.tailscale.package.version;
+  tailscaleFlags = c.services.tailscale.extraSetFlags;
+  frameworkTailscaleFlags = flake.nixosConfigurations.framework.config.services.tailscale.extraSetFlags;
   automaticComin = c.systemd.services.comin.wantedBy;
   automaticFetch = c.systemd.services.comin-fetch.wantedBy;
   desktopComin = c.services.comin.desktop.enable;
@@ -77,6 +79,12 @@ class RocketHostTests(unittest.TestCase):
     self.assertEqual(c['runnerWantedBy'], [])
     self.assertEqual(c['runnerDelay'], '30s')
     self.assertEqual(c['runnerRetry'], 'on-failure')
+
+  def test_desktop_uses_lan_routes_while_laptop_accepts_subnet_routes(self):
+    self.assertIn('--accept-routes=false', self.config['tailscaleFlags'])
+    self.assertNotIn('--accept-routes=true', self.config['tailscaleFlags'])
+    self.assertIn('--ssh=true', self.config['tailscaleFlags'])
+    self.assertIn('--accept-routes=true', self.config['frameworkTailscaleFlags'])
 
   def test_desktop_autologin_starts_niri_once(self):
     c = self.config
