@@ -131,6 +131,11 @@ firmware, and any host-specific paths to the installed NixOS paths before
 as `qemu-libvirtd`; adjust only the restored VM files' ownership. Check its disk,
 UEFI variable store, TPM state, network, and boot in virt-manager. Do not replace
 Nix-managed libvirt configuration with the entire old `/etc/libvirt` tree.
+For a checksummed Btrfs VM image, use the disk driver's `cache='writeback'`
+mode with flushes enabled. Avoid `cache='none'` direct I/O, which can produce
+checksum alerts when guest memory changes during a read. Keep filesystem
+checksumming enabled and check any alerts against an offline image read and
+a read-only scrub before concluding that stored data is damaged.
 
 For the runner, let the fresh Docker engine create the two named local volumes.
 With the runner stopped, restore only their `_data` contents, preserving numeric
