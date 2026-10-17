@@ -23,8 +23,17 @@
   };
 
   home-manager.users.joseph.dotfiles.niri = {
+    workspaceOutputs.browser = "DP-1";
     workspaceOutputs.music = "Lenovo Group Limited LEN P27h-10 0x344D3533";
     extraConfig = ''
+      // GLKVM remains available for diagnostics while the LG uses DisplayPort.
+      workspace "diagnostics" {
+        open-on-output "HDMI-A-1"
+      }
+      window-rule {
+        match app-id="zen" title="^(Developer Tools|Browser Console)"
+        open-on-workspace "diagnostics"
+      }
       window-rule {
         match app-id="sc2_x64.exe"
         open-on-output "DP-1"
