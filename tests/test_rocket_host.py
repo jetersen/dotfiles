@@ -25,6 +25,10 @@ in {
   rootlessDocker = c.virtualisation.docker.rootless.enable;
   managedHomeTargets = map (v: v.target) (builtins.filter (v: v.enable) (builtins.attrValues c.home-manager.users.joseph.home.file));
   runnerPrerequisites = c.systemd.services.forgejo-runner.unitConfig.ConditionPathExists;
+  waitOnline = c.systemd.services.NetworkManager-wait-online.enable;
+  runnerWantedBy = c.systemd.services.forgejo-runner.wantedBy;
+  runnerDelay = c.systemd.timers.forgejo-runner.timerConfig.OnBootSec;
+  runnerRetry = c.systemd.services.forgejo-runner.serviceConfig.Restart;
 }
 '''
 
@@ -49,18 +53,25 @@ class RocketHostTests(unittest.TestCase):
     self.assertEqual(fs['/home/joseph/.local/share/Steam']['device'], '/media/games/Steam')
     self.assertEqual(c['user'], {'uid': 1000, 'group': 'joseph', 'gid': 1000})
 
-  def test_personal_host_waits_for_explicit_deployment_and_runner_migration(self):
+  def test_personal_host_deploys_automatically_and_preserves_runner_prerequisites(self):
     c = self.config
     self.assertFalse(c['work'])
     self.assertEqual(set(c['secrets']), {'joseph-password', 'nix-cache-netrc'})
-    self.assertEqual(c['automaticComin'], [])
-    self.assertEqual(c['automaticFetch'], [])
+    self.assertIn('multi-user.target', c['automaticComin'])
+    self.assertIn('multi-user.target', c['automaticFetch'])
     self.assertFalse(c['desktopComin'])
     self.assertEqual(c['bootTimeout'], 0)
     self.assertGreaterEqual(tuple(map(int, c['tailscale'].split('.'))), (1, 104, 1))
     self.assertTrue(c['docker'])
     self.assertFalse(c['rootlessDocker'])
     self.assertIn('/var/lib/forgejo-runner/migration-ready', c['runnerPrerequisites'])
+
+  def test_background_services_do_not_block_desktop_boot(self):
+    c = self.config
+    self.assertFalse(c['waitOnline'])
+    self.assertEqual(c['runnerWantedBy'], [])
+    self.assertEqual(c['runnerDelay'], '30s')
+    self.assertEqual(c['runnerRetry'], 'on-failure')
 
   def test_ai_session_trees_are_not_home_manager_targets(self):
     targets = [str(Path(p)) for p in self.config['managedHomeTargets']]

@@ -9,7 +9,8 @@ in
   # Restore its two named data volumes and registration before creating this marker.
   systemd.services.forgejo-runner = {
     description = "Homelab Forgejo runner";
-    wantedBy = [ "multi-user.target" ];
+    # A timer starts the container health check without blocking desktop boot.
+    restartIfChanged = false;
     requires = [ "docker.service" ];
     wants = [
       "network-online.target"
@@ -37,6 +38,15 @@ in
       TimeoutStartSec = 300;
       TimeoutStopSec = 660;
       UMask = "0077";
+      Restart = "on-failure";
+      RestartSec = 15;
+    };
+  };
+  systemd.timers.forgejo-runner = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30s";
+      Unit = "forgejo-runner.service";
     };
   };
 }

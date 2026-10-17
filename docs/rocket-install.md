@@ -114,7 +114,9 @@ are not part of this procedure. Never use the Framework disk configuration.
 5. Complete the reviewed offline home handover before the first user login.
    Reboot and choose NixOS. Confirm home ownership, networking, SSH, password
    login, Niri, games, audio, clipboard, and reboot before enabling services below.
-   Comin remains disabled until migration has been accepted.
+   Normal configuration enables Comin automatically. For a new migration,
+   temporarily clear `wantedBy` for `comin` and `comin-fetch` until these checks
+   pass, then remove those overrides.
 
 ## Restore services
 
@@ -138,6 +140,11 @@ image; the nested Docker cache contains CI's Nix store. Verify the canonical
 registration directory and Compose configuration, then create
 `/var/lib/forgejo-runner/migration-ready` and start `forgejo-runner.service`.
 Confirm the registered runner handles a test job before considering it restored.
+
+Desktop boot does not wait for NetworkManager to establish connectivity. A boot
+timer starts the runner after 30 seconds; its container health check runs outside
+the desktop boot dependency chain and retries failed starts. Use
+`systemctl status forgejo-runner` to check readiness.
 
 pc2mqtt starts only when its private config exists. Confirm it retains the same
 Home Assistant device identity. Test MQTT connectivity before deliberately

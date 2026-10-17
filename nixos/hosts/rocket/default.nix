@@ -33,6 +33,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   # Hide the menu; hold Space at startup to select NixOS or CachyOS.
   boot.loader.timeout = 0;
+  # Desktop startup does not require an established network connection.
+  systemd.services.NetworkManager-wait-online.enable = false;
 
   # Match the preserved home/data ownership rather than NixOS's default primary group.
   users.groups.joseph.gid = 1000;
@@ -45,9 +47,7 @@
   sops.defaultSopsFile = ../../secrets/rocket.yaml;
   sops.secrets.joseph-password.neededForUsers = true;
 
-  # Build and inspect the host first. Enable automatic deployment only after migration.
-  systemd.services.comin.wantedBy = lib.mkForce [ ];
-  systemd.services.comin-fetch.wantedBy = lib.mkForce [ ];
+  # The daemon handles deployments; this desktop has no Comin status integration.
   services.comin.desktop.enable = lib.mkForce false;
   system.stateVersion = "26.05";
 }
