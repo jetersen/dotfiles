@@ -2,7 +2,14 @@
 { pkgs, ... }:
 {
   nixpkgs.overlays = [
-    (_final: prev: {
+    (final: prev: {
+      protontricks = prev.protontricks.overrideAttrs (old: {
+        # This generated fixture uses [[ ... ]], which /bin/sh cannot run in CI.
+        postPatch = (old.postPatch or "") + ''
+          substituteInPlace tests/conftest.py \
+            --replace-fail '#!/bin/sh' '#!${final.bash}/bin/bash'
+        '';
+      });
       steam-unwrapped = prev.steam-unwrapped.overrideAttrs {
         # Upstream's default install also writes to /etc/apt when it exists.
         # CI builds without a sandbox; only install the Nix package contents.
