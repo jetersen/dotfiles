@@ -129,7 +129,7 @@
         "nixos/**"
       ],
       "automerge": true,
-      "rebaseWhen": "conflicted"
+      "rebaseWhen": "behind-base-branch"
     }
   ],
   "automergeType": "pr",
