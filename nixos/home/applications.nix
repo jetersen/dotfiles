@@ -16,7 +16,15 @@
       source = builtins.fromJSON (builtins.readFile ../packages/discord-source.json);
     })
     dotnet-sdk_10
-    pkgsUnstable.proton-pass-cli
+    (symlinkJoin {
+      name = "${pkgsUnstable.proton-pass-cli.name}-desktop";
+      paths = [ pkgsUnstable.proton-pass-cli ];
+      nativeBuildInputs = [ makeWrapper ];
+      # Persist the local encryption key in the login-unlocked Secret Service.
+      postBuild = ''
+        wrapProgram "$out/bin/pass-cli" --set-default PROTON_PASS_LINUX_KEYRING dbus
+      '';
+    })
     dotfilesPackages.pulumi-cli
     dotfilesPackages.pulumi-language-dotnet
     awscli2

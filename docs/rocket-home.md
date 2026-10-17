@@ -26,6 +26,9 @@ Electron profiles and the original wallet matter for encrypted credentials.
 NixOS's GNOME Keyring does not automatically import or unlock a KWallet wallet;
 retain the original wallet and password and expect that some applications may
 need reauthentication. Never reset the old wallet to make a login dialog go away.
+The Nix Proton Pass CLI wrapper selects the D-Bus Secret Service backend so its
+local encryption key persists in the login-unlocked keyring across reboots.
+An explicit `PROTON_PASS_LINUX_KEYRING` environment variable can override this.
 
 Codex's [configuration documentation](https://learn.chatgpt.com/docs/config-file/config-advanced)
 describes `CODEX_HOME`; preserve an explicitly configured location as well as
