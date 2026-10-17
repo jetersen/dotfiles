@@ -616,16 +616,16 @@
     "skill-rea": {
       "flake": false,
       "locked": {
-        "lastModified": 1792218023,
-        "narHash": "sha256-JBdJvaFkWJm3m0C+qF5BG5tsfXiVl5bW/t31Zstg2cE=",
+        "lastModified": 1792249680,
+        "narHash": "sha256-rzIS9avLLpU5MyMAQqWcRy+YF/yhbp1r+lSPKqaXz6I=",
         "ref": "refs/heads/main",
-        "rev": "3c9b5d6d029ed09f8f19287187ab969b9a72016d",
+        "rev": "63696d277328f556c971d1fc9f81ae83128d468b",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/morluto/rea.git"
       },
       "original": {
-        "rev": "3c9b5d6d029ed09f8f19287187ab969b9a72016d",
+        "rev": "63696d277328f556c971d1fc9f81ae83128d468b",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/morluto/rea.git"
