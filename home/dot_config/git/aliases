@@ -1,11 +1,12 @@
 [alias]
 	change-remote-to-ssh = !git remote set-url origin $(git remote get-url origin | sed "s#https://github.com/#git@github.com:#")
 	cp = cherry-pick
+	defaultbranch = "!f() { branch=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null) || branch=; for branch in \"${branch#origin/}\" main master trunk; do [ -n \"$branch\" ] || continue; if git show-ref --verify --quiet \"refs/heads/$branch\"; then printf '%s\\n' \"$branch\"; return; fi; if git show-ref --verify --quiet \"refs/remotes/origin/$branch\"; then printf 'origin/%s\\n' \"$branch\"; return; fi; done; printf 'main\\n'; }; f"
 	fix-working-tree = !git rm --cached -r . && git reset --hard
 	fixauthor = commit --amend --reset-author --no-edit
 	lg = log --graph --pretty=format:'%C(magenta)%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
-	missing = lg HEAD..main
-	new = lg main..HEAD
+	missing = "!f() { base=$(git defaultbranch); git lg \"HEAD..$base\" \"$@\"; }; f"
+	new = "!f() { base=$(git defaultbranch); git lg \"$base..HEAD\" \"$@\"; }; f"
 	normalize = add --renormalize
 	oops = commit --amend --no-edit
 	p = push
