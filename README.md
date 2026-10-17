@@ -245,7 +245,9 @@ merge automatically with a linear history once the required
 
 NixOS CI builds Framework, Rocket, and named project shells on Rocket. A persistent Docker volume retains
 the Nix store and fetched inputs for reuse across disposable jobs. Builds run
-serially to share the store safely. Nix is included in the homelab's shared job
+in a serialized job to share the store safely. Both systems use one Nix invocation
+to share evaluation and the build budget. Command timings separate realization,
+publication, and NAS archival costs. Nix is included in the homelab's shared job
 image, so no separate Nix container or preparation job is needed. Nix reclaims
 unrooted paths under disk pressure; the latest system and CI tools stay rooted. CI also reads
 and writes a Nix binary cache on the NAS over NFS, including build dependencies.

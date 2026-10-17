@@ -19,6 +19,7 @@ jobs:
     env:
       XDG_CACHE_HOME: /nix/var/nix/ci-cache
       ATTIC_MAX_NAR_MIB: 512
+      TIMEFORMAT: "CI timing: wall=%3Rs user=%3Us sys=%3Ss"
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         sandbox = false
@@ -46,39 +47,29 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          for metric in cpu.stat memory.events; do
+            if [[ -r "/sys/fs/cgroup/$metric" ]]; then
+              cp "/sys/fs/cgroup/$metric" "$RUNNER_TEMP/ci-start-$metric"
+            fi
+          done
           nix store info --store file:///var/cache/nix-nas
           printf 'machine nix-cache.jetersen.dev login attic password %s\n' "$CACHE_TOKEN" > "$RUNNER_TEMP/nix-netrc"
           export NIX_CONFIG="$NIX_CONFIG
           extra-substituters = https://nix-cache.jetersen.dev/workstations
           extra-trusted-public-keys = workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=
           netrc-file = $RUNNER_TEMP/nix-netrc"
-          tools=$(nix build .#ci-tools --no-update-lock-file \
+          tools=$(time nix build .#ci-tools --no-update-lock-file \
             --out-link /nix/var/nix/gcroots/ci-tools --print-out-paths)
           printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
           printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\nNIX_CONFIG_END\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
-      - name: Build the Framework system
+      - name: Build the Framework and Rocket systems
         shell: bash
-        run: |
-          set -euo pipefail
-          nix build .#nixosConfigurations.framework.config.system.build.toplevel \
-            --no-update-lock-file --out-link /nix/var/nix/gcroots/ci-framework \
-            --print-out-paths > "$RUNNER_TEMP/framework-system"
-          nix eval --raw .#localGitSyncSource --no-update-lock-file \
-            > "$RUNNER_TEMP/local-git-sync-source"
-          nix-store --realise "$(cat "$RUNNER_TEMP/local-git-sync-source")" \
-            --add-root /nix/var/nix/gcroots/ci-local-git-sync-source
-      - name: Build the Rocket system
-        shell: bash
-        run: |
-          set -euo pipefail
-          nix build .#nixosConfigurations.rocket.config.system.build.toplevel \
-            --no-update-lock-file --out-link /nix/var/nix/gcroots/ci-rocket \
-            --print-out-paths > "$RUNNER_TEMP/rocket-system"
+        run: bash nixos/ci/build-systems.sh
       - name: Build project development shells
         shell: bash
         run: |
           set -euo pipefail
-          nix build .#devShells.x86_64-linux.python .#devShells.x86_64-linux.rust \
+          time nix build .#devShells.x86_64-linux.python .#devShells.x86_64-linux.rust \
             .#devShells.x86_64-linux.go .#devShells.x86_64-linux.jvm \
             .#devShells.x86_64-linux.pulumi .#devShells.x86_64-linux.dotnet-preview --no-update-lock-file \
             --out-link /nix/var/nix/gcroots/ci-project-shells --print-out-paths \
@@ -87,7 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          nix build '.#proton-ge^*' --no-update-lock-file \
+          time nix build '.#proton-ge^*' --no-update-lock-file \
             --out-link /nix/var/nix/gcroots/ci-proton-ge
       - name: Publish eligible system outputs
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
@@ -103,15 +94,15 @@ jobs:
           # Locally generated paths may also exist upstream without having its
           # signature locally. Import it so Attic's upstream filter recognizes them.
           # Cache public misses for a day; private-cache lookups remain immediate.
-          nix store copy-sigs --substituter https://cache.nixos.org \
+          time nix store copy-sigs --substituter https://cache.nixos.org \
             --option narinfo-cache-negative-ttl 86400 --recursive \
             "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}" \
             "$(cat "$RUNNER_TEMP/local-git-sync-source")"
           # Keep large outputs local to CI and let hosts build them as needed.
-          nix path-info --recursive --json \
+          time nix path-info --recursive --json \
             "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}" \
             "$(cat "$RUNNER_TEMP/local-git-sync-source")" > "$RUNNER_TEMP/system-paths.json"
-          jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
+          time jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
             to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
           ' "$RUNNER_TEMP/system-paths.json" \
             | attic push --no-closure --stdin homelab:workstations
@@ -155,4 +146,20 @@ jobs:
           fi
       - name: Cache build inputs and outputs on the NAS
         shell: bash
-        run: nix copy --all --to 'file:///var/cache/nix-nas?compression=zstd&compression-level=1'
+        run: time nix copy --all --to 'file:///var/cache/nix-nas?compression=zstd&compression-level=1'
+      - name: Report job resource use
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          for metric in cpu.stat memory.events; do
+            if [[ -r "$RUNNER_TEMP/ci-start-$metric" && -r "/sys/fs/cgroup/$metric" ]]; then
+              echo "Job cgroup $metric deltas:"
+              awk 'NR == FNR { start[$1] = $2; next } { print $1, $2 - start[$1] }' \
+                "$RUNNER_TEMP/ci-start-$metric" "/sys/fs/cgroup/$metric"
+            fi
+          done
+          if [[ -r /sys/fs/cgroup/memory.peak ]]; then
+            printf 'Job cgroup peak memory bytes: '
+            cat /sys/fs/cgroup/memory.peak
+          fi
