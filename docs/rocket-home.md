@@ -108,7 +108,8 @@ After verifying the backup and before allowing the first NixOS user session:
 - Move only reviewed legacy files aside with `.pre-nixos` names; preflight every
   destination and stop if any already exists. The audit's retirement list is a
   proposal, not an automatic deletion list. The existing Home Manager activation
-  handles the two legacy shell startup files once.
+  handles the legacy shell startup files once. It also retires Vite+'s Fish
+  startup hook so downloaded runtimes do not shadow the Nix-provided commands.
 - Retire the old T3 and Claude proxy unit files and their autostart symlinks.
   Keep their runtime, configuration, and data directories. Recreate the services
   declaratively only after compatible packages and commands are ready. Do not

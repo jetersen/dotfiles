@@ -2,11 +2,22 @@ set -euo pipefail
 home_directory=$1
 state_directory="$home_directory/.local/state/dotfiles"
 marker="$state_directory/nixos-startup-migrated"
-[[ -e "$marker" ]] && exit 0
-legacy_paths=(
-  "$home_directory/.config/fish/conf.d/config.fish"
-  "$home_directory/.config/powershell/Microsoft.PowerShell_profile.ps1"
-)
+vite_marker="$state_directory/nixos-vite-startup-migrated"
+legacy_paths=()
+markers=()
+if [[ ! -e "$marker" ]]; then
+  legacy_paths+=(
+    "$home_directory/.config/fish/conf.d/config.fish"
+    "$home_directory/.config/powershell/Microsoft.PowerShell_profile.ps1"
+  )
+  markers+=("$marker")
+fi
+if [[ ! -e "$vite_marker" ]]; then
+  # Upstream's hook prepends its downloaded binaries ahead of Nix's tools.
+  legacy_paths+=("$home_directory/.config/fish/conf.d/vite-plus.fish")
+  markers+=("$vite_marker")
+fi
+[[ ${#markers[@]} -gt 0 ]] || exit 0
 # Preflight every backup before changing any startup file.
 for path in "${legacy_paths[@]}"; do
   if [[ -e "$path" || -L "$path" ]]; then
@@ -22,4 +33,4 @@ for path in "${legacy_paths[@]}"; do
   fi
 done
 mkdir -p "$state_directory"
-touch "$marker"
+touch "${markers[@]}"

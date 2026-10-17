@@ -17,6 +17,7 @@ PRESERVE = (
 )
 RETIRE = (
     '.config/fish/conf.d/config.fish',
+    '.config/fish/conf.d/vite-plus.fish',
     '.config/powershell/Microsoft.PowerShell_profile.ps1',
     '.config/systemd/user/t3code.service',
     '.config/systemd/user/default.target.wants/t3code.service',
@@ -25,6 +26,7 @@ RETIRE = (
     '.config/systemd/user/default.target.wants/psd.service',
     '.local/bin/claude', '.local/bin/codex', '.local/bin/topf',
     '.local/bin/music-assistant-companion', '.local/bin/youtube-music',
+    '.local/bin/session-manager-plugin',
     '.local/bin/argocd-worklaptop-sso', '.local/bin/worklaptop-clip',
     '.local/share/applications/t3code.desktop',
     '.local/share/applications/t3code-url-handler.desktop',
