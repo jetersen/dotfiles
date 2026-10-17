@@ -398,6 +398,22 @@
         "url": "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz"
       }
     },
+    "nixpkgs-master": {
+      "locked": {
+        "lastModified": 1792245272,
+        "narHash": "sha256-TtXLrKuU7jiVXgdMDYcwP0BvZtl0e7ajrTwzEW1P1I0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "4497983f58db2ac4ed4f5dff823ba815b3af30b4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-unstable": {
       "locked": {
         "lastModified": 1791956154,
@@ -560,6 +576,7 @@
         "local-git-sync-source": "local-git-sync-source",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "powershell-cd-extras": "powershell-cd-extras",
         "powershell-childitemcolor": "powershell-childitemcolor",

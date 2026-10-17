@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
+    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     nixpkgs-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
     comin = {
       url = "git+https://github.com/nlewo/comin.git?ref=refs/tags/v0.14.0&shallow=1";
@@ -203,8 +204,9 @@
       # hosts can substitute it without receiving a repository credential.
       localGitSyncSource = inputs.local-git-sync-source.outPath;
       packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
+      packages.x86_64-linux.codex = inputs.nixpkgs-master.legacyPackages.x86_64-linux.codex;
       packages.x86_64-linux.t3code = pkgs.callPackage ./nixos/packages/t3code.nix {
-        codex = pkgsUnstable.codex;
+        codex = inputs.self.packages.x86_64-linux.codex;
         claude-code = pkgsAi.claude-code.override {
           manifest = builtins.fromJSON (builtins.readFile ./nixos/packages/claude-code-manifest.json);
         };

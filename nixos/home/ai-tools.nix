@@ -35,10 +35,10 @@ let
   };
 in
 {
-  # Claude and T3 follow pinned upstream releases; Codex uses unstable.
+  # Claude and T3 use upstream release pins; Codex uses nixpkgs master.
   home.packages = [
     claudeCode
-    pkgsUnstable.codex
+    dotfilesPackages.codex
     codegraph
     dotfilesPackages.t3code
   ];

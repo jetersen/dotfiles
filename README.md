@@ -62,14 +62,16 @@ Claude Code uses Anthropic's upstream release manifest with stable Nixpkgs'
 native packaging. Run `nixos/packages/update-claude-code.sh` to pin the latest
 release, or pass a specific version. Review the manifest diff and rebuild NixOS;
 Nix verifies the binary against the manifest's checksum.
-Codex CLI and CodeGraph use a separate pinned `nixpkgs-unstable` input. Update them
-with `nix flake update nixpkgs-unstable`, then rebuild NixOS.
+Codex CLI uses a separate pinned `nixpkgs-master` input to receive updates before
+they reach the unstable channel. Renovate maintains its lock; update it manually
+with `nix flake update nixpkgs-master`. CodeGraph uses `nixpkgs-unstable`.
+Rebuild NixOS after changing either pin.
 T3 Code's desktop and standalone CLI use the same checksum-pinned upstream
 release from `nixos/packages/workstation-manifest.json`. Run
 `nixos/packages/update-t3code.sh VERSION` to update both artifacts. Nix provides
 their Linux runtime; automatic application updates are disabled. T3 Code includes
-both provider CLIs on its runtime path, using the same Claude
-version as the terminal. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs
+both provider CLIs on its runtime path, using the same provider
+versions as the terminal. Launch `claude`, `codex`, or `t3code-desktop`; `t3` runs
 the web interface. Sign in locally with `claude auth login` and `codex login`.
 Credentials and application state remain user-managed outside the Nix store.
 Application binaries update through Nix rather than their own installers.
