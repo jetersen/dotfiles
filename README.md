@@ -118,6 +118,12 @@ NixOS and chezmoi share personal Niri bindings from
 Super+L locks, Super+D opens the overview, and Super+M opens or focuses Music Assistant;
 Ctrl+Alt+Delete opens the task manager.
 
+Music Assistant companion uses software volume on framework, rocket, and worklaptop
+so its application volume stays independent of system volume. Home Manager and
+chezmoi merge this preference into the writable settings file, preserving player
+identity, software volume, mute, and other local settings. Restart the companion
+after applying the preference if it is already running.
+
 Pear Desktop provides YouTube Music; `youtube-music` focuses or opens it.
 Home activation enables its tray, video hiding, Discord integration, and shortcut
 plugin while preserving local state and other preferences. Pear starts hidden

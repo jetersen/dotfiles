@@ -8,6 +8,7 @@
     ./direnv.nix
     ./git.nix
     ./local-git-sync.nix
+    ./music-assistant.nix
     ./shell.nix
     ./ssh.nix
     ./prompt.nix

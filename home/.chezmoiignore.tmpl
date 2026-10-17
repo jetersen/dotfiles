@@ -37,3 +37,7 @@ Pictures
 {{ if ne .hostname "rocket" }}
 .config/wireplumber
 {{ end }}
+{{/* Music Assistant companion is managed here only on the CachyOS clients. */}}
+{{ if or (not .isLinux) (not (or (eq .hostname "rocket") (eq .hostname "worklaptop"))) }}
+.config/music-assistant-companion
+{{ end }}
