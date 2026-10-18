@@ -13,8 +13,6 @@
     after = [ "network-online.target" ];
     path = [
       pkgs.systemd
-      pkgs.coreutils
-      config.services.comin.package
     ];
     environment = {
       PC2MQTT_CONFIG = "%d/config.json";

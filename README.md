@@ -142,14 +142,15 @@ Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
 only its own state and discovery records, and read its own command topics.
 A non-retained `PRESS` on
 `<host>/button/update/command` queues a Comin fetch in pc2mqtt. Idle Comin fetches
-immediately; busy, stopped, or suspended Comin leaves the request pending. MQTT
+through its local gRPC socket; busy, stopped, or suspended Comin leaves the request
+pending. Comin events wake the single update worker without readiness polling. MQTT
 commands are acknowledged after a successful fetch. Broker reconnects also request
 a fetch; retained command replays are ignored. Cache reads use each host's
 `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
 to CI.
 
-Hosts also check on boot, resume, and NetworkManager events. A stopped or manually
-suspended Comin stays paused. To request a check, run
+Hosts also check on boot, resume, NetworkManager events, and Comin socket changes
+through a systemd path watch. A stopped or manually suspended Comin stays paused. To request a check, run
 `sudo systemctl start comin-fetch.service`, which queues the same pc2mqtt request
 without a retry timer. After a settled evaluation/build failure, pc2mqtt restarts
 the active Comin daemon before fetching again. Stop automatic changes

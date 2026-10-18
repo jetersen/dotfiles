@@ -3,10 +3,11 @@
   rustPlatform,
   fetchFromGitea,
   cacert,
+  protobuf,
   source ? null,
 }:
 let
-  revision = "85261053df4b12081e3e0fe447ff7497e7010af2";
+  revision = "ad6bd6ecc8dcb012be0eef8ae5ab35622b3c02b2";
   shortRevision = builtins.substring 0 7 revision;
 in
 rustPlatform.buildRustPackage {
@@ -23,9 +24,12 @@ rustPlatform.buildRustPackage {
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-UHakZPKOAQP3gW8WtI9U7GJ6PBH8CYuvvwjtHbz3FDo=";
+        hash = "sha256-yJWchsdg3C3qbeF3SFxYGDt78g4/AWnSgYwzUeReNRo=";
       };
-  cargoHash = "sha256-XYBhWumGO+heL4jfEjQFDlJI4zZgZzoenTOHDYH6Gck=";
+  cargoHash = "sha256-JKVjgLZ1zLXWOiqsDQJKbAiaaKgaCFZCtjarIKdI3C4=";
+
+  nativeBuildInputs = [ protobuf ];
+  PROTOC = "${protobuf}/bin/protoc";
 
   postPatch = ''
     # Source archives have no .git directory. Keep build.rs stamping the pinned revision.

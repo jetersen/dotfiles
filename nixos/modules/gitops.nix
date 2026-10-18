@@ -38,6 +38,16 @@ in
       exporter.listen_address = "127.0.0.1";
     };
 
+    # Socket creation/replacement wakes pending requests without reconnect polling.
+    systemd.paths.comin-fetch = {
+      description = "Watch for Comin control socket changes";
+      wantedBy = [ "multi-user.target" ];
+      pathConfig = {
+        PathChanged = "/var/lib/comin/grpc.sock";
+        Unit = "comin-fetch.service";
+      };
+    };
+
     systemd.services.comin-fetch = {
       description = "Check for a published NixOS deployment";
       wants = [ "network-online.target" ];
