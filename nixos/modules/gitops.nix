@@ -17,41 +17,10 @@ let
       ]
       (builtins.readFile ../gitops/fetch.sh)
   );
-  startFetchCommand = "${pkgs.systemd}/bin/systemctl start comin-fetch.service";
-  notify = pkgs.writeShellScript "comin-notify" ''
-    set -euo pipefail
-    if [[ "''${SSH_ORIGINAL_COMMAND:-}" != fetch && "''${SSH_ORIGINAL_COMMAND:-}" != 'comin fetch' ]]; then
-      echo 'Only the fetch notification is supported.' >&2
-      exit 2
-    fi
-    exec /run/wrappers/bin/sudo -n ${startFetchCommand}
-  '';
   startFetch = "${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
 in
 {
   config = {
-    # Tailscale SSH owns tailnet port 22. Notifications use OpenSSH so its
-    # forced command and public-key restrictions also apply over the tailnet.
-    services.openssh = {
-      ports = [
-        22
-        2222
-      ];
-      openFirewall = false;
-      extraConfig = ''
-        Match LocalPort 2222
-          AllowUsers comin-notify
-          AuthenticationMethods publickey
-          ForceCommand ${notify}
-          DisableForwarding yes
-          PermitTTY no
-          PermitUserRC no
-        Match all
-      '';
-    };
-    networking.firewall.allowedTCPPorts = [ 22 ];
-    networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 2222 ];
-
     sops.secrets.nix-cache-netrc = {
       owner = "joseph";
       mode = "0600";
@@ -80,28 +49,6 @@ in
       ];
       exporter.listen_address = "127.0.0.1";
     };
-
-    users.groups.comin-notify = { };
-    users.users.comin-notify = {
-      isSystemUser = true;
-      group = "comin-notify";
-      shell = pkgs.bash;
-      openssh.authorizedKeys.keys = [
-        ''restrict,command="${notify}" ${lib.removeSuffix "\n" (builtins.readFile ../keys/deploy-notify.pub)}''
-      ];
-    };
-    security.sudo.extraRules = [
-      {
-        users = [ "comin-notify" ];
-        runAs = "root";
-        commands = [
-          {
-            command = startFetchCommand;
-            options = [ "NOPASSWD" ];
-          }
-        ];
-      }
-    ];
 
     systemd.services.comin-fetch = {
       description = "Check for a published NixOS deployment";

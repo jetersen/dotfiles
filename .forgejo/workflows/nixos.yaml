@@ -118,10 +118,8 @@ jobs:
         if: steps.current.outputs.notify == 'true'
         shell: bash
         env:
-          NOTIFY_KEY: ${{ secrets.NIXOS_DEPLOY_NOTIFY_KEY }}
-          FRAMEWORK_HOST: ${{ vars.FRAMEWORK_HOST }}
-          ROCKET_HOST: ${{ vars.ROCKET_HOST || 'rocket.rockhopper-bleak.ts.net' }}
-        run: bash nixos/ci/notify-hosts.sh
+          MQTT_NOTIFY_PASSWORD: ${{ secrets.NIXOS_DEPLOY_MQTT_PASSWORD }}
+        run: python3 nixos/ci/notify-hosts.py
       - name: Report job resource use
         if: always()
         shell: bash

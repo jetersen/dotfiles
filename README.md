@@ -125,22 +125,17 @@ selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
 out of Attic and may build locally. Lifecycle fetches can see a revision before
 CI finishes, so cached output is preferred but not required for deployment.
 
-Notifications use OpenSSH on TCP 2222, allowed only through `tailscale0`, with the
-pinned host keys and the restricted key in `nixos/keys/deploy-notify.pub`.
-Interactive Tailscale SSH stays on port 22. Install the new listener on both hosts
-before relying on CI notifications. The runner's tailnet identity needs network
-access to port 2222; Tailscale SSH permissions alone do not grant that access.
-Keep Tailscale SSH login permissions limited to intended interactive accounts.
+CI publishes non-retained MQTT update hints over `wss://mqtt.jetersen.dev/socket`
+with verified TLS. The `NIXOS_DEPLOY_MQTT_PASSWORD` repository secret authenticates
+`nixos-deploy-ci`, which can publish only the two hosts' update topics. Notifications
+use QoS 1 and CI waits for broker acknowledgement. Offline hosts check after their
+MQTT connection returns.
 
-CI needs `NIXOS_DEPLOY_NOTIFY_KEY` and the `FRAMEWORK_HOST` repository variable;
-`ROCKET_HOST` defaults to `rocket.rockhopper-bleak.ts.net`. Cache reads use each
-host's `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys
-are supplied to CI.
-
-Both hosts run pc2mqtt over `wss://mqtt.jetersen.dev/socket` using system-trusted TLS
-and SOPS credentials. A non-retained `PRESS` on `<host>/button/update/command`
-requests a Comin fetch. Broker reconnects also request a fetch; retained command
-replays are ignored. CI currently sends its notification over SSH.
+Both hosts run pc2mqtt with SOPS credentials. A non-retained `PRESS` on
+`<host>/button/update/command` requests a Comin fetch. Broker reconnects also request
+a fetch; retained command replays are ignored. Cache reads use each host's
+`nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
+to CI.
 
 Hosts also check on boot, resume, and NetworkManager events. A stopped or manually
 suspended Comin stays paused. To request a check, run

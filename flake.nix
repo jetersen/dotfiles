@@ -224,6 +224,7 @@
       packages.x86_64-linux.ci-tools = pkgs.buildEnv {
         name = "dotfiles-ci-tools";
         paths = [
+          (pkgs.python3.withPackages (python: [ python.paho-mqtt ]))
           pkgs.attic-client
           inputs.nixpkgs-master.legacyPackages.x86_64-linux.nixVersions.latest
         ];
