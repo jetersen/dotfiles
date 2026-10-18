@@ -1,9 +1,10 @@
 {
   lib,
   stdenvNoCC,
+  stdenv,
   fetchurl,
   appimageTools,
-  buildFHSEnv,
+  autoPatchelfHook,
   symlinkJoin,
   makeWrapper,
   git,
@@ -35,14 +36,34 @@ let
       cp -r . "$out/"
     '';
   };
-  cli = buildFHSEnv {
+  cli = stdenv.mkDerivation {
     pname = "t3";
     inherit version;
-    targetPkgs = pkgs: runtimePackages ++ [ pkgs.stdenv.cc.cc.lib ];
-    runScript = "${cliSource}/t3";
-    profile = ''
-      export T3CODE_DISABLE_AUTO_UPDATE=1
-      export PATH=${lib.makeBinPath runtimePackages}:"$PATH"
+    src = cliSource;
+    dontUnpack = true;
+    dontBuild = true;
+    # The standalone executable contains its JavaScript payload after the ELF data.
+    dontStrip = true;
+    nativeBuildInputs = [
+      autoPatchelfHook
+      makeWrapper
+    ];
+    buildInputs = [ stdenv.cc.cc.lib ];
+    installPhase = ''
+      runHook preInstall
+      mkdir -p "$out/lib/t3" "$out/bin"
+      cp -r "$src/"* "$out/lib/t3/"
+      chmod -R u+w "$out/lib/t3"
+      makeWrapper "$out/lib/t3/t3" "$out/bin/t3" \
+        --set T3CODE_DISABLE_AUTO_UPDATE 1 \
+        --prefix PATH : ${lib.makeBinPath runtimePackages}
+      runHook postInstall
+    '';
+    doInstallCheck = true;
+    installCheckPhase = ''
+      runHook preInstallCheck
+      "$out/bin/t3" --version
+      runHook postInstallCheck
     '';
   };
   desktopImage = fetchurl {

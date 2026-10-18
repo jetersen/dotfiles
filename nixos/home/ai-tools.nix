@@ -13,12 +13,11 @@ let
   personalInstructions = builtins.replaceStrings [ "@AI_WORK_INSTRUCTIONS@" ] [ "" ] (
     builtins.readFile ../../home/.chezmoitemplates/ai-instructions.md
   );
-  codegraph = pkgsUnstable.codegraph;
   mcpPython = pkgs.python3.withPackages (p: [ p.tomlkit ]);
   configureAiMcp = pkgs.writeShellApplication {
     name = "configure-ai-mcp";
     text = ''
-      exec ${mcpPython}/bin/python3 ${./configure-ai-mcp.py} ${lib.getExe codegraph} ${lib.optionalString workEnabled (lib.escapeShellArg osConfig.sops.secrets.victorialogs-mcp-url.path)}
+      exec ${mcpPython}/bin/python3 ${./configure-ai-mcp.py} ${lib.optionalString workEnabled (lib.escapeShellArg osConfig.sops.secrets.victorialogs-mcp-url.path)}
     '';
   };
   instructions =
@@ -39,7 +38,6 @@ in
   home.packages = [
     claudeCode
     dotfilesPackages.codex
-    codegraph
     dotfilesPackages.t3code
   ];
 

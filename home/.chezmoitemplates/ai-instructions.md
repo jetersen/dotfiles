@@ -27,12 +27,3 @@ Apply these rules to all user-facing prose without narrating routine style check
 - Vary sentence length and preserve a natural human voice.
 
 @AI_WORK_INSTRUCTIONS@
-
-## CodeGraph
-
-In repositories with `.codegraph/`, use CodeGraph first for symbol discovery, call paths, implementations, callers, tests, or blast radius. Use `rg` for known-file searches and small text checks.
-
-- When available, call `codegraph_explore` with exact symbols, files, or a focused question. It returns current line-numbered source and call paths, including dynamic dispatch. Load a deferred tool by name through tool search.
-- From the shell, run `codegraph explore "<symbol names or question>"`.
-
-Check results against current source and relevant builds or tests. External, generated, reflection-based, or dependency-injection relationships may be missing. Without `.codegraph/`, use the normal search tools.

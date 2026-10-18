@@ -52,14 +52,6 @@
       url = "git+https://github.com/vercel-labs/skills.git?rev=13e4063a1cf913f5606d57d42ab83a86f5001e04&shallow=1";
       flake = false;
     };
-    skill-unslop = {
-      url = "git+https://github.com/cursor/plugins.git?rev=0b8e952052d482ee6de06deebf14d590d77b1b34&shallow=1";
-      flake = false;
-    };
-    skill-rea = {
-      url = "git+https://github.com/morluto/rea.git?rev=c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96&shallow=1";
-      flake = false;
-    };
     lambda-tools-source = {
       url = "file+https://api.nuget.org/v3-flatcontainer/amazon.lambda.tools/7.0.0/amazon.lambda.tools.7.0.0.nupkg";
       flake = false;
@@ -205,7 +197,6 @@
           manifest = builtins.fromJSON (builtins.readFile ./nixos/packages/claude-code-manifest.json);
         };
       };
-      packages.x86_64-linux.codegraph = pkgsUnstable.codegraph;
       packages.x86_64-linux.pulumi-schema-tools =
         pkgs.callPackage ./nixos/packages/pulumi-schema-tools.nix
           {
@@ -315,8 +306,6 @@
                 };
                 agentSkillSources = {
                   find-skills = inputs.skill-finder + "/skills/find-skills";
-                  unslop = inputs.skill-unslop + "/pstack/skills/unslop";
-                  reverse-engineer-anything = inputs.skill-rea + "/.agents/skills/reverse-engineer-anything";
                 };
               };
             };

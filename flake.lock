@@ -585,8 +585,6 @@
         "pulumi-schema-tools-source": "pulumi-schema-tools-source",
         "pulumi-upgrade-provider-source": "pulumi-upgrade-provider-source",
         "skill-finder": "skill-finder",
-        "skill-rea": "skill-rea",
-        "skill-unslop": "skill-unslop",
         "snitch-source": "snitch-source",
         "sops-nix": "sops-nix",
         "zen-browser": "zen-browser"
@@ -630,42 +628,6 @@
         "shallow": true,
         "type": "git",
         "url": "https://github.com/vercel-labs/skills.git"
-      }
-    },
-    "skill-rea": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792314784,
-        "narHash": "sha256-pSf7bN4AEhyU0aJSB9+zqX5zuD5/HlguRMxI4swbqQ8=",
-        "ref": "refs/heads/main",
-        "rev": "c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/morluto/rea.git"
-      },
-      "original": {
-        "rev": "c12d9eda87aa5a022ee7e18ea96d8d03bfd12e96",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/morluto/rea.git"
-      }
-    },
-    "skill-unslop": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792308667,
-        "narHash": "sha256-9y7/JHWLK4T75Q25RnmPzEyLmkXfJV1KMB6+pAQGZl8=",
-        "ref": "refs/heads/main",
-        "rev": "0b8e952052d482ee6de06deebf14d590d77b1b34",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/cursor/plugins.git"
-      },
-      "original": {
-        "rev": "0b8e952052d482ee6de06deebf14d590d77b1b34",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/cursor/plugins.git"
       }
     },
     "snitch-source": {
