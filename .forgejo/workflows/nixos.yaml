@@ -10,8 +10,10 @@ concurrency:
 jobs:
   framework:
     if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
-    runs-on: runner-rocket
+    runs-on: [linux-docker, runner-kubernetes]
     container:
+      # Nix creates mount/network namespaces and pivots into each build sandbox.
+      options: --cap-add=SYS_ADMIN --cap-add=NET_ADMIN --security-opt=seccomp=unconfined
       volumes:
         - dotfiles-nix-cache:/nix
     timeout-minutes: 90
@@ -21,7 +23,8 @@ jobs:
       TIMEFORMAT: "CI timing: wall=%3Rs user=%3Us sys=%3Ss"
       NIX_CONFIG: |
         experimental-features = nix-command flakes
-        sandbox = false
+        sandbox = true
+        sandbox-fallback = false
         max-jobs = 2
         cores = 4
         substituters = https://cache.nixos.org

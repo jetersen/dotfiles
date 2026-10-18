@@ -125,7 +125,8 @@ Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
 ## Automatic deployment
 
 Forgejo is primary; its native push mirror updates GitHub for existing chezmoi
-installations. All NixOS hosts follow `main` through Comin. CI builds both systems
+installations. All NixOS hosts follow `main` through Comin. CI uses the Kubernetes
+runner with Nix sandboxing and a persistent store volume. It builds both systems
 and development shells, uploads eligible paths to Attic, checks that `main` still
 selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
 out of Attic and may build locally. Lifecycle fetches can see a revision before
