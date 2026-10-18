@@ -114,32 +114,14 @@ jobs:
           else
             echo 'A newer main revision exists; its build will send the notification.'
           fi
-      - name: Notify Framework to pull the published deployment
+      - name: Notify Framework and Rocket to pull the published deployment
         if: steps.current.outputs.notify == 'true'
         shell: bash
         env:
           NOTIFY_KEY: ${{ secrets.NIXOS_DEPLOY_NOTIFY_KEY }}
           FRAMEWORK_HOST: ${{ vars.FRAMEWORK_HOST }}
-        run: |
-          set -euo pipefail
-          test -n "$NOTIFY_KEY"
-          test -n "$FRAMEWORK_HOST"
-          umask 077
-          key="$RUNNER_TEMP/nixos-notify-key"
-          known_hosts="$RUNNER_TEMP/nixos-notify-known-hosts"
-          trap 'rm -f "$key" "$known_hosts"' EXIT
-          printf '%s\n' "$NOTIFY_KEY" > "$key"
-          read -r key_type public_key _ < nixos/keys/framework-host.pub
-          printf 'framework %s %s\n' "$key_type" "$public_key" > "$known_hosts"
-          if timeout 30 ssh -F /dev/null -i "$key" -o IdentitiesOnly=yes -o BatchMode=yes \
-            -o ConnectTimeout=5 -o ConnectionAttempts=1 \
-            -o ServerAliveInterval=5 -o ServerAliveCountMax=2 \
-            -o StrictHostKeyChecking=yes -o HostKeyAlias=framework \
-            -o "UserKnownHostsFile=$known_hosts" "comin-notify@$FRAMEWORK_HOST" 'comin fetch'; then
-            echo 'Framework accepted the deployment notification.'
-          else
-            echo '::warning::Framework could not accept the notification; it will check on boot, resume, or network reconnect.'
-          fi
+          ROCKET_HOST: ${{ vars.ROCKET_HOST || 'rocket.rockhopper-bleak.ts.net' }}
+        run: bash nixos/ci/notify-hosts.sh
       - name: Report job resource use
         if: always()
         shell: bash

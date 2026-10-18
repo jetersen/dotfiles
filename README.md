@@ -269,15 +269,15 @@ private Attic. Attic skips paths signed by the public NixOS cache, and CI exclud
 outputs at or above `ATTIC_MAX_NAR_MIB` in the workflow
 (currently 512 MiB unpacked). This applies to every package, not just vendor
 repacks. Hosts download and package or compile excluded outputs locally when
-needed. CI retains them in its working store. CI then sends an SSH notification over Tailscale. Stock Comin fetches `main`
+needed. CI retains them in its working store. CI then sends SSH notifications to Framework and Rocket over Tailscale. Stock Comin fetches `main`
 and builds and applies the latest revision. A boot, resume, or network check can
 see a newer revision before CI finishes, in which case missing outputs build
 locally. A failed build leaves the running generation intact. Every NixOS host follows `main`, including
 future hosts. The notification key can only request a fetch;
-it cannot select a revision or run arbitrary commands. The laptop also checks
+it cannot select a revision or run arbitrary commands. Each host also checks
 on boot, resume, and NetworkManager connection events, so offline machines catch
 up when they return. There are no periodic deployment checks. If a notification
-is missed while the laptop stays connected, the next lifecycle event or
+is missed while a host stays connected, the next lifecycle event or
 `sudo systemctl start comin-fetch.service` checks for the latest published revision.
 Comin prefers cached outputs and allows one local packaging or build job using
 up to four cores. Missing cache entries can therefore build locally. Nix does not
@@ -294,7 +294,8 @@ or Secure Boot private keys. Kernel changes still require a reboot to take effec
 
 The CI-only `NIXOS_DEPLOY_NOTIFY_KEY` matches `nixos/keys/deploy-notify.pub`.
 The `FRAMEWORK_HOST` repository variable selects its fully qualified Tailscale
-hostname. SSH verifies Framework's host key against `nixos/keys/framework-host.pub`.
+hostname. `ROCKET_HOST` optionally overrides `rocket.rockhopper-bleak.ts.net`.
+SSH verifies each host against its key in `nixos/keys/`.
 Cache access uses the encrypted `nix-cache-netrc` secret and the public signing
 key declared in `nixos/modules/gitops.nix`. Keep prior boot generations for
 rollback. Weekly garbage collection removes unrooted store paths; Comin's retained
