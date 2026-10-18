@@ -141,15 +141,18 @@ MQTT connection returns.
 Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
 only its own state and discovery records, and read its own command topics.
 A non-retained `PRESS` on
-`<host>/button/update/command` requests a Comin fetch. Broker reconnects also request
+`<host>/button/update/command` queues a Comin fetch in pc2mqtt. Idle Comin fetches
+immediately; busy, stopped, or suspended Comin leaves the request pending. MQTT
+commands are acknowledged after a successful fetch. Broker reconnects also request
 a fetch; retained command replays are ignored. Cache reads use each host's
 `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
 to CI.
 
 Hosts also check on boot, resume, and NetworkManager events. A stopped or manually
 suspended Comin stays paused. To request a check, run
-`sudo systemctl start comin-fetch.service`; after a settled evaluation/build
-failure, the worker restarts Comin before fetching again. Stop automatic changes
+`sudo systemctl start comin-fetch.service`, which queues the same pc2mqtt request
+without a retry timer. After a settled evaluation/build failure, pc2mqtt restarts
+the active Comin daemon before fetching again. Stop automatic changes
 with `sudo systemctl stop comin`. Reverting the running generation alone does not
 stop Comin from deploying `main` again. Weekly GC removes unrooted store paths;
 retained Comin generations remain protected.

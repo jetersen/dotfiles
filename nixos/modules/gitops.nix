@@ -1,22 +1,10 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
 let
-  fetch = pkgs.writeShellScript "comin-fetch" (
-    lib.replaceStrings
-      [ "@systemctl@" "@timeout@" "@comin@" "@jq@" "@sleep@" ]
-      [
-        "${pkgs.systemd}/bin/systemctl"
-        "${pkgs.coreutils}/bin/timeout"
-        (lib.getExe config.services.comin.package)
-        (lib.getExe pkgs.jq)
-        "${pkgs.coreutils}/bin/sleep"
-      ]
-      (builtins.readFile ../gitops/fetch.sh)
-  );
+  pc2mqtt = pkgs.callPackage ../packages/pc2mqtt.nix { };
   startFetch = "${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
 in
 {
@@ -52,44 +40,16 @@ in
 
     systemd.services.comin-fetch = {
       description = "Check for a published NixOS deployment";
-      wantedBy = [ "multi-user.target" ];
       wants = [ "network-online.target" ];
       after = [
         "network-online.target"
-        "comin.service"
+        "pc2mqtt.service"
       ];
+      unitConfig.ConditionPathIsSocket = "/run/pc2mqtt/update.sock";
       unitConfig.StartLimitIntervalSec = 0;
       serviceConfig = {
         Type = "oneshot";
-        # Each event rearms a one-shot check, even while the checker is busy.
-        ExecStart = "${pkgs.systemd}/bin/systemctl --no-block restart comin-fetch-retry.timer";
-        TimeoutStartSec = 120;
-        NoNewPrivileges = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-      };
-    };
-
-    # No wantedBy or repeating timer: only a notification/lifecycle event starts
-    # this chain. Busy operations defer the requested fetch until they settle.
-    systemd.timers.comin-fetch-retry = {
-      # Network event bursts may rearm this timer many times before it expires.
-      unitConfig.StartLimitIntervalSec = 0;
-      timerConfig = {
-        # Longer than the worker's 90s timeout: a notification arriving
-        # during that worker cannot expire while its service is still active.
-        OnActiveSec = "120s";
-        AccuracySec = "1s";
-        Unit = "comin-fetch-retry.service";
-      };
-    };
-    systemd.services.comin-fetch-retry = {
-      unitConfig.StartLimitIntervalSec = 0;
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = fetch;
-        TimeoutStartSec = 90;
+        ExecStart = "${pc2mqtt}/bin/pc2mqtt --request-update";
         NoNewPrivileges = true;
         ProtectSystem = "strict";
         ProtectHome = true;
