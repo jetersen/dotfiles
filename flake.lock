@@ -653,16 +653,16 @@
     "skill-unslop": {
       "flake": false,
       "locked": {
-        "lastModified": 1792211307,
-        "narHash": "sha256-R8zwlTpAw0gQbOO/SnglSN3YhqUh5r0IOg7PHU1scJg=",
+        "lastModified": 1792308667,
+        "narHash": "sha256-9y7/JHWLK4T75Q25RnmPzEyLmkXfJV1KMB6+pAQGZl8=",
         "ref": "refs/heads/main",
-        "rev": "101b274dd991f694e1f7024be2157e5f3adf07de",
+        "rev": "0b8e952052d482ee6de06deebf14d590d77b1b34",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/cursor/plugins.git"
       },
       "original": {
-        "rev": "101b274dd991f694e1f7024be2157e5f3adf07de",
+        "rev": "0b8e952052d482ee6de06deebf14d590d77b1b34",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/cursor/plugins.git"
