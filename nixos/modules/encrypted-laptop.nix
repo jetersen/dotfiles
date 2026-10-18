@@ -60,6 +60,8 @@ in
               content = {
                 type = "luks";
                 name = "cryptroot";
+                # Permit periodic filesystem TRIM through the encrypted device.
+                settings.allowDiscards = true;
                 passwordFile = "/tmp/nixos-disk-password";
                 content = {
                   type = "lvm_pv";

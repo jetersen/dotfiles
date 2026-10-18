@@ -15,7 +15,7 @@ macOS, Windows, and Codespaces installations from `home/`.
 
 Framework adds company VPN and credentials, encrypted storage, Secure Boot,
 fingerprint support, and roaming DNS. Rocket adds gaming, its existing Btrfs
-filesystems, the Windows VM tooling, Forgejo runner, and pc2mqtt.
+filesystems, the Windows VM tooling, and Forgejo runner.
 NixOS never runs chezmoi. Application profiles, authentication, projects, VM
 images, game libraries, and other local state remain outside the Nix store.
 
@@ -29,6 +29,8 @@ on the target with `nixos-generate-config --show-hardware-config --no-filesystem
 Verify the disk's persistent ID before setting it in `nixos/hosts/framework/disk.nix`.
 Its layout is a 2 GiB EFI partition and LUKS containing Btrfs and 72 GiB swap.
 The install-time passphrase file is `/tmp/nixos-disk-password` in the live system.
+LUKS permits periodic TRIM; changes to discard passthrough take effect when the
+encrypted device is opened at boot.
 
 Build the SSH-enabled installer with `nix build .#installer-iso`. Boot in UEFI
 mode with Secure Boot disabled and Ethernet connected. It advertises
@@ -56,6 +58,8 @@ to select an older generation. Kernel changes require a reboot.
 ## Desktop and development
 
 Both machines use Niri, DankMaterialShell, DankGreeter, Alacritty, Zed, and Rider.
+Systemd-oomd monitors application memory pressure in `app.slice`; the compositor
+and session services in `session.slice` remain outside that policy.
 Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select
 monitor and workspace preferences. DMS-generated bindings and display settings
 remain writable. Super+L locks, Super+D opens the overview, and Super+M focuses
@@ -131,7 +135,9 @@ with verified TLS. The `NIXOS_DEPLOY_MQTT_PASSWORD` repository secret authentica
 use QoS 1 and CI waits for broker acknowledgement. Offline hosts check after their
 MQTT connection returns.
 
-Both hosts run pc2mqtt with SOPS credentials. A non-retained `PRESS` on
+Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
+only its own state and discovery records, and read its own command topics.
+A non-retained `PRESS` on
 `<host>/button/update/command` requests a Comin fetch. Broker reconnects also request
 a fetch; retained command replays are ignored. Cache reads use each host's
 `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
