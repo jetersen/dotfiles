@@ -14,7 +14,7 @@ creation_rules:
       - age:
           - *joseph
           - *framework
-  - path_regex: ^nixos/secrets/rocket\.yaml$
+  - path_regex: ^nixos/secrets/(rocket\.yaml|pc2mqtt\.json)$
     key_groups:
       - age:
           - *joseph

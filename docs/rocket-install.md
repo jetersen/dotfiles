@@ -94,8 +94,8 @@ are not part of this procedure. Never use the Framework disk configuration.
    verified backup exists. Keep the backup directory on the games disk.
 3. Copy the existing SSH host keys to `/mnt/nixos/etc/ssh` with their original
    permissions. Verify the Ed25519 public key matches `nixos/keys/rocket-host.pub`.
-   Copy `/etc/pc2mqtt` and `/var/lib/tailscale` from the old root into their new
-   locations with restrictive original permissions. Never put them in Nix paths.
+   Copy `/var/lib/tailscale` from the old root into its new location with
+   restrictive original permissions. Never put it in Nix paths.
 4. Use the verified prebuilt Rocket system from the installer cache:
 
    ```sh
@@ -151,9 +151,18 @@ timer starts the runner after 30 seconds; its container health check runs outsid
 the desktop boot dependency chain and retries failed starts. Use
 `systemctl status forgejo-runner` to check readiness.
 
-pc2mqtt starts only when its private config exists. Confirm it retains the same
-Home Assistant device identity. Test MQTT connectivity before deliberately
-testing power commands. Verify Tailscale retains its enrollment and SSH policy.
+pc2mqtt's config is encrypted in `nixos/secrets/pc2mqtt.json` for Rocket and the
+recovery identity. SOPS decrypts it to `/run/secrets/pc2mqtt-config`, and systemd
+passes it through `LoadCredential`. To edit it, run:
+
+```sh
+sops --input-type binary --output-type binary nixos/secrets/pc2mqtt.json
+```
+
+Config changes restart the service on deployment. Confirm it retains the same
+Home Assistant device identity.
+Test MQTT connectivity before deliberately testing power commands. Verify
+Tailscale retains its enrollment and SSH policy.
 
 ## Rollback
 
