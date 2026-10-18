@@ -95,11 +95,3 @@ For laptop rollback:
 
 The native OpenVPN config editor is documented in
 [OpenVPN's administration manual](https://github.com/OpenVPN/openvpn3-linux/blob/master/docs/man/openvpn3-admin-netcfg-service.8.rst).
-
-## Checks
-
-Run `python3 -B -m unittest discover -s tests -v` from this directory. The tests
-start real dnsdist against isolated loopback DNS servers, covering blocking
-responses, one/both home resolvers failing, recovery, public-answer TTLs, private
-names, live VPN route changes, interface reuse, and routing-intent validation.
-They do not alter the host's DNS settings.
