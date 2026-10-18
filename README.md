@@ -137,6 +137,11 @@ CI needs `NIXOS_DEPLOY_NOTIFY_KEY` and the `FRAMEWORK_HOST` repository variable;
 host's `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys
 are supplied to CI.
 
+Both hosts run pc2mqtt over `wss://mqtt.jetersen.dev/socket` using system-trusted TLS
+and SOPS credentials. A non-retained `PRESS` on `<host>/button/update/command`
+requests a Comin fetch. Broker reconnects also request a fetch; retained command
+replays are ignored. CI currently sends its notification over SSH.
+
 Hosts also check on boot, resume, and NetworkManager events. A stopped or manually
 suspended Comin stays paused. To request a check, run
 `sudo systemctl start comin-fetch.service`; after a settled evaluation/build

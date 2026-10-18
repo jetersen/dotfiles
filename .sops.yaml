@@ -3,7 +3,7 @@ keys:
   - &framework age1pfgn5heah9k39x50g6ta54dhwp8l36kdw2lmgt0jacgvc2jfza2sf4qwlj
   - &rocket age1tgy54hnfd4c7js9zfs4ewzanv5kv68d2qqcf6lzy0f5mq73rdu8qt5qvnw
 creation_rules:
-  - path_regex: ^nixos/secrets/framework\.yaml$
+  - path_regex: ^nixos/secrets/(framework\.yaml|pc2mqtt-framework\.json)$
     key_groups:
       - age:
           - *joseph
@@ -14,7 +14,7 @@ creation_rules:
       - age:
           - *joseph
           - *framework
-  - path_regex: ^nixos/secrets/(rocket\.yaml|pc2mqtt\.json)$
+  - path_regex: ^nixos/secrets/(rocket\.yaml|pc2mqtt-rocket\.json)$
     key_groups:
       - age:
           - *joseph

@@ -7,6 +7,7 @@
 }:
 {
   imports = [
+    ../../modules/pc2mqtt.nix
     inputs.self.nixosModules.workstation
     inputs.self.nixosModules.gaming
     ./hardware-configuration.nix

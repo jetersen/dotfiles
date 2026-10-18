@@ -2,10 +2,11 @@
   lib,
   rustPlatform,
   fetchFromGitea,
+  cacert,
   source ? null,
 }:
 let
-  revision = "1ffb0f7566cfb046e2ef754f453043e16b607cc0";
+  revision = "6126ef29027a8b855350062a3209dff538e473f9";
   shortRevision = builtins.substring 0 7 revision;
 in
 rustPlatform.buildRustPackage {
@@ -22,9 +23,9 @@ rustPlatform.buildRustPackage {
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-XblJbW4IquMCPkr+tmv1QPqh/NsjybuCnB39nSQZLx8=";
+        hash = "sha256-WIpVbuagsZCv8q44f6Gi6QfMwkfEgBl/pRuPgCjBARM=";
       };
-  cargoHash = "sha256-tSROtXAlLDTK7Yig+rBNwqaa4Wjbwi1dpMNwje5BjRs=";
+  cargoHash = "sha256-XYBhWumGO+heL4jfEjQFDlJI4zZgZzoenTOHDYH6Gck=";
 
   postPatch = ''
     # Source archives have no .git directory. Keep build.rs stamping the pinned revision.
@@ -34,6 +35,9 @@ rustPlatform.buildRustPackage {
     # Build for the Nix platform rather than the upstream workstation's musl target.
     rm .cargo/config.toml
   '';
+
+  # Secure transport tests use the same trusted roots as the deployed service.
+  SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
   doInstallCheck = true;
   installCheckPhase = ''

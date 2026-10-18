@@ -196,12 +196,12 @@ timer starts the runner after 30 seconds; its container health check runs outsid
 the desktop boot dependency chain and retries failed starts. Use
 `systemctl status forgejo-runner` to check readiness.
 
-pc2mqtt's config is encrypted in `nixos/secrets/pc2mqtt.json` for Rocket and the
+pc2mqtt's config is encrypted in `nixos/secrets/pc2mqtt-rocket.json` for Rocket and the
 recovery identity. SOPS decrypts it to `/run/secrets/pc2mqtt-config`, and systemd
 passes it through `LoadCredential`. To edit it, run:
 
 ```sh
-sops --input-type binary --output-type binary nixos/secrets/pc2mqtt.json
+sops --input-type binary --output-type binary nixos/secrets/pc2mqtt-rocket.json
 ```
 
 Config changes restart the service on deployment. Confirm it retains the same

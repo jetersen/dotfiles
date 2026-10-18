@@ -7,6 +7,7 @@
 }:
 {
   imports = [
+    ../../modules/pc2mqtt.nix
     inputs.self.nixosModules.workstation
     inputs.self.nixosModules.work
     inputs.self.nixosModules.encrypted-laptop
