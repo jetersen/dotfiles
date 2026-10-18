@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   pkgs,
   ...
 }:
@@ -24,6 +25,17 @@ in
 
     services.comin = {
       enable = true;
+      # v0.14 records the pre-switch system as current. Keep gRPC status accurate.
+      package = inputs.comin.packages.${pkgs.stdenv.hostPlatform.system}.comin.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ../gitops/comin-current-deployment.patch ];
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          export GOFLAGS=''${GOFLAGS//-trimpath/}
+          go test -timeout 60s ./internal/deployer ./internal/store
+          runHook postCheck
+        '';
+      });
       desktop.enable = true;
       remotes = [
         {

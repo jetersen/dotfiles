@@ -1,0 +1,58 @@
+--- a/internal/deployer/deployer.go
++++ b/internal/deployer/deployer.go
+@@ -30,0 +31 @@
++	getStorepaths      func() (string, string)
+@@ -122,0 +124 @@
++		getStorepaths:         utils.GetBootedAndCurrentStorepaths,
+@@ -225 +227 @@
+-			booted, current := utils.GetBootedAndCurrentStorepaths()
++			booted, current := d.getStorepaths()
+@@ -247,0 +250,3 @@
++			// Activation may replace /run/current-system. Record the resulting
++			// system instead of retaining the pre-activation deployment pointer.
++			booted, current = d.getStorepaths()
+--- /dev/null
++++ b/internal/deployer/current_system_test.go
+@@ -0,0 +1,42 @@
++package deployer
++
++import (
++	"context"
++	"testing"
++	"time"
++
++	"github.com/nlewo/comin/internal/broker"
++	"github.com/nlewo/comin/internal/store"
++	"github.com/nlewo/comin/pkg/protobuf"
++	"github.com/stretchr/testify/assert"
++)
++
++func TestDeploymentRefreshesCurrentSystemAfterActivation(t *testing.T) {
++	bk := broker.New()
++	bk.Start()
++	tmp := t.TempDir()
++	storage, err := store.New(bk, tmp+"/state.json", tmp+"/gcroots", 2, 2, 2)
++	if !assert.NoError(t, err) {
++		return
++	}
++	current := "/old-system"
++	deploy := func(context.Context, string, string, []string) (bool, string, error) {
++		current = "/new-system"
++		return false, "profile-path", nil
++	}
++	d := New(storage, deploy, nil, "")
++	d.getStorepaths = func() (string, string) { return "/old-system", current }
++	d.Run(t.Context())
++	d.Submit(&protobuf.Generation{SelectedCommitId: "new-revision", OutPath: "/new-system"}, "switch", false, "")
++	select {
++	case deployment := <-d.DeploymentDoneCh:
++		state := storage.GetState()
++		assert.Equal(t, "done", deployment.Status)
++		assert.Equal(t, deployment.Uuid, state.DeploymentSwitched,
++			"switched deployment must follow the post-activation current-system link")
++		assert.NotEqual(t, state.DeploymentBooted, state.DeploymentSwitched,
++			"switching does not change the booted system")
++	case <-time.After(5 * time.Second):
++		t.Fatal("deployment did not finish")
++	}
++}
