@@ -1,5 +1,14 @@
 { lib, pkgs, ... }:
 {
+  home.pointerCursor = {
+    enable = true;
+    package = pkgs.catppuccin-cursors.mochaMauve;
+    name = "catppuccin-mocha-mauve-cursors";
+    size = 24;
+    gtk.enable = true;
+    x11.enable = true;
+  };
+
   gtk = {
     enable = true;
     iconTheme.name = "Papirus-Dark";

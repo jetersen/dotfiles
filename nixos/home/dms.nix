@@ -40,6 +40,10 @@ let
       })
       // {
         customThemeFile = "${config.xdg.configHome}/DankMaterialShell/themes/catppuccin/theme.json";
+        cursorSettings = {
+          theme = config.home.pointerCursor.name;
+          size = config.home.pointerCursor.size;
+        };
       }
     )
   );
