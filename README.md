@@ -50,10 +50,11 @@ and sops-nix.
 Alacritty shell startup runs a patched Microfetch with workstation hardware,
 display, battery, network, appearance, and Nix package information. Build or run
 it with `nix build .#microfetch` or `nix run .#microfetch`. The local Rust extensions
-and upstream patch live in `nixos/packages/microfetch/`. Package counts are cached
-under `$XDG_CACHE_HOME/microfetch` (default `~/.cache/microfetch`) and refreshed
-when a profile's resolved Nix store target changes; unchanged profiles require no
-Nix subprocess. Fastfetch remains installed for detailed diagnostics.
+and upstream patch live in `nixos/packages/microfetch/`. Display names include EDID
+model IDs, and the card reports the Alacritty font and days since June 7, 2024.
+Package counts are cached under `$XDG_CACHE_HOME/microfetch` (default
+`~/.cache/microfetch`) and refreshed when a profile's resolved Nix store target
+changes; unchanged profiles require no Nix subprocess.
 
 The initial desktop includes only essential applications from NixOS stable.
 DMS and DankGreeter use their upstream flakes pinned to release tags, with

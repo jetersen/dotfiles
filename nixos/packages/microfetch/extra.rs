@@ -233,6 +233,43 @@ fn gpu_rows() -> Vec<String> {
   }
   result
 }
+fn edid_model(edid: &[u8]) -> Option<String> {
+  if edid.len() < 128 || edid[..8] != [0, 255, 255, 255, 255, 255, 255, 0] {
+    return None;
+  }
+  let vendor = u16::from_be_bytes([edid[8], edid[9]]);
+  let mut manufacturer = String::new();
+  for shift in [10, 5, 0] {
+    let letter = ((vendor >> shift) & 31) as u8;
+    if !(1..=26).contains(&letter) {
+      return None;
+    }
+    manufacturer.push((b'A' + letter - 1) as char);
+  }
+  let id = format!(
+    "{manufacturer}{:04X}",
+    u16::from_le_bytes([edid[10], edid[11]])
+  );
+  let name = edid[54..126].chunks_exact(18).find_map(|block| {
+    (block[..5] == [0, 0, 0, 0xfc, 0])
+      .then(|| String::from_utf8_lossy(&block[5..]).trim().to_string())
+      .filter(|name| !name.is_empty())
+  });
+  Some(name.map_or(id.clone(), |name| format!("{name} [{id}]")))
+}
+fn display_model(connector: &str) -> Option<String> {
+  fs::read_dir("/sys/class/drm")
+    .ok()?
+    .flatten()
+    .find_map(|entry| {
+      let name = entry.file_name();
+      let (_, output) = name.to_str()?.split_once('-')?;
+      if output != connector {
+        return None;
+      }
+      edid_model(&fs::read(entry.path().join("edid")).ok()?)
+    })
+}
 fn displays() -> Vec<String> {
   // Niri IPC includes live mode, scaling, refresh rate and physical dimensions.
   if env::var_os("NIRI_SOCKET").is_none() {
@@ -241,9 +278,9 @@ fn displays() -> Vec<String> {
   let Some(text) = command(env!("MICROFETCH_NIRI"), &["msg", "outputs"]) else {
     return Vec::new();
   };
-  parse_displays(&text)
+  parse_displays(&text, display_model)
 }
-fn parse_displays(text: &str) -> Vec<String> {
+fn parse_displays(text: &str, model: impl Fn(&str) -> Option<String>) -> Vec<String> {
   let mut result = Vec::new();
   let mut name = String::new();
   let mut mode = String::new();
@@ -257,11 +294,24 @@ fn parse_displays(text: &str) -> Vec<String> {
   for line in text.lines() {
     if line.starts_with("Output ") {
       flush(&mut result, &name, &mode, &scale, &size);
-      name = line
+      let connector = line
         .rsplit_once('(')
         .map(|(_, s)| s.trim_end_matches(')'))
-        .unwrap_or("Display")
-        .to_string();
+        .unwrap_or("Display");
+      let description = line
+        .strip_prefix("Output \"")
+        .and_then(|s| s.rsplit_once("\" ("))
+        .map(|(description, _)| description);
+      name = model(connector)
+        .or_else(|| {
+          description
+            .filter(|s| !s.is_empty())
+            .map(ToString::to_string)
+        })
+        .map_or_else(
+          || connector.to_string(),
+          |model| format!("{model} ({connector})"),
+        );
       mode.clear();
       scale.clear();
       size.clear();
@@ -382,12 +432,28 @@ fn power_rows() -> Vec<(String, String)> {
   }
   rows
 }
-fn terminal() -> String {
-  if let Ok(term) = env::var("TERM_PROGRAM") {
-    return term;
+fn terminal_hint(term: &str, program: &str) -> Option<String> {
+  if term == "alacritty" {
+    Some("Alacritty".to_string())
+  } else {
+    (!program.is_empty()).then(|| program.to_string())
   }
-  if env::var("TERM").is_ok_and(|s| s == "alacritty") {
-    return "Alacritty".to_string();
+}
+fn days_on_linux(now: std::time::SystemTime) -> String {
+  // First day on Linux: 2024-06-07, matching the former fastfetch command.
+  const START: u64 = 1_717_718_400;
+  let seconds = now
+    .duration_since(std::time::UNIX_EPOCH)
+    .unwrap_or_default()
+    .as_secs();
+  format!("{} days", seconds.saturating_sub(START) / 86_400)
+}
+fn terminal() -> String {
+  if let Some(term) = terminal_hint(
+    &env::var("TERM").unwrap_or_default(),
+    &env::var("TERM_PROGRAM").unwrap_or_default(),
+  ) {
+    return term;
   }
   let mut pid = std::process::id();
   for _ in 0..12 {
@@ -425,6 +491,28 @@ fn config_dir() -> PathBuf {
     .map(PathBuf::from)
     .unwrap_or_else(|| home().join(".config"))
 }
+fn alacritty_font(text: &str) -> Option<String> {
+  let mut section = "";
+  let mut font = None;
+  let mut size = None;
+  for line in text.lines().map(str::trim) {
+    if line.starts_with('[') {
+      section = line;
+    }
+    if section == "[font]" {
+      font = setting(line, "normal.family").or(font);
+      size = setting(line, "size").or(size);
+    } else if section == "[font.normal]" {
+      font = setting(line, "family").or(font);
+    }
+  }
+  font.map(|font| {
+    format!(
+      "{font}{}",
+      size.map(|s| format!(" ({s}pt)")).unwrap_or_default()
+    )
+  })
+}
 fn appearance() -> Vec<(String, String)> {
   let config = config_dir();
   let gtk = read(config.join("gtk-3.0/settings.ini"));
@@ -461,29 +549,8 @@ fn appearance() -> Vec<(String, String)> {
   }
   if term.eq_ignore_ascii_case("alacritty") {
     let text = read(config.join("alacritty/alacritty.toml"));
-    let mut in_font = false;
-    let mut font = None;
-    let mut size = None;
-    for line in text.lines() {
-      let line = line.trim();
-      if line.starts_with('[') {
-        in_font = line == "[font]" || line == "[font.normal]";
-      }
-      if in_font {
-        font = font
-          .or_else(|| setting(line, "normal.family"))
-          .or_else(|| setting(line, "family"));
-        size = size.or_else(|| setting(line, "size"));
-      }
-    }
-    if let Some(font) = font {
-      rows.push((
-        "Terminal font".to_string(),
-        format!(
-          "{font}{}",
-          size.map(|s| format!(" ({s}pt)")).unwrap_or_default()
-        ),
-      ));
+    if let Some(font) = alacritty_font(&text) {
+      rows.push(("Terminal font".to_string(), font));
     }
   }
   rows
@@ -559,6 +626,7 @@ pub(super) fn render(fields: &Fields) -> Result<(), Error> {
       .find_map(|key| env::var(key).ok().filter(|s| !s.is_empty()))
       .unwrap_or_default(),
   );
+  add("Days on Linux", days_on_linux(std::time::SystemTime::now()));
   add("Colors", fields.colors.clone());
   let c = crate::colors::Colors::new(crate::colors::is_no_color());
   let logo = [
@@ -602,6 +670,75 @@ pub(super) fn render(fields: &Fields) -> Result<(), Error> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  #[test]
+  fn edid_reports_name_and_pnp_model() {
+    let mut edid = [0u8; 128];
+    edid[..12].copy_from_slice(&[0, 255, 255, 255, 255, 255, 255, 0, 0x1e, 0x6d, 0x0d, 0x78]);
+    assert_eq!(edid_model(&edid).as_deref(), Some("GSM780D"));
+    edid[54..72].copy_from_slice(b"\0\0\0\xfc\0LG ULTRAGEAR+");
+    assert_eq!(
+      edid_model(&edid).as_deref(),
+      Some("LG ULTRAGEAR+ [GSM780D]")
+    );
+    edid[8..12].copy_from_slice(&[0x1d, 0x89, 0x1c, 0xc2]);
+    edid[59..72].copy_from_slice(b"GLKVM\n       ");
+    assert_eq!(edid_model(&edid).as_deref(), Some("GLKVM [GLIC21C]"));
+    assert_eq!(edid_model(&edid[..127]), None);
+    edid[0] = 1;
+    assert_eq!(edid_model(&edid), None);
+  }
+  #[test]
+  fn displays_use_edid_when_available() {
+    let output = "Output \"LG Electronics LG ULTRAGEAR+ serial\" (DP-1)\n  Current mode: 3440x1440 @ 240.085 Hz\n";
+    assert_eq!(
+      parse_displays(output, |_| Some("LG ULTRAGEAR+ [GSM780D]".to_string())),
+      ["LG ULTRAGEAR+ [GSM780D] (DP-1): 3440x1440 @ 240.085 Hz"]
+    );
+  }
+  #[test]
+  fn linux_days_start_at_original_date_and_advance_at_midnight_utc() {
+    use std::time::{Duration, UNIX_EPOCH};
+    assert_eq!(
+      days_on_linux(UNIX_EPOCH + Duration::from_secs(1_717_718_400)),
+      "0 days"
+    );
+    assert_eq!(
+      days_on_linux(UNIX_EPOCH + Duration::from_secs(1_717_804_799)),
+      "0 days"
+    );
+    assert_eq!(
+      days_on_linux(UNIX_EPOCH + Duration::from_secs(1_717_804_800)),
+      "1 days"
+    );
+    assert_eq!(days_on_linux(UNIX_EPOCH), "0 days");
+  }
+  #[test]
+  fn alacritty_identity_overrides_inherited_terminal_program() {
+    assert_eq!(
+      terminal_hint("alacritty", "vscode").as_deref(),
+      Some("Alacritty")
+    );
+    assert_eq!(
+      terminal_hint("xterm-256color", "WezTerm").as_deref(),
+      Some("WezTerm")
+    );
+    assert_eq!(terminal_hint("linux", ""), None);
+  }
+  #[test]
+  fn alacritty_font_matches_managed_config_and_normal_section() {
+    assert_eq!(
+      alacritty_font(include_str!("alacritty-test.toml")).as_deref(),
+      Some("JetBrainsMono Nerd Font (12.0pt)")
+    );
+    assert_eq!(
+      alacritty_font(
+        "[font]\nsize = 13\n[font.bold]\nfamily = \"Bold\"\n[font.normal]\nfamily = \"Normal\""
+      )
+      .as_deref(),
+      Some("Normal (13pt)")
+    );
+    assert_eq!(alacritty_font("[window]\nopacity = 1"), None);
+  }
   #[test]
   fn cache_requires_exact_target_and_nonempty_value() {
     assert_eq!(
@@ -675,8 +812,8 @@ mod tests {
   fn display_parser_ignores_disconnected_outputs() {
     let output = "Output \"Panel\" (eDP-1)\n  Current mode: 2880x1920 @ 120.000 Hz (preferred)\n  Physical size: 280x190 mm\n  Scale: 1.5\nOutput \"Off\" (DP-1)\n  Current mode: disabled\n";
     assert_eq!(
-      parse_displays(output),
-      ["eDP-1: 2880x1920 @ 120.000 Hz, 1.5x, 280x190 mm"]
+      parse_displays(output, |_| None),
+      ["Panel (eDP-1): 2880x1920 @ 120.000 Hz, 1.5x, 280x190 mm"]
     );
   }
 }

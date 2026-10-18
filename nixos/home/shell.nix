@@ -29,7 +29,6 @@ in
   home.packages = [
     pkgs.fd
     dotfilesPackages.microfetch
-    pkgs.fastfetch
   ];
   home.sessionVariables = {
     SUDO_EDITOR = "nvim";
