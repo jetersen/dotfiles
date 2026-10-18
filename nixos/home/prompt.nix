@@ -111,8 +111,6 @@ in
       enableTransience = false;
       inherit settings;
     };
-    programs.bash.enable = true;
-    programs.zsh.enable = true;
     # Home Manager has no PowerShell module. Use its all-hosts user profile.
     xdg.configFile."powershell/profile.ps1".text = ''
       $env:STARSHIP_CONFIG = '${config.programs.starship.configPath}'

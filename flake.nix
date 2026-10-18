@@ -44,6 +44,10 @@
       url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=f9e01be5ca81840f1b0e5322d40342cbce96e09c&shallow=1";
       flake = false;
     };
+    dms-storage-monitor = {
+      url = "git+https://github.com/jetersen/dms-storage-monitor.git?rev=8dbf7f2484b0f81683add744664b3bb17c1389e5&shallow=1";
+      flake = false;
+    };
     skill-finder = {
       url = "git+https://github.com/vercel-labs/skills.git?rev=13e4063a1cf913f5606d57d42ab83a86f5001e04&shallow=1";
       flake = false;
@@ -141,7 +145,6 @@
       home-manager,
       disko,
       sops-nix,
-      nixos-hardware,
       ...
     }:
     let
@@ -303,6 +306,7 @@
                 };
                 dotfilesPackages = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
                 dmsSource = inputs.dms;
+                storageMonitorSource = inputs.dms-storage-monitor;
                 powershellModules = {
                   posh-git = inputs.powershell-posh-git + "/src";
                   cd-extras = inputs.powershell-cd-extras + "/cd-extras";
@@ -323,35 +327,19 @@
           ];
         };
         gaming = import ./nixos/profiles/gaming.nix;
-        framework = { pkgs, ... }: {
-          programs.dms-shell.package = pkgs.callPackage ./nixos/packages/dms-screen-idle.nix {
-            dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
-          };
-          imports = [
-            inputs.self.nixosModules.workstation
-            inputs.self.nixosModules.work
-            inputs.self.nixosModules.encrypted-laptop
-            inputs.self.nixosModules.secure-boot
-            nixos-hardware.nixosModules.framework-intel-core-ultra-series3
-            ./nixos/hosts/framework
-          ];
-        };
-        rocket = {
-          imports = [
-            inputs.self.nixosModules.workstation
-            inputs.self.nixosModules.gaming
-            ./nixos/hosts/rocket
-          ];
-        };
+        framework = import ./nixos/hosts/framework;
+        rocket = import ./nixos/hosts/rocket;
       };
 
       nixosConfigurations = {
         rocket = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
           modules = [ inputs.self.nixosModules.rocket ];
         };
         framework = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
           modules = [ inputs.self.nixosModules.framework ];
         };
         installer = nixpkgs.lib.nixosSystem {

@@ -4,11 +4,13 @@ After=dbus.service
 Before=homelab-dns.service
 
 [Service]
+Group=dnsdist
+UMask=0027
 ExecStart=/usr/bin/python3 /usr/local/lib/homelab-dns/vpn_bridge.py
 Restart=always
 RestartSec=2
 StateDirectory=homelab-dns
-StateDirectoryMode=0755
+StateDirectoryMode=0750
 NoNewPrivileges=yes
 ProtectSystem=strict
 # The plugin publishes under /run/user; ProtectHome=yes would hide that path.

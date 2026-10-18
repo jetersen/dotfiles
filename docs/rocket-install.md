@@ -8,7 +8,9 @@ age recovery identity on another machine and verify it before relying on it.
 
 ## Before entering the installer
 
-Build both systems from the approved checkout. Keep that checkout, including
+Build both systems from the approved checkout. For the first migration, clear
+`wantedBy` for `comin` and `comin-fetch` in that checkout before building;
+normal configuration enables automatic deployment. Keep that checkout, including
 uncommitted configuration files, accessible from the live installer. Record the
 built Rocket system path outside `/tmp`; it can be copied into the new Nix store
 rather than rebuilt. The installer cache on the second SSD stores that path in
@@ -22,7 +24,7 @@ private registration directory into
 mode 0700 and file mode 0600. Confirm its values match the running runner without
 printing them. The backup script requires this canonical location.
 
-First complete the [home and AI state handover review](rocket-home.md), including
+First complete the home handover below, including
 browser profile-sync shutdown and AI service version compatibility. Finish CI
 jobs and shut down the runner containers gracefully. Shut down the Windows VM
 and applications. Enter a RAM-based NixOS installer with kexec, or boot live
@@ -31,6 +33,51 @@ transition; do not run automatic Disko/formatting phases. Enter one root shell
 with `sudo -i`.
 Use the installed `tar`, Btrfs tools, util-linux, age, and zstd; if necessary,
 start a temporary `nix-shell -p age zstd btrfs-progs`.
+
+## Home handover
+
+Reuse `@home`, `@srv`, and UID/GID 1000. Back up the entire home before the first
+activation. Preserve AI data (`~/.t3`, `~/.t3-desktop`, `~/.codex`, `~/.claude`,
+`.claude.json`, and desktop profiles), projects and worktrees, credentials,
+browser/editor profiles, wallets, game saves, and local application state.
+Do not move project paths or restore whole old configuration directories over
+Home Manager links. GNOME Keyring does not import KWallet automatically.
+Rocket's desktop autologin does not unlock its encrypted login keyring.
+
+Close AI clients and stop the old T3/proxy services. Stop profile-sync-daemon
+through systemd so browser profiles return from RAM to disk. Verify no browser
+profile points into `/run` or `/tmp`. Stop other writers before the offline
+backup. Preserve SQLite databases with their WAL and journal files together.
+
+Inspect Home Manager's intended targets from the checkout without activation:
+
+```sh
+nix eval --impure --json --expr '
+  let
+    f = builtins.getFlake ("git+file://" + toString ./.);
+    h = f.nixosConfigurations.rocket.config.home-manager.users.joseph;
+  in builtins.mapAttrs (_: v: {
+    inherit (v) target force recursive;
+    source = toString v.source;
+  }) (f.inputs.nixpkgs.lib.filterAttrs (_: v: v.enable) h.home.file)
+' > /tmp/rocket-home-managed.json
+python3 scripts/rocket-home-audit.py \
+  --managed-files /tmp/rocket-home-managed.json \
+  --output /tmp/rocket-home-audit.json
+```
+
+The Git reference includes tracked working-tree edits and excludes untracked
+files; add intended new source files before building or auditing. Keep audit
+reports private. Home Manager backs up managed collisions as `.pre-nixos` and
+must not overwrite earlier backups. Review existing symlinks separately.
+
+Retire only reviewed legacy launchers and user-service links. Keep data and
+custom scripts. The one-time startup migration retires old chezmoi Fish,
+PowerShell, and Vite startup files. Codex/Claude MCP settings, DMS, GitHub CLI,
+and music settings are merged in place; the offline archive preserves originals.
+Compare AI client versions before opening real databases. Retain old clients and
+backups until sessions, attachments, worktrees, authentication, and launchers
+have been checked with the intended Nix versions.
 
 ## Verify and back up
 
@@ -114,9 +161,7 @@ are not part of this procedure. Never use the Framework disk configuration.
 5. Complete the reviewed offline home handover before the first user login.
    Reboot and choose NixOS. Confirm home ownership, networking, SSH, password
    login, Niri, games, audio, clipboard, and reboot before enabling services below.
-   Normal configuration enables Comin automatically. For a new migration,
-   temporarily clear `wantedBy` for `comin` and `comin-fetch` until these checks
-   pass, then remove those overrides.
+   Remove the temporary Comin overrides only after these checks pass.
 
 ## Restore services
 

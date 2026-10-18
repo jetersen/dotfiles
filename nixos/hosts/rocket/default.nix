@@ -1,11 +1,14 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
 }:
 {
   imports = [
+    inputs.self.nixosModules.workstation
+    inputs.self.nixosModules.gaming
     ./hardware-configuration.nix
     ./filesystems.nix
     ./desktop.nix

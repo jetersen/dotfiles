@@ -19,8 +19,9 @@ def retain_domains(path, domains):
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = path.with_suffix(".tmp")
         temporary.write_text("".join(domain + "\n" for domain in sorted(combined)))
-        temporary.chmod(0o644)
+        temporary.chmod(0o640)
         temporary.replace(path)
+    path.chmod(0o640)
 
 
 def magic_suffix(config):

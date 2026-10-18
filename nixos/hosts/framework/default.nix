@@ -1,16 +1,28 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
 }:
 {
   imports = [
+    inputs.self.nixosModules.workstation
+    inputs.self.nixosModules.work
+    inputs.self.nixosModules.encrypted-laptop
+    inputs.self.nixosModules.secure-boot
+    inputs.nixos-hardware.nixosModules.framework-intel-core-ultra-series3
     ./hardware-configuration.nix
+    ../../modules/roaming-dns.nix
     ./disk.nix
   ];
 
+  programs.dms-shell.package = pkgs.callPackage ../../packages/dms-screen-idle.nix {
+    dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  };
+
   networking.hostName = "framework";
+  users.users.joseph.uid = 1000;
   # Authenticate relay connections through the existing tailnet SSH policy.
   services.tailscale.extraSetFlags = [ "--ssh=true" ];
   # Ethernet and Wi-Fi can share a subnet while Ethernet remains preferred.

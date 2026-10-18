@@ -30,6 +30,28 @@ let
 in
 {
   config = {
+    # Tailscale SSH owns tailnet port 22. Notifications use OpenSSH so its
+    # forced command and public-key restrictions also apply over the tailnet.
+    services.openssh = {
+      ports = [
+        22
+        2222
+      ];
+      openFirewall = false;
+      extraConfig = ''
+        Match LocalPort 2222
+          AllowUsers comin-notify
+          AuthenticationMethods publickey
+          ForceCommand ${notify}
+          DisableForwarding yes
+          PermitTTY no
+          PermitUserRC no
+        Match all
+      '';
+    };
+    networking.firewall.allowedTCPPorts = [ 22 ];
+    networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 2222 ];
+
     sops.secrets.nix-cache-netrc = {
       owner = "joseph";
       mode = "0600";

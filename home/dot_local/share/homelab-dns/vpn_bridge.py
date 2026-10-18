@@ -78,22 +78,34 @@ def render(entries):
 
 def publish(path, text):
     if path.exists() and path.read_text() == text:
+        path.chmod(0o640)
         return
     temporary = path.with_suffix('.tmp')
     temporary.write_text(text)
-    temporary.chmod(0o644)
+    temporary.chmod(0o640)
     temporary.replace(path)
 
 
 def main():
+    os.umask(0o027)
     import dbus
     config = json.loads(Path('/etc/homelab-dns/config.json').read_text())
     uid = config['uid']
     assert type(uid) is int and uid > 0
     root = Path('/var/lib/homelab-dns')
     root.mkdir(parents=True, exist_ok=True)
+    # Seed private domains before the first VPN connection so a fresh install
+    # cannot forward known work names to a home or public resolver.
+    if config.get('domains_file'):
+        values = json.loads(Path(config['domains_file']).read_text())
+        assert isinstance(values, list) and 0 < len(values) <= 4096
+        assert all(isinstance(value, str) for value in values)
+        domains = {value.lower().removeprefix('~').rstrip('.') for value in values}
+        assert all(DOMAIN.fullmatch(domain) for domain in domains)
+        reconcile.retain_domains(root / 'work-domains', domains)
     bus = dbus.SystemBus()
     previous_error = None
+    notify = os.environ.get('NOTIFY_SOCKET')
     while True:
         try:
             intent = read_intent(uid)
@@ -108,6 +120,11 @@ def main():
                 logging.warning('VPN DNS bridge will retry: %s', message)
             previous_error = message
         publish(root / 'vpn-routes.lua', render(entries))
+        if notify:
+            address = '\0' + notify[1:] if notify.startswith('@') else notify
+            with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as ready:
+                ready.sendto(b'READY=1', address)
+            notify = None
         time.sleep(2)
 
 

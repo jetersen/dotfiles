@@ -44,7 +44,6 @@ pacman = [
   "rustup",
   "satty",
   "sops",
-  "syncthing",
   "tailscale",
   "ttf-jetbrains-mono-nerd",
   "ttf-jetbrains-mono",

@@ -188,6 +188,24 @@
         "url": "https://github.com/jetersen/dms-openvpn3.git"
       }
     },
+    "dms-storage-monitor": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787036788,
+        "narHash": "sha256-oShajBrMZb0+MSVDHETL+LXDwIOicYd8IyzPbIRjUlk=",
+        "ref": "refs/heads/main",
+        "rev": "8dbf7f2484b0f81683add744664b3bb17c1389e5",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/jetersen/dms-storage-monitor.git"
+      },
+      "original": {
+        "rev": "8dbf7f2484b0f81683add744664b3bb17c1389e5",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/jetersen/dms-storage-monitor.git"
+      }
+    },
     "dotnet-counters-source": {
       "flake": false,
       "locked": {
@@ -548,6 +566,7 @@
         "disko": "disko",
         "dms": "dms",
         "dms-openvpn3": "dms-openvpn3",
+        "dms-storage-monitor": "dms-storage-monitor",
         "dotnet-counters-source": "dotnet-counters-source",
         "dotnet-script-source": "dotnet-script-source",
         "dotnet-stack-source": "dotnet-stack-source",

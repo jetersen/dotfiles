@@ -19,23 +19,7 @@ let
     substituteInPlace "$out/helper/split_dns.py" \
       --replace-fail '"resolvectl"' '"${pkgs.systemd}/bin/resolvectl"'
   '';
-  enablePlugin = pkgs.writeShellApplication {
-    name = "enable-openvpn-plugin";
-    runtimeInputs = [
-      pkgs.coreutils
-      pkgs.jq
-    ];
-    text = ''
-      config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}"
-      settings="$config_dir/DankMaterialShell/plugin_settings.json"
-      current=/dev/stdin
-      if [[ -s "$settings" ]]; then current="$settings"; fi
-      temporary=$(mktemp "$(dirname "$settings")/.plugins.XXXXXX")
-      trap 'rm -f "$temporary"' EXIT
-      jq '.openvpn3.enabled = true' "$current" <<< '{}' > "$temporary"
-      if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
-    '';
-  };
+
 in
 {
   xdg.configFile = {
@@ -51,7 +35,4 @@ in
     };
   };
 
-  home.activation.enableOpenvpnPlugin = lib.hm.dag.entryAfter [ "configureDms" ] ''
-    run ${lib.getExe enablePlugin}
-  '';
 }

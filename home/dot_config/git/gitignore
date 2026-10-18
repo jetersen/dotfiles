@@ -30,13 +30,3 @@ Desktop.ini
 CLAUDE.local.md
 **/.claude/settings.local.json
 **/.claude/worktrees/
-
-# Syncthing
-*.sync-conflict-*
-*.syncthing.*.tmp
-.stignore
-.stfolder
-.rsync-exclude
-
-# Bootstrap marker for syncthing-cloned repos (see ~/.local/bin/git-bootstrap)
-.git-remote

@@ -3,12 +3,13 @@
   imports = [
     ./ai-tools.nix
     ./desktop.nix
+    ./dms.nix
     ./development.nix
     ./direnv.nix
     ./git.nix
     ./remote-clipboard.nix
     ./niri.nix
-    ./music-assistant.nix
+    ./media.nix
     ./shell.nix
     ./ssh.nix
     ./prompt.nix

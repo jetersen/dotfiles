@@ -1,0 +1,3 @@
+.local/bin/git-bootstrap
+.local/bin/git-remote-sidecars
+git/.stignore
