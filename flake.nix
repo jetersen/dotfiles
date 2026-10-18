@@ -19,6 +19,7 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    crane.url = "git+https://github.com/ipetkov/crane.git?rev=73b980519cefc727a5f6cc8e5c0947a2f9be6edd&shallow=1";
     disko = {
       url = "git+https://github.com/nix-community/disko.git?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -34,7 +35,7 @@
     lanzaboote = {
       url = "git+https://github.com/nix-community/lanzaboote.git?ref=refs/tags/v1.2.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.crane.url = "git+https://github.com/ipetkov/crane.git?rev=73b980519cefc727a5f6cc8e5c0947a2f9be6edd&shallow=1";
+      inputs.crane.follows = "crane";
       inputs.rust-overlay = {
         url = "git+https://github.com/oxalica/rust-overlay.git?rev=1fb104a12a8667045559b2575d6d448ae2fbd99b&shallow=1";
         inputs.nixpkgs.follows = "nixpkgs";
@@ -171,6 +172,9 @@
       packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
       packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix { };
       packages.x86_64-linux.microfetch = pkgs.callPackage ./nixos/packages/microfetch.nix { };
+      packages.x86_64-linux.pc2mqtt = pkgs.callPackage ./nixos/packages/pc2mqtt.nix {
+        craneLib = inputs.crane.mkLib pkgs;
+      };
       packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix { };
       packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix { };
       packages.x86_64-linux.dotnet-lambda =

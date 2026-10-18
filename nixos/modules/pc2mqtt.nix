@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
 {
   sops.secrets.pc2mqtt-config = {
     sopsFile = ../secrets/pc2mqtt-${config.networking.hostName}.json;
@@ -19,7 +24,7 @@
       SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
     };
     serviceConfig = {
-      ExecStart = "${pkgs.callPackage ../packages/pc2mqtt.nix { }}/bin/pc2mqtt";
+      ExecStart = "${inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pc2mqtt}/bin/pc2mqtt";
       LoadCredential = "config.json:${config.sops.secrets.pc2mqtt-config.path}";
       Restart = "always";
       RestartSec = 5;

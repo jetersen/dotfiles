@@ -5,7 +5,7 @@
   ...
 }:
 let
-  pc2mqtt = pkgs.callPackage ../packages/pc2mqtt.nix { };
+  pc2mqtt = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pc2mqtt;
   startFetch = "${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
 in
 {

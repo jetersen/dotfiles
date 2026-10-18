@@ -144,7 +144,10 @@ CI publishes non-retained MQTT update hints over `wss://mqtt.jetersen.dev/socket
 with verified TLS. The `NIXOS_DEPLOY_MQTT_PASSWORD` repository secret authenticates
 `nixos-deploy-ci`, which can publish only the two hosts' update topics. Notifications
 use QoS 1 and CI waits for broker acknowledgement. Offline hosts check after their
-MQTT connection returns.
+MQTT connection returns. Crane caches pc2mqtt's compiled Rust dependencies separately
+from its source. CI retains the latest dependency artifacts and publishes eligible
+outputs to Attic for reuse across source edits; dependency and toolchain changes
+rebuild them.
 
 Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
 only its own state and discovery records, and read its own command topics.

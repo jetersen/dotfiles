@@ -64,6 +64,13 @@ jobs:
       - name: Build the Framework and Rocket systems
         shell: bash
         run: bash nixos/ci/build-systems.sh
+      - name: Retain compiled Rust dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          time nix build .#pc2mqtt.cargoArtifacts --no-update-lock-file \
+            --out-link /nix/var/nix/gcroots/ci-pc2mqtt-deps --print-out-paths \
+            > "$RUNNER_TEMP/pc2mqtt-deps"
       - name: Build project development shells
         shell: bash
         run: |
@@ -90,15 +97,16 @@ jobs:
           mkdir -p "$HOME/.config/attic"
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
           mapfile -t project_shells < "$RUNNER_TEMP/project-shells"
+          pc2mqtt_deps=$(cat "$RUNNER_TEMP/pc2mqtt-deps")
           # Locally generated paths may also exist upstream without having its
           # signature locally. Import it so Attic's upstream filter recognizes them.
           # Cache public misses for a day; private-cache lookups remain immediate.
           time nix store copy-sigs --substituter https://cache.nixos.org \
             --option narinfo-cache-negative-ttl 86400 --recursive \
-            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}"
+            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "$pc2mqtt_deps" "${project_shells[@]}"
           # Keep large outputs local to CI and let hosts build them as needed.
           time nix path-info --recursive --json \
-            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "${project_shells[@]}" > "$RUNNER_TEMP/system-paths.json"
+            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "$pc2mqtt_deps" "${project_shells[@]}" > "$RUNNER_TEMP/system-paths.json"
           time jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
             to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
           ' "$RUNNER_TEMP/system-paths.json" \

@@ -340,7 +340,9 @@
     },
     "lanzaboote": {
       "inputs": {
-        "crane": "crane",
+        "crane": [
+          "crane"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -582,6 +584,7 @@
         "apicompat-source": "apicompat-source",
         "central-pkg-converter-source": "central-pkg-converter-source",
         "comin": "comin",
+        "crane": "crane",
         "dank-greeter": "dank-greeter",
         "disko": "disko",
         "dms": "dms",
