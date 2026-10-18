@@ -430,16 +430,16 @@
     "powershell-cd-extras": {
       "flake": false,
       "locked": {
-        "lastModified": 1616670372,
-        "narHash": "sha256-7SGxNan39c+4xZG7i5buvs8ZCBeXARANJtzl6u7Jx6o=",
-        "ref": "refs/tags/v2.9.4",
-        "rev": "fd2982d659c520ae15e75491c05cffca89be4bd1",
+        "lastModified": 1788052792,
+        "narHash": "sha256-rllaQvEhmzzszEEFAioQ02dLIzHPftc3uouZgO4ykcU=",
+        "ref": "refs/tags/v3.0.0",
+        "rev": "4456fed7c1b3640a5ce86e5739a9c640a814575f",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/nickcox/cd-extras.git"
       },
       "original": {
-        "ref": "refs/tags/v2.9.4",
+        "ref": "refs/tags/v3.0.0",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/nickcox/cd-extras.git"

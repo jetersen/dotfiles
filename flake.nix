@@ -101,7 +101,7 @@
       flake = false;
     };
     powershell-cd-extras = {
-      url = "git+https://github.com/nickcox/cd-extras.git?ref=refs/tags/v2.9.4&shallow=1";
+      url = "git+https://github.com/nickcox/cd-extras.git?ref=refs/tags/v3.0.0&shallow=1";
       flake = false;
     };
     powershell-childitemcolor = {
