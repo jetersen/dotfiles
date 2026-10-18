@@ -171,6 +171,7 @@
       packages.x86_64-linux.ssh-to-age = pkgs.ssh-to-age;
       packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
       packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix { };
+      packages.x86_64-linux.microfetch = pkgs.callPackage ./nixos/packages/microfetch.nix { };
       packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix { };
       packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix { };
       packages.x86_64-linux.dotnet-lambda =

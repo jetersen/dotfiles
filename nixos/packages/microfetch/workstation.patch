@@ -1,0 +1,47 @@
+--- a/crates/lib/src/lib.rs
++++ b/crates/lib/src/lib.rs
+@@ -1,5 +1,7 @@
+ #![no_std]
+ extern crate alloc;
++extern crate std;
++mod extra;
+
+ pub mod colors;
+ pub mod cpu;
+@@ -292,6 +294,11 @@
+   storage:        String,
+   colors:         String,
+ }
++
++// Retain the upstream renderer so the workstation patch stays small across updates.
++#[allow(dead_code)]
++mod upstream_renderer {
++use super::*;
+
+ /// Minimal, stack-allocated writer implementing `core::fmt::Write`. Avoids heap
+ /// allocation for the output buffer.
+@@ -481,6 +488,24 @@
+   Ok(())
+ }
+
++} // upstream_renderer
++
++#[cfg_attr(feature = "hotpath", hotpath::measure)]
++fn print_system_info(fields: &Fields) -> Result<(), Error> {
++  extra::render(fields)
++}
++
++/// Initialize the upstream environment view from our standard Rust entry point.
++///
++/// # Safety
++/// `argv` must contain argc pointers, a null, and a null-terminated envp array.
++pub unsafe fn run_with_environment(argc: i32, argv: *const *const u8) -> Result<(), Error> {
++  unsafe {
++    init_env(argv.add(argc as usize + 1));
++    run(argc, argv)
++  }
++}
++
+ /// Print version information using direct syscall.
+ fn print_version() {
+   const VERSION: &str = concat!("Microfetch ", env!("CARGO_PKG_VERSION"), "\n");

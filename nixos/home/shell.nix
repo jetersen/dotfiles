@@ -3,6 +3,7 @@
   lib,
   pkgs,
   powershellModules,
+  dotfilesPackages,
   ...
 }:
 let
@@ -27,6 +28,7 @@ in
 {
   home.packages = [
     pkgs.fd
+    dotfilesPackages.microfetch
     pkgs.fastfetch
   ];
   home.sessionVariables = {
@@ -45,7 +47,7 @@ in
       export CDPATH="$HOME/git"
       source ${./shell/bash.sh}
       if [[ $TERM == alacritty && -t 1 ]]; then
-        ${lib.getExe pkgs.fastfetch}
+        ${lib.getExe dotfilesPackages.microfetch}
       fi
     '';
   };
@@ -55,7 +57,7 @@ in
       export CDPATH="$HOME/git"
       source ${./shell/bash.sh}
       if [[ $TERM == alacritty && -t 1 ]]; then
-        ${lib.getExe pkgs.fastfetch}
+        ${lib.getExe dotfilesPackages.microfetch}
       fi
     '';
   };
@@ -66,7 +68,7 @@ in
       set -gx CDPATH $HOME/git
       source ${./shell/fish.fish}
       if test "$TERM" = alacritty; and isatty stdout
-        ${lib.getExe pkgs.fastfetch}
+        ${lib.getExe dotfilesPackages.microfetch}
       end
     '';
   };
@@ -75,7 +77,7 @@ in
     + ''
 
       if ($env:TERM -eq 'alacritty' -and -not [Console]::IsOutputRedirected) {
-        & '${lib.getExe pkgs.fastfetch}'
+        & '${lib.getExe dotfilesPackages.microfetch}'
       }
     ''
   );
