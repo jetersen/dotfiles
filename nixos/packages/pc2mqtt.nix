@@ -7,7 +7,7 @@
   source ? null,
 }:
 let
-  revision = "ad6bd6ecc8dcb012be0eef8ae5ab35622b3c02b2";
+  revision = "1cfadd6547ea66b9020a9d2b7dfc0a28815b5fb8";
   shortRevision = builtins.substring 0 7 revision;
 in
 rustPlatform.buildRustPackage {
@@ -24,7 +24,7 @@ rustPlatform.buildRustPackage {
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-yJWchsdg3C3qbeF3SFxYGDt78g4/AWnSgYwzUeReNRo=";
+        hash = "sha256-uc/MFV+Bz2D3PZS10VX28dhxUkT9atAZkdge8W2NhnA=";
       };
   cargoHash = "sha256-JKVjgLZ1zLXWOiqsDQJKbAiaaKgaCFZCtjarIKdI3C4=";
 

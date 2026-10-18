@@ -153,7 +153,10 @@ A non-retained `PRESS` on
 through its local gRPC socket; busy, stopped, or suspended Comin leaves the request
 pending. Comin events wake the single update worker without readiness polling. MQTT
 commands are acknowledged after a successful fetch. Broker reconnects also request
-a fetch; retained command replays are ignored. Cache reads use each host's
+a fetch; retained command replays are ignored. Home Assistant discovers Deployment,
+Deployed revision, and Reboot required entities on each pc2mqtt device. Deployment
+attributes include the booted revision; state changes come from Comin events.
+Cache reads use each host's
 `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
 to CI.
 
