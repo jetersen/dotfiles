@@ -363,6 +363,26 @@
         "url": "https://github.com/nix-community/lanzaboote.git"
       }
     },
+    "nix-index-database": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792309949,
+        "narHash": "sha256-2DAEMk8YkV8OF6N2uw9jQ016cYoNkcgnq50AShwWxNw=",
+        "owner": "nix-community",
+        "repo": "nix-index-database",
+        "rev": "1b4d1758fa6053c5d6284254a793134fa602fbff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nix-index-database",
+        "type": "github"
+      }
+    },
     "nixos-hardware": {
       "inputs": {
         "nixpkgs": [
@@ -574,6 +594,7 @@
         "home-manager": "home-manager",
         "lambda-tools-source": "lambda-tools-source",
         "lanzaboote": "lanzaboote",
+        "nix-index-database": "nix-index-database",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",
         "nixpkgs-master": "nixpkgs-master",

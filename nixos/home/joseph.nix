@@ -10,6 +10,7 @@
     ./remote-clipboard.nix
     ./niri.nix
     ./media.nix
+    ./nix-index.nix
     ./shell.nix
     ./ssh.nix
     ./prompt.nix

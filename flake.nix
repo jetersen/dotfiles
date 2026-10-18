@@ -15,6 +15,10 @@
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     disko = {
       url = "git+https://github.com/nix-community/disko.git?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -284,10 +288,13 @@
               inputs.comin.nixosModules.comin
               ./nixos/profiles/workstation.nix
             ];
+            programs.command-not-found.enable = false;
             home-manager = {
               useGlobalPkgs = true;
               useUserPackages = true;
+              sharedModules = [ inputs.nix-index-database.homeModules.default ];
               extraSpecialArgs = {
+                nixIndexPackages = inputs.nix-index-database.packages.${pkgs.stdenv.hostPlatform.system};
                 pkgsMaster = import inputs.nixpkgs-master {
                   inherit (pkgs.stdenv.hostPlatform) system;
                   config.allowUnfree = true;
