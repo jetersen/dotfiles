@@ -12,7 +12,7 @@
       });
       steam-unwrapped = prev.steam-unwrapped.overrideAttrs {
         # Upstream's default install also writes to /etc/apt when it exists.
-        # CI builds without a sandbox; only install the Nix package contents.
+        # Install only the Nix package contents, without distribution integration.
         installTargets = [
           "install-bin"
           "install-docs"
