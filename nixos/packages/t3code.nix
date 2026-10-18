@@ -74,6 +74,8 @@ symlinkJoin {
   ];
   nativeBuildInputs = [ makeWrapper ];
   postBuild = ''
+    # T3's generated desktop/URL handler must launch the Nix FHS wrapper.
+    wrapProgram "$out/bin/t3code-desktop" --set APPIMAGE "$out/bin/t3code-desktop"
     # Keep all historical entry points selecting the same release.
     ln -s "$out/bin/t3" "$out/bin/t3code"
     mkdir -p "$out/share/applications"

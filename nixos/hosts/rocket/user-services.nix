@@ -9,7 +9,7 @@
       t3code = dotfilesPackages.t3code;
       desktop = {
         name = "T3 Code";
-        exec = "${pkgs.coreutils}/bin/env T3CODE_HOME=${config.home.homeDirectory}/.t3-desktop T3CODE_DISABLE_AUTO_UPDATE=1 ${t3code}/bin/t3code-desktop %U";
+        exec = "${pkgs.coreutils}/bin/env T3CODE_DISABLE_AUTO_UPDATE=1 ${t3code}/bin/t3code-desktop %U";
         icon = "t3code";
         terminal = false;
         categories = [ "Development" ];
@@ -43,7 +43,7 @@
         Install.WantedBy = [ "default.target" ];
       };
 
-      # Retain the desktop's separate home and historical URL-handler names.
+      # The desktop uses ~/.t3 with its local server disabled. Retain URL-handler names.
       xdg.desktopEntries = {
         t3code = desktop;
         t3code-url-handler = desktop // {

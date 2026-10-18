@@ -134,10 +134,11 @@ After verifying the backup and before allowing the first NixOS user session:
   and URL handlers. Keep user-created entries that still work. Do not delete the
   entire applications directory or all user services.
 
-Rocket declares T3 as a user service with lingering enabled. T3's server uses
-`~/.t3`; its desktop and historical URL handlers use `~/.t3-desktop`.
-Keep the desktop's local server setting disabled when using the background
-server. Nix manages the T3 executable and updates. Syncthing remains disabled;
+Rocket declares T3 as a user service with lingering enabled. Both the server and
+desktop use the standard `~/.t3` home. Keep the desktop's local server setting
+disabled when using the background server. The former `~/.t3-desktop` remains a
+recovery source. Nix manages the T3 executable and updates, including the wrapper
+used by T3's generated URL handler. Syncthing remains disabled;
 its preserved state is available for recovery.
 
 Before opening real AI data, compare installed versions with the last CachyOS
