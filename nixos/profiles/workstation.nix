@@ -4,6 +4,7 @@
   imports = [
     ../modules/virtualisation.nix
     ../modules/gitops.nix
+    ../modules/storage-maintenance.nix
   ];
   options.dotfiles.work.enable = lib.mkEnableOption "company tools and credentials";
   config = {

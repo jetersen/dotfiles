@@ -55,6 +55,11 @@ Use `rocket` for Rocket. Update inputs with `nix flake update`; do not change
 NixOS or Home Manager state versions when updating packages. Hold Space at boot
 to select an older generation. Kernel changes require a reboot.
 
+Btrfs scrubbing runs monthly on AC power, capped at 100 MiB/s per device.
+Subvolumes sharing a filesystem are scrubbed once. Runs skipped on battery wait
+until the next scheduled occurrence. Inspect results with `sudo btrfs scrub status /`;
+Rocket's games filesystem can be checked with `sudo btrfs scrub status /media/games`.
+
 ## Desktop and development
 
 Both machines use Niri, DankMaterialShell, DankGreeter, Alacritty, Zed, and Rider.
