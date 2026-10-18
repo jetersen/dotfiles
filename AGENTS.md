@@ -12,6 +12,11 @@ Installation instructions are in `README.md`.
 - Forgejo is primary; its native push mirror updates GitHub. Push to `origin` on
   Forgejo. All NixOS hosts deploy from `main`; CI caches the system before notifying
   each host. Do not introduce per-host deployment branches.
+- Prefer the normal CI/Attic/Comin deployment path: push authorized changes to
+  `origin/main`, wait for CI to cache the target revision, then let Comin deploy.
+  If a manual check is needed, start `comin-fetch.service` on the target host.
+  Use local `nixos-rebuild` only as a fallback when that path is unavailable or
+  for explicitly requested local testing or recovery. Explain why before using it.
 - Edit chezmoi source files under `home/` and NixOS configuration under `nixos/`.
   NixOS must not invoke chezmoi; plain assets under `home/` can be reused directly.
   If applying a change locally, keep the source and deployed file consistent.
