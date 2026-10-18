@@ -17,7 +17,7 @@ let
     command_timeout = 500;
     format = lib.concatStrings [
       "($username$hostname )$directory$git_branch$git_commit$git_state$git_status"
-      "$dotnet$nodejs$python$nix_shell"
+      "$dotnet$python$nix_shell"
       "$battery"
       "$cmd_duration$status$line_break$character"
     ];
@@ -61,7 +61,7 @@ let
       diverged = "↑\${ahead_count}↓\${behind_count}";
     };
     dotnet.format = "[.NET $version](#89b4fa) ";
-    nodejs.format = "[Node $version](#a6e3a1) ";
+    nodejs.disabled = true;
     python.format = "[Py $version( $virtualenv)](#f9e2af) ";
     nix_shell.format = "[Nix $state](#89dceb) ";
     battery = {
