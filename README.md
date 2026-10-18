@@ -47,6 +47,10 @@ disabled until migration is complete.
 The Framework configuration uses Niri, DankMaterialShell, DankGreeter, Disko,
 and sops-nix.
 
+Framework turns its screens off after 15 minutes without input on AC or battery,
+even when applications inhibit idle. DMS's explicit Keep Awake toggle still
+pauses that timer. Lock and suspend continue to respect application inhibitors.
+
 Alacritty shell startup runs a patched Microfetch with workstation hardware,
 display, battery, network, appearance, and Nix package information. Build or run
 it with `nix build .#microfetch` or `nix run .#microfetch`. The local Rust extensions

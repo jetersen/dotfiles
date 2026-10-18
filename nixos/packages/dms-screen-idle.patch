@@ -1,0 +1,32 @@
+--- a/Services/IdleService.qml
++++ b/Services/IdleService.qml
+@@ -40,7 +40,10 @@
+         // which goes inactive whenever the bar surface is occluded
+         // (fullscreen windows) or hidden (auto-hide).
+         const base = enabled && !SessionService.idleInhibited && !externalInhibitActive;
+-        monitorOffMonitor.enabled = base && monitorTimeout > 0 && !postLockMonitorActive;
++        // Application inhibitors must not keep Framework's displays lit.
++        // The explicit Keep Awake toggle still controls the screen timer.
++        const screenBase = enabled && !SessionService.idleInhibited;
++        monitorOffMonitor.enabled = screenBase && monitorTimeout > 0 && !postLockMonitorActive;
+         postLockMonitorOffMonitor.enabled = enabled && postLockMonitorActive;
+         lockMonitor.enabled = base && lockTimeout > 0;
+         suspendMonitor.enabled = base && suspendTimeout > 0;
+@@ -77,7 +80,7 @@
+     IdleMonitor {
+         id: monitorOffMonitor
+         timeout: root.monitorTimeout > 0 ? root.monitorTimeout : 86400
+-        respectInhibitors: root.respectInhibitors
++        respectInhibitors: false
+         enabled: false
+         onIsIdleChanged: {
+             if (!enabled)
+@@ -100,7 +103,7 @@
+     IdleMonitor {
+         id: postLockMonitorOffMonitor
+         timeout: root.postLockMonitorTimeout > 0 ? root.postLockMonitorTimeout : 86400
+-        respectInhibitors: root.respectInhibitors
++        respectInhibitors: false
+         enabled: false
+         onIsIdleChanged: {
+             if (!enabled)

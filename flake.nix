@@ -253,7 +253,9 @@
               ./nixos/modules/desktop.nix
               inputs.dank-greeter.nixosModules.default
             ];
-            programs.dms-shell.package = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+            programs.dms-shell.package =
+              lib.mkDefault
+                inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
             environment.systemPackages = [
               inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.beta
               (pkgs.writeShellScriptBin "zen-browser" ''
@@ -321,7 +323,10 @@
           ];
         };
         gaming = import ./nixos/profiles/gaming.nix;
-        framework = {
+        framework = { pkgs, ... }: {
+          programs.dms-shell.package = pkgs.callPackage ./nixos/packages/dms-screen-idle.nix {
+            dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+          };
           imports = [
             inputs.self.nixosModules.workstation
             inputs.self.nixosModules.work
