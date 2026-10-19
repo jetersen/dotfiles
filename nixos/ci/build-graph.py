@@ -51,6 +51,20 @@ def selections(rows, *, unique=False):
   return selected
 
 
+def check_installables(names):
+  if (not isinstance(names, list) or not names
+      or any(not isinstance(name, str) or not OUTPUT.fullmatch(name) for name in names)
+      or len(names) != len(set(names))):
+    raise ValueError("Invalid or empty check discovery")
+  return [f'.#checks.x86_64-linux."{name}"' for name in names]
+
+
+def validate_results(path, selected):
+  actual = selections(read_plan(path), unique=True)
+  if actual != selected:
+    raise ValueError("Build results differ from the selected derivation/output plan")
+
+
 def root(path, target):
   temporary = path.with_name(path.name + ".tmp")
   temporary.unlink(missing_ok=True)
@@ -86,12 +100,8 @@ def main():
     "nix", "eval", "--no-update-lock-file", "--json", ".#checks.x86_64-linux",
     "--apply", "builtins.attrNames",
   ]))
-  if (not isinstance(names, list) or not names
-      or any(not isinstance(name, str) or not OUTPUT.fullmatch(name) for name in names)
-      or len(names) != len(set(names))):
-    raise ValueError("Invalid or empty check discovery")
+  checks = check_installables(names)
   print(f"CI discovery wall={time.monotonic() - discovery_started:.3f}s", flush=True)
-  checks = [f'.#checks.x86_64-linux."{name}"' for name in names]
   framework = [".#nixosConfigurations.framework.config.system.build.toplevel", *checks,
                ".#pc2mqtt.cargoArtifacts",
                *(f".#devShells.x86_64-linux.{name}" for name in SHELLS), ".#proton-ge^*"]
@@ -131,9 +141,7 @@ def main():
       "--out-link", str(roots / "ci-build-graph"), "--json",
     ], stdout=output, check=True)
   print(f"CI realization wall={time.monotonic() - started:.3f}s", flush=True)
-  actual = selections(read_plan(temporary / "build-graph.json"), unique=True)
-  if actual != selected:
-    raise ValueError("Build results differ from the selected derivation/output plan")
+  validate_results(temporary / "build-graph.json", selected)
   groups = {
     "framework-system": plans["framework"][:1], "rocket-system": plans["rocket"],
     "check-outputs": plans["framework"][1:1 + len(checks)],
