@@ -38,6 +38,8 @@
   services.tailscale.extraSetFlags = lib.mkForce [
     "--accept-routes=false"
     "--ssh=true"
+    # Let the user manage Tailscale Serve for the T3 server.
+    "--operator=joseph"
   ];
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.loader.systemd-boot = {

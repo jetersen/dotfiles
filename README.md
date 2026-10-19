@@ -101,8 +101,8 @@ version and x86_64 Linux checksum. Codex and Zed use the pinned master package s
 For manual updates, run `nixos/packages/update-claude-code.sh [VERSION]` or
 `nixos/packages/update-t3code.sh VERSION`, then push for CI deployment.
 Credentials and sessions remain local.
-Framework lets `joseph` manage Tailscale Serve. Enable Tailscale HTTPS in T3's
-connection settings and relaunch the desktop app to use its MagicDNS HTTPS URL.
+Both hosts let `joseph` manage Tailscale Serve. On Framework, enable Tailscale HTTPS
+in T3's connection settings and relaunch the desktop app to use its MagicDNS HTTPS URL.
 Rocket runs T3 as a lingering user service using `~/.t3`; keep the desktop's
 separate local server disabled. The server runs natively with patched Nix library
 paths so agent commands inherit the host environment. An older client must not

@@ -12,6 +12,7 @@ let
       c = configurations.${host}.config;
     in
     {
+      tailscaleOperator = builtins.elem "--operator=joseph" c.services.tailscale.extraSetFlags;
       comin = {
         checks = c.services.comin.package.doCheck;
         main = (builtins.head c.services.comin.remotes).branches.main.name;
@@ -28,10 +29,6 @@ let
   dns = framework.systemd.services.dnsdist;
   bridge = framework.systemd.services.homelab-dns-vpn;
   assertions = [
-    {
-      assertion = builtins.elem "--operator=joseph" framework.services.tailscale.extraSetFlags;
-      message = "Framework's desktop user must be able to manage Tailscale Serve";
-    }
     {
       assertion = pc2mqtt.doCheck && pc2mqtt.doInstallCheck;
       message = "pc2mqtt native and installed-binary tests must stay enabled";
@@ -66,6 +63,10 @@ let
           c = hosts.${host};
         in
         [
+          {
+            assertion = c.tailscaleOperator;
+            message = "${host}: joseph must be able to manage Tailscale Serve";
+          }
           {
             assertion = c.comin.checks;
             message = "${host}: Comin native regression tests must stay enabled";
