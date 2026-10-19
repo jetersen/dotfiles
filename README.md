@@ -95,10 +95,12 @@ The gaming profile provides Steam, GE-Proton, Protontricks, and Lutris. Select
 GE-Proton per game in Steam. Local VMs use unprivileged QEMU through libvirt and
 virt-manager; the standard NAT network autostarts.
 
-Claude, Codex, and T3 Code update through Nix. Claude uses the upstream manifest;
-Codex and Zed use the pinned master package set.
-Run `nixos/packages/update-claude-code.sh` or `update-t3code.sh VERSION` to update
-the corresponding release manifests. Credentials and sessions remain local.
+Claude, Codex, and T3 Code update through Nix. Renovate updates Claude and T3's
+upstream versions and Linux artifact hashes; Claude's manifest stores only the
+version and x86_64 Linux checksum. Codex and Zed use the pinned master package set.
+For manual updates, run `nixos/packages/update-claude-code.sh [VERSION]` or
+`nixos/packages/update-t3code.sh VERSION`, then push for CI deployment.
+Credentials and sessions remain local.
 Rocket runs T3 as a lingering user service using `~/.t3`; keep the desktop's
 separate local server disabled. The server runs natively with patched Nix library
 paths so agent commands inherit the host environment. An older client must not

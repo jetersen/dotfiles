@@ -21,10 +21,11 @@
       "customType": "jsonata",
       "fileFormat": "json",
       "managerFilePatterns": [
-        "/^nixos/packages/claude-code-manifest\\.json$/"
+        "/^nixos/packages/claude-code-manifest\\.json$/",
+        "/^nixos/packages/workstation-manifest\\.json$/"
       ],
       "matchStrings": [
-        "{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}"
+        "[{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}, {\"depName\": t3code.repo, \"currentValue\": t3code.version}][currentValue]"
       ],
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.*)$",
@@ -88,6 +89,20 @@
     }
   ],
   "packageRules": [
+    {
+      "matchPackageNames": [
+        "pingdotgg/t3code"
+      ],
+      "postUpgradeTasks": {
+        "commands": [
+          "nixos/packages/update-t3code.sh {{newVersion}}"
+        ],
+        "fileFilters": [
+          "nixos/packages/workstation-manifest.json"
+        ],
+        "executionMode": "update"
+      }
+    },
     {
       "matchPackageNames": [
         "anthropics/claude-code"

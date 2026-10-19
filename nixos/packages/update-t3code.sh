@@ -15,4 +15,4 @@ jq --arg version "v$version" --arg cli "${cli#sha256:}" --arg desktop "${desktop
   "$directory/workstation-manifest.json" > "$temporary"
 chmod 644 "$temporary"
 mv "$temporary" "$directory/workstation-manifest.json"
-printf 'Pinned T3 Code %s. Review both artifact hashes and rebuild NixOS.\n' "$version"
+printf 'Pinned T3 Code %s. Review and push the diff for CI deployment.\n' "$version"

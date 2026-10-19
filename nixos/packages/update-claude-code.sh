@@ -11,11 +11,14 @@ fi
 directory=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 temporary=$(mktemp "$directory/.claude-manifest.XXXXXX")
 trap 'rm -f "$temporary"' EXIT
-curl -fsSL "$base_url/$version/manifest.json" -o "$temporary"
-jq -e --arg version "$version" '
-  .version == $version and
-  (.platforms["linux-x64"].checksum | test("^[a-f0-9]{64}$"))
-' "$temporary" >/dev/null
+curl -fsSL "$base_url/$version/manifest.json" |
+  jq -e --arg version "$version" '
+    if .version == $version and
+      (.platforms["linux-x64"].checksum | test("^[a-f0-9]{64}$"))
+    then {version, platforms: {"linux-x64": {checksum: .platforms["linux-x64"].checksum}}}
+    else error("Invalid Claude Code release manifest")
+    end
+  ' > "$temporary"
 chmod 644 "$temporary"
 mv "$temporary" "$directory/claude-code-manifest.json"
-printf 'Pinned Claude Code %s. Review the diff and rebuild NixOS.\n' "$version"
+printf 'Pinned Claude Code %s. Review and push the diff for CI deployment.\n' "$version"
