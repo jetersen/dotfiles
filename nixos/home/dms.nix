@@ -78,7 +78,7 @@ let
       fi
 
       # Reserve Alt+Space for switching keyboard layouts, including on first login.
-      ${lib.getExe osConfig.programs.dms-shell.package} keybinds remove niri Alt+Space
+      ${lib.escapeShellArg (lib.getExe osConfig.programs.dms-shell.package)} keybinds remove niri Alt+Space
     '';
   };
   plugins =
