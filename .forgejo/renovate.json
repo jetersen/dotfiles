@@ -2,10 +2,9 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":semanticCommits"
+    ":semanticCommits",
+    "local>jetersen/homelab//.renovate/forgejo.json"
   ],
-  "automergeStrategy": "auto",
-  "rebaseWhen": "behind-base-branch",
   "nix": {
     "enabled": true
   },
@@ -146,7 +145,5 @@
       ],
       "automerge": true
     }
-  ],
-  "automergeType": "pr",
-  "platformAutomerge": true
+  ]
 }
