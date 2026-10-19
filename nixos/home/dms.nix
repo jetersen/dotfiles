@@ -52,7 +52,11 @@ let
     runtimeInputs = [
       pkgs.coreutils
       pkgs.jq
+      osConfig.programs.niri.package
     ];
+    derivationArgs.postCheck = ''
+      ${pkgs.python3}/bin/python3 ${../../tests/test_dms_activation.py} "$target"
+    '';
     text = ''
       config_dir="''${XDG_CONFIG_HOME:-$HOME/.config}"
       mkdir -p "$config_dir/DankMaterialShell" "$config_dir/niri/dms"
