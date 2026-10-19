@@ -5,6 +5,7 @@
     ":semanticCommits"
   ],
   "automergeStrategy": "auto",
+  "rebaseWhen": "behind-base-branch",
   "nix": {
     "enabled": true
   },
@@ -128,8 +129,7 @@
         "flake.nix",
         "nixos/**"
       ],
-      "automerge": true,
-      "rebaseWhen": "behind-base-branch"
+      "automerge": true
     }
   ],
   "automergeType": "pr",
