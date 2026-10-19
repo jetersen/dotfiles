@@ -29,6 +29,11 @@ DNS over HTTPS becomes eligible only after both home resolvers fail their health
 checks. NXDOMAIN, REFUSED and SERVFAIL responses do not trigger public retries.
 Recovery requires two successful checks. These thresholds mean transitions take
 several seconds, rather than happening immediately for each client query.
+Backends use `reconnectOnUp` because dnsdist connects its query sockets once and
+they keep the source address chosen then. At boot dnsdist can start before
+`tailscale0` has its address and routes. Health checks use fresh sockets and
+pass, but queries from the stale sockets are dropped until the sockets reopen
+after the server's next down-to-up transition.
 
 No dnsdist packet cache is enabled. Public fallback answers have a maximum
 one-second TTL to limit caching after recovery. Applications can retain their
