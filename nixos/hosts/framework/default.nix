@@ -25,7 +25,11 @@
   networking.hostName = "framework";
   users.users.joseph.uid = 1000;
   # Authenticate relay connections through the existing tailnet SSH policy.
-  services.tailscale.extraSetFlags = [ "--ssh=true" ];
+  services.tailscale.extraSetFlags = [
+    "--ssh=true"
+    # Let the desktop app manage its Tailscale Serve HTTPS endpoint.
+    "--operator=joseph"
+  ];
   # Ethernet and Wi-Fi can share a subnet while Ethernet remains preferred.
   networking.firewall.checkReversePath = "loose";
   boot.kernel.sysctl = {

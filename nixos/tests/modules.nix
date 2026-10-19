@@ -29,6 +29,10 @@ let
   bridge = framework.systemd.services.homelab-dns-vpn;
   assertions = [
     {
+      assertion = builtins.elem "--operator=joseph" framework.services.tailscale.extraSetFlags;
+      message = "Framework's desktop user must be able to manage Tailscale Serve";
+    }
+    {
       assertion = pc2mqtt.doCheck && pc2mqtt.doInstallCheck;
       message = "pc2mqtt native and installed-binary tests must stay enabled";
     }
