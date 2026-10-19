@@ -14,6 +14,12 @@ creation_rules:
       - age:
           - *joseph
           - *framework
+  - path_regex: ^nixos/secrets/vpn-domains\.yaml$
+    key_groups:
+      - age:
+          - *joseph
+          - *framework
+          - *rocket
   - path_regex: ^nixos/secrets/(rocket\.yaml|pc2mqtt-rocket\.json)$
     key_groups:
       - age:
