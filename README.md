@@ -166,9 +166,12 @@ A non-retained `PRESS` on
 `<host>/button/update/command` queues a Comin fetch in pc2mqtt. Idle Comin fetches
 through its local gRPC socket; busy, stopped, or suspended Comin leaves the request
 pending. Comin events wake the single update worker without readiness polling. MQTT
-commands are acknowledged after a successful fetch. Broker reconnects also request
-a fetch; retained command replays are ignored. Home Assistant discovers Deployment,
-Deployed revision, and Reboot required entities on each pc2mqtt device. Deployment
+commands stay queued until the fetched generation is active or Comin has staged
+a boot-only deployment. If an older generation is running, pc2mqtt resubmits the
+selected deployment while preserving suspension and reboot-only inhibitors.
+Broker reconnects also request an update; retained command replays are ignored.
+Home Assistant discovers Deployment, Deployed revision, and Reboot required entities
+on each pc2mqtt device. Deployment
 attributes include the booted revision; state changes come from Comin events.
 Cache reads use each host's
 `nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
