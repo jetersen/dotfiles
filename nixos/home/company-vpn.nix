@@ -16,6 +16,9 @@ let
     chmod -R u+w "$out"
     substituteInPlace "$out/OpenVpn3Service.qml" "$out/StartupCheck.qml" \
       --replace-fail '"python3"' '"${python}/bin/python3"'
+    # Cold D-Bus activation can exceed DMS's default ten-second timeout.
+    substituteInPlace "$out/StartupCheck.qml" \
+      --replace-fail $'\n        });' $'\n        }, 0, 60000);'
     substituteInPlace "$out/helper/split_dns.py" \
       --replace-fail '"resolvectl"' '"${pkgs.systemd}/bin/resolvectl"'
   '';
