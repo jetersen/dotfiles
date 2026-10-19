@@ -34,6 +34,10 @@ they keep the source address chosen then. At boot dnsdist can start before
 `tailscale0` has its address and routes. Health checks use fresh sockets and
 pass, but queries from the stale sockets are dropped until the sockets reopen
 after the server's next down-to-up transition.
+A watcher in `dnsdist.conf` also covers the case where a server never goes down.
+If nearly every recent query to a home resolver timed out, it recreates that server
+to get fresh sockets, at most every 30 seconds. Lazy health checks do not help here,
+because their confirming check also uses a fresh socket.
 
 No dnsdist packet cache is enabled. Public fallback answers have a maximum
 one-second TTL to limit caching after recovery. Applications can retain their
