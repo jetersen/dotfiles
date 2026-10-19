@@ -186,6 +186,12 @@ with `sudo systemctl stop comin`. Reverting the running generation alone does no
 stop Comin from deploying `main` again. Weekly GC removes unrooted store paths;
 retained Comin generations remain protected.
 
+Keep `main` linear. Both hosts opt into a Comin patch through
+`COMIN_ALLOW_REWRITTEN_MAIN=1`: updates follow the configured `main` tip even after
+an amend, rebase, or force push. Testing branches still have to descend from main,
+and suspension and deployment inhibitors still apply. pc2mqtt reports branch
+selection errors as failures and retains the queued request for a later retry.
+
 ## Chezmoi installation
 
 Install Git, chezmoi, SOPS, age, and Python 3 through the platform package manager.

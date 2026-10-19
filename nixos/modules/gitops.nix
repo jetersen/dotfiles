@@ -25,14 +25,17 @@ in
 
     services.comin = {
       enable = true;
-      # v0.14 records the pre-switch system as current. Keep gRPC status accurate.
+      # Keep status accurate and explicitly permit rewritten main history.
       package = inputs.comin.packages.${pkgs.stdenv.hostPlatform.system}.comin.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ ../gitops/comin-current-deployment.patch ];
+        patches = (old.patches or [ ]) ++ [
+          ../gitops/comin-current-deployment.patch
+          ../gitops/comin-rewritten-main.patch
+        ];
         doCheck = true;
         checkPhase = ''
           runHook preCheck
           export GOFLAGS=''${GOFLAGS//-trimpath/}
-          go test -timeout 60s ./internal/deployer ./internal/store
+          go test -timeout 60s ./internal/deployer ./internal/store ./internal/repository
           runHook postCheck
         '';
       });
@@ -93,11 +96,14 @@ in
     powerManagement.resumeCommands = startFetch;
 
     # Prefer CI outputs while allowing large packages excluded from Attic.
-    systemd.services.comin.environment.NIX_CONFIG = ''
-      always-allow-substitutes = true
-      max-jobs = 1
-      cores = 4
-      fallback = false
-    '';
+    systemd.services.comin.environment = {
+      COMIN_ALLOW_REWRITTEN_MAIN = "1";
+      NIX_CONFIG = ''
+        always-allow-substitutes = true
+        max-jobs = 1
+        cores = 4
+        fallback = false
+      '';
+    };
   };
 }

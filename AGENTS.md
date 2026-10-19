@@ -12,6 +12,8 @@ Installation instructions are in `README.md`.
 - Forgejo is primary; its native push mirror updates GitHub. Push to `origin` on
   Forgejo. All NixOS hosts deploy from `main`; CI caches the system before notifying
   each host. Do not introduce per-host deployment branches.
+- Keep `main` linear; do not create merge commits. Both hosts explicitly allow
+  rewritten `main` history through the Comin patch in `nixos/gitops/`.
 - Preserve Renovate's author and committer as `renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>`.
   Use Forgejo's `fast-forward-only` merge style and let Renovate rebase outdated
   branches. Keep `automergeStrategy: "auto"`; Renovate maps `"fast-forward"` to
