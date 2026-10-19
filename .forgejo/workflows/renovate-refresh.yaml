@@ -1,0 +1,17 @@
+name: Refresh Renovate PRs
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: renovate-refresh
+  cancel-in-progress: false
+jobs:
+  notify:
+    runs-on: linux-docker
+    timeout-minutes: 5
+    steps:
+      - uses: https://forgejo.jetersen.dev/jetersen/homelab/.ci/actions/renovate-refresh@main
+        with:
+          repository: ${{ forgejo.repository }}
+          token: ${{ secrets.RENOVATE_WEBHOOK_TOKEN }}

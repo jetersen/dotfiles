@@ -16,8 +16,8 @@ Installation instructions are in `README.md`.
   rewritten `main` history through the pinned Comin fork.
 - Preserve Renovate's author and committer as `renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>`.
   Use Forgejo's `fast-forward-only` merge style and let Renovate rebase outdated
-  branches. Keep `automergeStrategy: "auto"`; Renovate maps `"fast-forward"` to
-  Forgejo's rebase operation, which can replace the committer.
+  branches. Keep `automergeStrategy: "auto"`; Renovate 44.132.2 uses strict fast-forward
+  for `"fast-forward"` when allowed, with a rebase fallback. Keep the strict repository default.
 - Prefer the normal CI/Attic/Comin deployment path: push authorized changes to
   `origin/main`, wait for CI to cache the target revision, then let Comin deploy.
   If a manual check is needed, start `comin-fetch.service` on the target host.
