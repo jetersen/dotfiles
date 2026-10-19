@@ -61,7 +61,5 @@
   sops.defaultSopsFile = ../../secrets/rocket.yaml;
   sops.secrets.joseph-password.neededForUsers = true;
 
-  # The daemon handles deployments; this desktop has no Comin status integration.
-  services.comin.desktop.enable = lib.mkForce false;
   system.stateVersion = "26.05";
 }

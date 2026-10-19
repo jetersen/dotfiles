@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   ...
 }:
@@ -30,12 +31,13 @@ in
         patches = (old.patches or [ ]) ++ [
           ../gitops/comin-current-deployment.patch
           ../gitops/comin-rewritten-main.patch
+          ../gitops/comin-reboot-notifications.patch
         ];
         doCheck = true;
         checkPhase = ''
           runHook preCheck
           export GOFLAGS=''${GOFLAGS//-trimpath/}
-          go test -timeout 60s ./internal/deployer ./internal/store ./internal/repository
+          go test -timeout 60s ./internal/deployer ./internal/store ./internal/repository ./cmd
           runHook postCheck
         '';
       });
@@ -51,6 +53,17 @@ in
         }
       ];
       exporter.listen_address = "127.0.0.1";
+    };
+
+    systemd.user.services.comin-desktop = {
+      after = [ "dms.service" ];
+      partOf = [ "graphical-session.target" ];
+      unitConfig.StartLimitIntervalSec = 0;
+      serviceConfig = {
+        ExecStart = lib.mkForce ''${lib.getExe config.services.comin.package} desktop --title "System update" --reboot-only'';
+        Restart = "on-failure";
+        RestartSec = 5;
+      };
     };
 
     # Socket creation/replacement wakes pending requests without reconnect polling.

@@ -192,6 +192,10 @@ an amend, rebase, or force push. Testing branches still have to descend from mai
 and suspension and deployment inhibitors still apply. pc2mqtt reports branch
 selection errors as failures and retains the queued request for a later retry.
 
+Both desktops show a notification when an update requires a reboot. The session
+listener also checks at login, avoids duplicate notices for the same deployment,
+and reconnects when Comin restarts. Routine deployment progress stays silent.
+
 ## Chezmoi installation
 
 Install Git, chezmoi, SOPS, age, and Python 3 through the platform package manager.
