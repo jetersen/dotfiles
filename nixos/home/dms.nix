@@ -76,6 +76,9 @@ let
       if [[ ! -s "$config_dir/niri/dms/binds.kdl" ]]; then
         install -m 644 ${factoryBinds} "$config_dir/niri/dms/binds.kdl"
       fi
+
+      # Reserve Alt+Space for switching keyboard layouts, including on first login.
+      ${lib.getExe osConfig.programs.dms-shell.package} keybinds remove niri Alt+Space
     '';
   };
   plugins =
