@@ -21,8 +21,8 @@
   },
   "proton-ge": {
     "repo": "GloriousEggroll/proton-ge-custom",
-    "version": "GE-Proton11-9",
-    "sha512": "30160946a5e4ffdf1f29d6f83a3d27108f6aa71b6aa59095b2c2260fe3a003b62acf8fdcb02a3dfc602b28473f5679d8a3eaee5a8adb141c1dfa01c42888da2d"
+    "version": "GE-Proton11-11",
+    "sha512": "45721a7b625b2404d8896bb5e2a8b87fc9623a394873a6dd6b900c839681d5c01ec694ca00d003fc9c733c5f6c5648af8171985656f9fa47e20999fbebdbe235"
   },
   "t3code": {
     "repo": "pingdotgg/t3code",
