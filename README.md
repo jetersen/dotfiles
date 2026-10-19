@@ -186,7 +186,9 @@ with `sudo systemctl stop comin`. Reverting the running generation alone does no
 stop Comin from deploying `main` again. Weekly GC removes unrooted store paths;
 retained Comin generations remain protected.
 
-Keep `main` linear. Both hosts opt into a Comin patch through
+Comin is pinned to the Forgejo fork's `dotfiles-v0.14` branch, which carries the
+deployment, rewritten-main and reboot-notification fixes with native Go tests.
+Keep dotfiles `main` linear. Both hosts opt into rewritten-main support through
 `COMIN_ALLOW_REWRITTEN_MAIN=1`: updates follow the configured `main` tip even after
 an amend, rebase, or force push. Testing branches still have to descend from main,
 and suspension and deployment inhibitors still apply. pc2mqtt reports branch

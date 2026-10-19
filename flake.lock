@@ -33,19 +33,19 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1784448272,
-        "narHash": "sha256-zkI/QkILbWpjhBOzF7K/kCVsJfCkBbMO96d5B0abfE4=",
-        "ref": "refs/tags/v0.14.0",
-        "rev": "ed92afc48978fb15a2535ebd5c5f63b3010e3b78",
+        "lastModified": 1792423625,
+        "narHash": "sha256-jBElod24LMa0VpG5Yz39N7mhyWsrhcoGxnLIhThI3ek=",
+        "ref": "dotfiles-v0.14",
+        "rev": "22cfb01d43846c1a402188560b6f80dee5b4dc14",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/nlewo/comin.git"
+        "url": "https://forgejo.jetersen.dev/jetersen/comin.git"
       },
       "original": {
-        "ref": "refs/tags/v0.14.0",
+        "ref": "dotfiles-v0.14",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/nlewo/comin.git"
+        "url": "https://forgejo.jetersen.dev/jetersen/comin.git"
       }
     },
     "crane": {

@@ -6,7 +6,7 @@
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     nixpkgs-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
     comin = {
-      url = "git+https://github.com/nlewo/comin.git?ref=refs/tags/v0.14.0&shallow=1";
+      url = "git+https://forgejo.jetersen.dev/jetersen/comin.git?ref=dotfiles-v0.14&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
       inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";

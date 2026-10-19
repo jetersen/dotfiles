@@ -26,21 +26,7 @@ in
 
     services.comin = {
       enable = true;
-      # Keep status accurate and explicitly permit rewritten main history.
-      package = inputs.comin.packages.${pkgs.stdenv.hostPlatform.system}.comin.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [
-          ../gitops/comin-current-deployment.patch
-          ../gitops/comin-rewritten-main.patch
-          ../gitops/comin-reboot-notifications.patch
-        ];
-        doCheck = true;
-        checkPhase = ''
-          runHook preCheck
-          export GOFLAGS=''${GOFLAGS//-trimpath/}
-          go test -timeout 60s ./internal/deployer ./internal/store ./internal/repository ./cmd
-          runHook postCheck
-        '';
-      });
+      package = inputs.comin.packages.${pkgs.stdenv.hostPlatform.system}.comin;
       desktop.enable = true;
       remotes = [
         {
