@@ -8,6 +8,9 @@ let
         path = ../../. + "/${path}";
       })
       [
+        "tests/test_ci_graph.py"
+        "nixos/ci/build-graph.py"
+        "nixos/ci/build-systems.sh"
         "tests/test_package_updates.py"
         "tests/test_wayland_clipboard.py"
         "nixos/home/wayland-clipboard.py"

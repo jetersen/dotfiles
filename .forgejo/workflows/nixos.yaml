@@ -61,34 +61,9 @@ jobs:
           "$tools/bin/nix" --version
           printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"
           printf 'NIX_CONFIG<<NIX_CONFIG_END\n%s\nNIX_CONFIG_END\n' "$NIX_CONFIG" >> "$GITHUB_ENV"
-      - name: Run sandboxed Nix checks
-        shell: bash
-        run: bash nixos/ci/build-checks.sh
-      - name: Build the Framework and Rocket systems
+      - name: Build systems, checks and development tools in one graph
         shell: bash
         run: bash nixos/ci/build-systems.sh
-      - name: Retain compiled Rust dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          time nix build .#pc2mqtt.cargoArtifacts --no-update-lock-file \
-            --out-link /nix/var/nix/gcroots/ci-pc2mqtt-deps --print-out-paths \
-            > "$RUNNER_TEMP/pc2mqtt-deps"
-      - name: Build project development shells
-        shell: bash
-        run: |
-          set -euo pipefail
-          time nix build .#devShells.x86_64-linux.python .#devShells.x86_64-linux.rust \
-            .#devShells.x86_64-linux.go .#devShells.x86_64-linux.jvm \
-            .#devShells.x86_64-linux.pulumi .#devShells.x86_64-linux.dotnet-preview --no-update-lock-file \
-            --out-link /nix/var/nix/gcroots/ci-project-shells --print-out-paths \
-            > "$RUNNER_TEMP/project-shells"
-      - name: Build the pinned GE-Proton compatibility tool
-        shell: bash
-        run: |
-          set -euo pipefail
-          time nix build '.#proton-ge^*' --no-update-lock-file \
-            --out-link /nix/var/nix/gcroots/ci-proton-ge
       - name: Publish eligible system outputs
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash

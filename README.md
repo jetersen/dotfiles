@@ -151,6 +151,12 @@ selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
 out of Attic and may build locally. Lifecycle fetches can see a revision before
 CI finishes, so cached output is preferred but not required for deployment.
 
+CI plans Framework, dynamically discovered checks, Rust dependencies, development
+shells and both Proton outputs alongside a separate Rocket planner. The two native
+planners use separate persistent evaluation caches. Once both succeed, CI roots
+the selected derivations and realizes their shared graph in one build, then validates
+every selected output before publishing or notifying hosts.
+
 CI runs `checks.x86_64-linux` before publishing or notifying hosts. Run the same
 groups locally with `nix flake check --no-update-lock-file --max-jobs 2 --cores 4`,
 or select one with `nix build .#checks.x86_64-linux.dns-routing`:
@@ -160,7 +166,8 @@ or select one with `nix build .#checks.x86_64-linux.dns-routing`:
   The Framework idle check tests state logic in the patched QML source.
 - `dns-routing` runs real dnsdist with loopback DNS and verified TLS DoH fixtures,
   checking routing, fail-closed behavior, backend restart recovery and fallback TTL.
-- `tooling-unit` runs the package updater and Wayland clipboard unit suites.
+- `tooling-unit` runs the CI orchestration, package updater and Wayland clipboard
+  unit suites.
 - `module-contracts` checks selected evaluated service and credential properties.
 - `native-comin` and `native-pc2mqtt` reuse the tested packages built for the systems.
 
