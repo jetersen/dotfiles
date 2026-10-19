@@ -129,6 +129,15 @@ SSH aliases use Tailscale names; additional aliases belong in `~/.ssh/local.conf
 machine, `argocd-remote-sso framework --vpn-profile moviestarplanet` uses its
 browser for SSO and copies only the selected Argo CD context.
 
+On NixOS, `wl-copy` and `wl-paste` use the host's logged-in Wayland desktop,
+including over SSH or mosh. They recover missing display variables from the
+user service manager; a running desktop session is required. They access the
+remote host's clipboard, not the connecting computer's. Run `remote-clip rocket`
+on the connecting Linux desktop to fetch Rocket's clipboard, including images.
+For text sent to the connecting terminal's clipboard, OSC 52 depends on terminal
+and transport support. Terminal paste sends local clipboard text as keyboard
+input; SSH and mosh do not forward a Wayland clipboard.
+
 Run `bw login` locally before `workenv COMMAND` loads Varlock work secrets.
 Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
 
