@@ -24,8 +24,10 @@ class PackageUpdates(unittest.TestCase):
       shutil.copy2(PACKAGES / name, self.directory / name)
     self.fixture = self.directory / "response.json"
     curl = self.directory / "curl"
+    bash = shutil.which("bash")
+    self.assertIsNotNone(bash)
     curl.write_text(
-      "#!/usr/bin/env bash\n"
+      f"#!{bash}\n"
       'if [[ "${!#}" == */latest ]]; then\n'
       "  echo 9.8.7\n"
       "else\n"

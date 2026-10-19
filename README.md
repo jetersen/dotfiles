@@ -151,6 +151,26 @@ selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
 out of Attic and may build locally. Lifecycle fetches can see a revision before
 CI finishes, so cached output is preferred but not required for deployment.
 
+CI runs `checks.x86_64-linux` before publishing or notifying hosts. Run the same
+groups locally with `nix flake check --no-update-lock-file --max-jobs 2 --cores 4`,
+or select one with `nix build .#checks.x86_64-linux.dns-routing`:
+
+- `desktop-activation` exercises both hosts' production DMS configurators, settings
+  and plugin preservation, GTK integration and full Niri configuration validation.
+  The Framework idle check tests state logic in the patched QML source.
+- `dns-routing` runs real dnsdist with loopback DNS and verified TLS DoH fixtures,
+  checking routing, fail-closed behavior, backend restart recovery and fallback TTL.
+- `tooling-unit` runs the package updater and Wayland clipboard unit suites.
+- `module-contracts` checks selected evaluated service and credential properties.
+- `native-comin` and `native-pc2mqtt` reuse the tested packages built for the systems.
+
+These checks use sandboxed derivations with narrow source inputs. CI roots their
+outputs and publishes eligible paths to Attic; unchanged checks can substitute.
+`nix flake check --no-build` only evaluates and does not execute these tests.
+There are no VM prerequisites. Boot, systemd ordering/credentials/restarts, live
+Wayland/QML behavior and tunnel/interface/source-address transitions remain outside
+this coverage. Backend process restart tests do not cover interface transitions.
+
 CI publishes non-retained MQTT update hints over `wss://mqtt.jetersen.dev/socket`
 with verified TLS. The `NIXOS_DEPLOY_MQTT_PASSWORD` repository secret authenticates
 `nixos-deploy-ci`, which can publish only the two hosts' update topics. Notifications

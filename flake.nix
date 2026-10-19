@@ -165,6 +165,9 @@
     in
     {
       formatter.x86_64-linux = pkgs.nixfmt;
+      checks.x86_64-linux = import ./nixos/tests {
+        inherit pkgs pkgsUnstable inputs;
+      };
       packages.x86_64-linux.installer-iso =
         inputs.self.nixosConfigurations.installer.config.system.build.isoImage;
       packages.x86_64-linux.nixos-anywhere = pkgs.nixos-anywhere;

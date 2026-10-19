@@ -36,7 +36,7 @@ in
   services.dnsdist = {
     enable = true;
     listenAddress = "127.0.0.2";
-    extraConfig = builtins.replaceStrings [ ''setLocal("127.0.0.2:53")'' ] [ "" ] (
+    extraConfig = builtins.replaceStrings [ ''setLocal(endpoints.listen or "127.0.0.2:53")'' ] [ "" ] (
       builtins.readFile (source + "/dnsdist.conf")
     );
   };
