@@ -564,16 +564,16 @@
     "pulumi-upgrade-provider-source": {
       "flake": false,
       "locked": {
-        "lastModified": 1789819130,
-        "narHash": "sha256-Le9pMb2vG6IZ63DF5atey7cfG2n2wJDv8ZpGgsdwzog=",
+        "lastModified": 1792432287,
+        "narHash": "sha256-XdTF+Ov+ZoyJJUc3nklwbLgoN9xKm+QpsCgxgffw3hI=",
         "ref": "refs/heads/main",
-        "rev": "dba6f8dcc4fb020fd36b115c7efcfc278bb7eb14",
+        "rev": "1302b9e468d15195492fcc9815c78369c5d44d2e",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/pulumi/upgrade-provider.git"
       },
       "original": {
-        "rev": "dba6f8dcc4fb020fd36b115c7efcfc278bb7eb14",
+        "rev": "1302b9e468d15195492fcc9815c78369c5d44d2e",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/pulumi/upgrade-provider.git"

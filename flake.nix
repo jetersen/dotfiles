@@ -90,7 +90,7 @@
       flake = false;
     };
     pulumi-upgrade-provider-source = {
-      url = "git+https://github.com/pulumi/upgrade-provider.git?rev=dba6f8dcc4fb020fd36b115c7efcfc278bb7eb14&shallow=1";
+      url = "git+https://github.com/pulumi/upgrade-provider.git?rev=1302b9e468d15195492fcc9815c78369c5d44d2e&shallow=1";
       flake = false;
     };
     powershell-posh-git = {
