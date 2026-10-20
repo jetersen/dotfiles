@@ -123,9 +123,9 @@ VPN profiles are imported locally as `moviestarplanet` and `moviestarplanet-tcp`
 The DMS plugin applies their split DNS domains. Framework uses dnsdist at
 `127.0.0.2`: home resolvers are preferred over LAN or Tailscale, and public
 Cloudflare Security DNS over HTTPS is used only when both home resolvers fail
-health checks. Private home, reverse, and known work names never use public
-fallback. Work names require their VPN. Recovery returns ordinary queries to
-home DNS. MagicDNS is scoped to the tailnet suffix.
+health checks. Private home and reverse names never use public fallback.
+Work domains use VPN DNS while connected and ordinary resolution when
+disconnected. MagicDNS is scoped to the tailnet suffix.
 
 Rocket uses LAN routes and the normal systemd-resolved setup; it does not accept
 Tailscale subnet routes. Framework accepts those routes for access away from home.

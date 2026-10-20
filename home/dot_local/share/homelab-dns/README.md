@@ -1,105 +1,62 @@
 # Homelab DNS
 
-These Linux services provide two host DNS modes. Install them explicitly as
-root; copying the dotfiles alone does not change networking. The installer
-records replaced files and the previous Tailscale DNS preference in a private
-backup and prints its location. It does not restart Tailscale or NetworkManager.
+NixOS configures these services through `nixos/modules/roaming-dns.nix` and
+`nixos/hosts/rocket/services.nix`. See the root [README](../../../../README.md#work-access-and-dns)
+for DNS routing behavior. The installer below is for other Linux systems;
+copying dotfiles alone does not configure DNS.
 
-## Stationary workstation
+## Manual installation
 
-`reconcile.py` maintains the Tailscale link's MagicDNS suffix in systemd-resolved.
-It retries after link creation and resolver restarts. NetworkManager and the
-work VPN retain ownership of their other DNS links.
+Requires Tailscale and NetworkManager. The dnsdist mode also needs dnsdist,
+Python with dbus-python, bind tools (`dig`), OpenVPN 3 Linux, Avahi, and nss-mdns.
+The installer prints a backup directory containing replaced files and the
+previous Tailscale DNS preference. Keep it for rollback.
 
-With Tailscale DNS management already disabled:
+For MagicDNS with systemd-resolved, disable Tailscale DNS management first:
 
 ```sh
+sudo tailscale set --accept-dns=false
 sudo python3 ~/.local/share/homelab-dns/install.py magic-only
 ```
 
-This enables `homelab-dns-reconcile.service`. Rerun the installer after changing
-the tailnet suffix.
-
-## Roaming laptop
-
-`dnsdist` listens on loopback at `127.0.0.2:53` and owns system DNS. Ordinary
-queries use the configured home resolvers through LAN or Tailscale. Health checks
-query a local authoritative record every two seconds. Public Cloudflare Security
-DNS over HTTPS becomes eligible only after both home resolvers fail their health
-checks. NXDOMAIN, REFUSED and SERVFAIL responses do not trigger public retries.
-Recovery requires two successful checks. These thresholds mean transitions take
-several seconds, rather than happening immediately for each client query.
-Backends use `reconnectOnUp` because dnsdist connects its query sockets once and
-they keep the source address chosen then. At boot dnsdist can start before
-`tailscale0` has its address and routes. Health checks use fresh sockets and
-pass, but queries from the stale sockets are dropped until the sockets reopen
-after the server's next down-to-up transition.
-
-No dnsdist packet cache is enabled. Public fallback answers have a maximum
-one-second TTL to limit caching after recovery. Applications can retain their
-own state or connections beyond DNS expiry. Home and reverse names never use
-public fallback. Work domains use ordinary home/public resolution when the work
-VPN is disconnected, including public records with private addresses reachable
-through the office site-to-site VPN. Active VPN routes take precedence for their
-configured domains.
-
-The [OpenVPN plugin](https://github.com/jetersen/dms-openvpn3) supports a selectable
-`dnsdist` backend; its default remains `resolved`. It exports domains and tunnel
-interface identity as user-owned JSON. The root `vpn_bridge.py` validates that
-intent against the live kernel interface and obtains resolver addresses from
-OpenVPN's D-Bus API. It publishes root-owned Lua data that dnsdist reloads without
-restarting. Disconnected VPN routes are removed so ordinary resolution resumes.
-
-Prerequisites: dnsdist, Python with dbus-python, bind tools (`dig`), Tailscale,
-NetworkManager, OpenVPN 3 Linux, Avahi, and nss-mdns. Enable the plugin's dnsdist
-backend while the work VPN is connected, then stage and test:
+For dnsdist, select the `dnsdist` backend in the
+[OpenVPN plugin](https://github.com/jetersen/dms-openvpn3), connect the VPN,
+then stage and check resolution:
 
 ```sh
 sudo python3 ~/.local/share/homelab-dns/install.py dnsdist --stage --uid "$(id -u)"
 dig @127.0.0.2 example.com
-dig @127.0.0.2 doubleclick.net
-# Also query a known internal work hostname through 127.0.0.2.
+# Also check a home hostname and a work hostname.
 ```
 
-Disconnect the work VPN, activate, and reconnect it:
+Disconnect the work VPN before activation, then reconnect afterward:
 
 ```sh
 sudo python3 ~/.local/share/homelab-dns/install.py dnsdist --uid "$(id -u)"
 ```
 
-Activation assigns `/etc/resolv.conf` to dnsdist, stops and masks resolved and
-its sockets, disables NetworkManager DNS management, disables Tailscale's DNS
-management, and preserves `.local` lookup through Avahi/NSS. OpenVPN uses its
-native file backend with a dedicated resolver file, so it retains DNS metadata
-without overwriting `/etc/resolv.conf` or restarting resolved. VPN reconnection
-is necessary to start the native backend with the new configuration.
+Activation replaces system DNS with dnsdist, disables systemd-resolved and
+NetworkManager/Tailscale DNS management, and configures OpenVPN to leave the
+system resolver alone. `.local` lookup uses Avahi. Rerun installation after
+changing service files or the tailnet suffix. Disconnect the VPN before changing
+its DNS backend.
 
-Rerun activation with the VPN disconnected after changing these service files.
-Changing backend while a VPN is active requires disconnecting first so the
-previous resolver's interface state can be removed safely.
+## Rollback for manual installations
 
-## Rollback
+Use the backup from the installation being reversed. Its `manifest.json` records
+which files to restore and which previously absent files to remove. Preserve
+symlinks and metadata when restoring.
 
-Keep the installer backup from the activation being reversed. Its
-`manifest.json` lists target files and whether each existed beforehand. Restore
-existing files from the corresponding path within the backup, preserving
-symlinks and metadata; remove targets recorded as previously absent.
+For MagicDNS-only mode, stop and disable `homelab-dns-reconcile.service`, restore
+the backup, and run `systemctl daemon-reload`.
 
-For MagicDNS-only rollback, stop and disable `homelab-dns-reconcile.service`,
-restore its files, and run `systemctl daemon-reload`. Existing link settings
-remain valid until the next link or resolver restart.
+For dnsdist mode:
 
-For laptop rollback:
-
-1. Disconnect the work VPN and set the plugin backend to `resolved`.
-2. Unmask resolved and its sockets, restore the activation backup's files, and
-   run `systemctl daemon-reload`.
-3. Enable and start `systemd-resolved.service`, then run
-   `nmcli general reload conf`. Restore the saved Tailscale `CorpDNS` preference
-   with `tailscale set --accept-dns=true` or `false`, as recorded.
-4. Restart the OpenVPN network configuration process while no VPN interfaces
-   exist, then reconnect the work VPN. Check public, home, MagicDNS, and work
-   resolution before disabling `homelab-dns` and `homelab-dns-vpn`.
-
-The native OpenVPN config editor is documented in
-[OpenVPN's administration manual](https://github.com/OpenVPN/openvpn3-linux/blob/master/docs/man/openvpn3-admin-netcfg-service.8.rst).
+1. Disconnect the work VPN and select the plugin's `resolved` backend.
+2. Unmask systemd-resolved and its sockets, restore the backup, and run
+   `systemctl daemon-reload`.
+3. Start and enable systemd-resolved, run `nmcli general reload conf`, and restore
+   Tailscale's saved DNS preference with `tailscale set --accept-dns=true` or `false`.
+4. Restart OpenVPN's network configuration process with no VPN interfaces active,
+   then reconnect. Check public, home, MagicDNS, and work resolution before
+   disabling `homelab-dns` and `homelab-dns-vpn`.
