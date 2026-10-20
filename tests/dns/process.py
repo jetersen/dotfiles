@@ -15,6 +15,7 @@ START = time.monotonic()
 PEER = "rocket.rockhopper-bleak.ts.net."
 SUFFIX = "rockhopper-bleak.ts.net."
 PROBE = "dns.technitium.lan.jetersen.dev."
+GRAFANA = "grafana.moviestarplanet.tech."
 
 
 class Backend:
@@ -139,7 +140,7 @@ setACL({{"127.0.0.0/8"}})
 addDOHLocal("127.0.0.1:15443", "{root}/cert.pem", "{root}/key.pem", {{"/dns-query"}})
 newServer({{address="127.0.0.1:15357", healthCheckMode="up"}})
 ''')
-    write("work-domains", "corp.test.\n")
+    write("work-domains", "corp.test.\nmoviestarplanet.tech.\nprivate.moviestarplanet.tech.\nmoviestarplanet.tech.corp.test.\n")
     write("vpn-routes.lua", "return {}")
     spawn("production", f'''
 setSecurityPollSuffix("")
@@ -161,15 +162,23 @@ dofile("{sys.argv[1]}")
         assert query(name).rcode() == code
         assert public.count(name) == 0, f"public retry of {name}"
     assert query("host.corp.test.").rcode() == dns.rcode.REFUSED
-    write("vpn-routes.lua", 'return {{pool="vpn-test", servers={"127.0.0.1:15358"}, domains={"corp.test."}}}')
+    assert address(query(GRAFANA)) in {cluster.answer, nas.answer}
+    assert address(query("moviestarplanet.tech.")) in {cluster.answer, nas.answer}
+    assert address(query("host.private.moviestarplanet.tech.")) in {cluster.answer, nas.answer}
+    assert query("moviestarplanet.tech.corp.test.").rcode() == dns.rcode.REFUSED
+    assert public.count(GRAFANA) == 0
+    write("vpn-routes.lua", 'return {{pool="vpn-test", servers={"127.0.0.1:15358"}, domains={"corp.test.", "moviestarplanet.tech."}}}')
     wait("dynamic VPN route active", lambda: address(query("host.corp.test.")) == vpn.answer)
+    assert address(query(GRAFANA)) == vpn.answer
     write("vpn-routes.lua", "return {}")
     wait("removed VPN route fails closed", lambda: query("host.corp.test.").rcode() == dns.rcode.REFUSED)
+    assert address(query(GRAFANA)) in {cluster.answer, nas.answer}
     cluster.stop()
     wait_for_consistent_answers("remaining home backend consistently serves after cluster stops",
                                 "single.example.", nas.answer)
     nas.stop()
     wait("home outage uses verified local DoH", lambda: address(query("outage.example.")) == public.answer)
+    assert address(query(GRAFANA)) == public.answer
     response = query("ttl.example.")
     assert address(response) == public.answer
     assert all(rr.ttl <= 1 for rr in response.answer), response
