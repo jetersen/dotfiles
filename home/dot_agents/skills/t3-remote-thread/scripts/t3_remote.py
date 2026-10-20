@@ -8,6 +8,7 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import sys
 import time
 import uuid
@@ -38,6 +39,10 @@ def load_catalog(path):
     encrypted = base64.b64decode(document["encryptedCatalog"], validate=True)
     if encrypted[:3] != b"v11":
         raise BridgeError("Unsupported safeStorage encryption; no fallback attempted.")
+    # Headless provider processes may omit the existing user-session bus address.
+    user_bus = Path(f"/run/user/{os.getuid()}/bus")
+    if "DBUS_SESSION_BUS_ADDRESS" not in os.environ and user_bus.is_socket():
+        os.environ["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path={user_bus}"
     bus = secretstorage.dbus_init()
     try:
         keys = [
@@ -45,9 +50,7 @@ def load_catalog(path):
             for collection in secretstorage.get_all_collections(bus)
             if not collection.is_locked()
             for item in collection.get_all_items()
-            if item.get_label() == "Chromium Safe Storage"
-            and item.get_attributes().get("application") == "t3code"
-            and not item.is_locked()
+            if is_storage_key(item)
         ]
         if len(keys) != 1:
             raise BridgeError("Need exactly one unlocked T3 safeStorage key.")
@@ -61,6 +64,14 @@ def load_catalog(path):
     if catalog.get("schemaVersion") != 1:
         raise BridgeError("Unsupported decrypted catalog schema.")
     return catalog
+
+
+def is_storage_key(item):
+    return (
+        item.get_label() in ("Chromium Safe Storage", "t3code Safe Storage")
+        and item.get_attributes().get("application") == "t3code"
+        and not item.is_locked()
+    )
 
 
 def routes(catalog):
@@ -78,6 +89,8 @@ def routes(catalog):
         for p in catalog["profiles"]
         if p.get("_tag") == "BearerConnectionProfile"
         and p.get("authorization") != "t3-connect"
+        and urlsplit(p["httpBaseUrl"]).scheme == "https"
+        and urlsplit(p["wsBaseUrl"]).scheme == "wss"
         and targets.get(p["connectionId"], {}).get("_tag") == "BearerConnectionTarget"
         and targets[p["connectionId"]]["environmentId"] == p["environmentId"]
     ]
@@ -264,7 +277,13 @@ def provider_summary(providers):
                 )
             },
             "models": [
-                {key: m.get(key) for key in ("id", "label", "options")}
+                {
+                    "id": m["slug"],
+                    "label": m["name"],
+                    "options": (m.get("capabilities") or {}).get(
+                        "optionDescriptors", []
+                    ),
+                }
                 for m in p.get("models", [])
             ],
         }
@@ -292,7 +311,7 @@ def validate_launch(request, projects, providers):
     )
     if provider is None or not provider.get("enabled") or not provider.get("installed"):
         raise BridgeError("Destination provider is disabled, absent, or not installed.")
-    if not any(m["id"] == selection.get("model") for m in provider.get("models", [])):
+    if not any(m["slug"] == selection.get("model") for m in provider.get("models", [])):
         raise BridgeError("Model is absent from the destination's catalog.")
     if request["runtimeMode"] not in (
         "approval-required",

@@ -50,7 +50,13 @@ def providers():
             "instanceId": "codex",
             "enabled": True,
             "installed": True,
-            "models": [{"id": "sol", "options": []}],
+            "models": [
+                {
+                    "slug": "sol",
+                    "name": "Sol",
+                    "capabilities": {"optionDescriptors": []},
+                }
+            ],
             "auth": {"token": "private-token"},
         }
     ]
@@ -74,11 +80,46 @@ def remote():
 
 
 class BridgeTests(unittest.TestCase):
+    def test_safe_storage_accepts_both_t3_key_labels_only(self):
+        item = Mock()
+        item.get_attributes.return_value = {"application": "t3code"}
+        item.is_locked.return_value = False
+        for label in ("Chromium Safe Storage", "t3code Safe Storage"):
+            item.get_label.return_value = label
+            self.assertTrue(bridge.is_storage_key(item))
+        item.get_attributes.return_value = {"application": "chromium"}
+        self.assertFalse(bridge.is_storage_key(item))
+        item.get_attributes.return_value = {"application": "t3code"}
+        item.is_locked.return_value = True
+        self.assertFalse(bridge.is_storage_key(item))
+
     def test_discovery_never_contains_credentials(self):
         self.assertNotIn("private-token", json.dumps(bridge.routes(catalog())))
-        self.assertNotIn(
-            "private-token", json.dumps(bridge.provider_summary(providers()))
+        summary = bridge.provider_summary(providers())
+        self.assertNotIn("private-token", json.dumps(summary))
+        self.assertEqual(
+            summary[0]["models"], [{"id": "sol", "label": "Sol", "options": []}]
         )
+
+    def test_discovery_omits_learned_plaintext_routes(self):
+        value = catalog()
+        learned = copy.deepcopy(value["profiles"][0])
+        learned.update(
+            connectionId="learned",
+            httpBaseUrl="http://example.test/",
+            wsBaseUrl="ws://example.test/",
+        )
+        value["profiles"].append(learned)
+        value["targets"].append(
+            {
+                "_tag": "BearerConnectionTarget",
+                "environmentId": "remote",
+                "connectionId": "learned",
+            }
+        )
+        route, token = bridge.select_route(value, "remote", None)
+        self.assertEqual(route["connectionId"], "route")
+        self.assertEqual(token, "private-token")
 
     def test_disabled_and_ambiguous_routes_are_refused(self):
         disabled = catalog()

@@ -11,7 +11,9 @@ Use this only when the user requests a new top-level thread on another environme
 
 ## Helper
 
-Run `uv run <skill-directory>/scripts/t3_remote.py --help` on the Linux desktop that holds the configured T3 connections. Resolve the actual skill directory rather than assuming a checkout path. The helper uses T3's HTTPS/WebSocket APIs directly, without SSH or changes to T3's installation or database.
+Run `uv run <skill-directory>/scripts/t3_remote.py --help` on the source Linux machine that holds the configured T3 connections. Resolve the actual skill directory rather than assuming a checkout path. The helper uses T3's HTTPS/WebSocket APIs directly, without SSH or changes to T3's installation or database.
+
+Routing works in either direction. Each source machine needs its own saved connection to the destination and access to its unlocked desktop keyring. A connection saved on one machine does not grant the reverse direction. For a headless provider process, the helper discovers the existing systemd user bus if its address is absent; it does not start a desktop session or unlock a keyring. Discovery omits plaintext routes, including learned LAN addresses.
 
 It decrypts the desktop's connection catalog in memory using the existing unlocked Secret Service key. Only saved HTTPS bearer routes are supported. Locked keyrings, other encryption formats, SSH/relay/DPoP connections, and ambiguous routes fail explicitly. Do not export credentials, inspect raw catalog contents, print raw server configuration, bypass TLS, or enable transport tracing.
 
