@@ -2,6 +2,7 @@
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -42,6 +43,16 @@ for host in json.loads(Path(sys.argv[1]).read_text()):
             target = config / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
+        rules = (config / 'niri/cfg/shared-rules.kdl').read_text()
+        for app_id, workspace in [('slack', 'chat'), ('Slack', 'chat'),
+                                  ('discord', 'chat'), ('zen', 'browser'), ('zen-beta', 'browser')]:
+            destinations = []
+            for rule in re.findall(r'window-rule \{([^{}]*)\}', rules):
+                target = re.search(r'open-on-workspace "([^"]+)"', rule)
+                if target and any(re.search(pattern, app_id) for pattern in
+                                  re.findall(r'match app-id="([^"]+)"', rule)):
+                    destinations.append(target[1])
+            assert destinations == [workspace], (host['name'], app_id, destinations)
         subprocess.run([host['niri'], 'validate', '-c', str(config / 'niri/config.kdl')],
                        env=environment, check=True)
         print(f"{host['name']}: production activation, plugins and complete Niri config passed", flush=True)

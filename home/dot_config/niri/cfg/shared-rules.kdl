@@ -12,7 +12,7 @@ window-rule {
 }
 
 window-rule {
-  match app-id="Slack"
+  match app-id="(?i)^slack$"
   match app-id="discord"
   open-on-workspace "chat"
 }
