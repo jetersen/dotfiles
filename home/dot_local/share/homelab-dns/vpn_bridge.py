@@ -9,8 +9,6 @@ import socket
 import time
 from pathlib import Path
 
-import reconcile
-
 NETCFG = 'net.openvpn.v3.netcfg'
 DOMAIN = re.compile(r'(?=.{1,253}\Z)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\Z')
 
@@ -94,22 +92,12 @@ def main():
     assert type(uid) is int and uid > 0
     root = Path('/var/lib/homelab-dns')
     root.mkdir(parents=True, exist_ok=True)
-    # Seed private domains before the first VPN connection so a fresh install
-    # cannot forward known work names to a home or public resolver.
-    if config.get('domains_file'):
-        values = json.loads(Path(config['domains_file']).read_text())
-        assert isinstance(values, list) and 0 < len(values) <= 4096
-        assert all(isinstance(value, str) for value in values)
-        domains = {value.lower().removeprefix('~').rstrip('.') for value in values}
-        assert all(DOMAIN.fullmatch(domain) for domain in domains)
-        reconcile.retain_domains(root / 'work-domains', domains)
     bus = dbus.SystemBus()
     previous_error = None
     notify = os.environ.get('NOTIFY_SOCKET')
     while True:
         try:
             intent = read_intent(uid)
-            reconcile.retain_domains(root / 'work-domains', {d for item in intent.values() for d, _ in item['domains']})
             entries = routes(intent, live_devices(bus))
             previous_error = None
         except Exception as error:

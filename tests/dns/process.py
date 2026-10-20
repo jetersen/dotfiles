@@ -140,6 +140,7 @@ setACL({{"127.0.0.0/8"}})
 addDOHLocal("127.0.0.1:15443", "{root}/cert.pem", "{root}/key.pem", {{"/dns-query"}})
 newServer({{address="127.0.0.1:15357", healthCheckMode="up"}})
 ''')
+    # Legacy retained domains must not block ordinary resolution.
     write("work-domains", "corp.test.\nmoviestarplanet.tech.\nprivate.moviestarplanet.tech.\nmoviestarplanet.tech.corp.test.\n")
     write("vpn-routes.lua", "return {}")
     spawn("production", f'''
@@ -161,17 +162,17 @@ dofile("{sys.argv[1]}")
     for name, code in [("nx.example.", 3), ("refused.example.", 5), ("fail.example.", 2)]:
         assert query(name).rcode() == code
         assert public.count(name) == 0, f"public retry of {name}"
-    assert query("host.corp.test.").rcode() == dns.rcode.REFUSED
+    assert address(query("host.corp.test.")) in {cluster.answer, nas.answer}
     assert address(query(GRAFANA)) in {cluster.answer, nas.answer}
     assert address(query("moviestarplanet.tech.")) in {cluster.answer, nas.answer}
     assert address(query("host.private.moviestarplanet.tech.")) in {cluster.answer, nas.answer}
-    assert query("moviestarplanet.tech.corp.test.").rcode() == dns.rcode.REFUSED
+    assert address(query("moviestarplanet.tech.corp.test.")) in {cluster.answer, nas.answer}
     assert public.count(GRAFANA) == 0
     write("vpn-routes.lua", 'return {{pool="vpn-test", servers={"127.0.0.1:15358"}, domains={"corp.test.", "moviestarplanet.tech."}}}')
     wait("dynamic VPN route active", lambda: address(query("host.corp.test.")) == vpn.answer)
     assert address(query(GRAFANA)) == vpn.answer
     write("vpn-routes.lua", "return {}")
-    wait("removed VPN route fails closed", lambda: query("host.corp.test.").rcode() == dns.rcode.REFUSED)
+    wait("removed VPN route resumes home DNS", lambda: address(query("host.corp.test.")) in {cluster.answer, nas.answer})
     assert address(query(GRAFANA)) in {cluster.answer, nas.answer}
     cluster.stop()
     wait_for_consistent_answers("remaining home backend consistently serves after cluster stops",
@@ -185,8 +186,7 @@ dofile("{sys.argv[1]}")
     for name in ["private.jetersen.dev.", "www.ts.net.", "1.0.0.10.in-addr.arpa.", "0.ip6.arpa."]:
         assert query(name).rcode() == dns.rcode.SERVFAIL, name
         assert public.count(name) == 0, f"private name leaked: {name}"
-    assert query("host.corp.test.").rcode() == dns.rcode.REFUSED
-    assert public.count("host.corp.test.") == 0
+    assert address(query("host.corp.test.")) == public.answer
     cluster.start()
     nas.start()
     wait("home recovers after backend restart", lambda: address(query("recovered.example.")) in {cluster.answer, nas.answer})

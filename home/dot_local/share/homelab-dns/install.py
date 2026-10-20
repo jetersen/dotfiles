@@ -41,11 +41,6 @@ def main():
         assert not prefs['CorpDNS'], 'Disable Tailscale DNS management first'
         units = ['homelab-dns-reconcile.service']
     else:
-        import vpn_bridge
-        import reconcile
-        intent = vpn_bridge.read_intent(args.uid)
-        assert intent or (not args.stage and Path('/var/lib/homelab-dns/work-domains').exists()), 'Publish VPN domains with the plugin dnsdist backend first'
-        reconcile.retain_domains(Path('/var/lib/homelab-dns/work-domains'), {d for item in intent.values() for d, _ in item['domains']})
         run('dnsdist', '--check-config', '-C', str(source / 'dnsdist.conf'))
         files[Path('/usr/local/lib/homelab-dns/vpn_bridge.py')] = (source / 'vpn_bridge.py').read_bytes()
         files[Path('/etc/homelab-dns/dnsdist.conf')] = (source / 'dnsdist.conf').read_text().replace('rockhopper-bleak.ts.net.', suffix + '.').encode()

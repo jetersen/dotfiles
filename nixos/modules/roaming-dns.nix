@@ -61,7 +61,6 @@ in
   environment.etc."homelab-dns/config.json".text = builtins.toJSON {
     mode = "dnsdist";
     uid = config.users.users.joseph.uid;
-    domains_file = config.sops.secrets.vpn-domains.path;
   };
   # OpenVPN retains resolver metadata without writing the system's resolv.conf.
   programs.openvpn3.netcfg.settings = {
@@ -85,7 +84,6 @@ in
     after = [ "dbus.service" ];
     before = [ "dnsdist.service" ];
     wants = [ "dnsdist.service" ];
-    restartTriggers = [ config.sops.secrets.vpn-domains.sopsFile ];
     serviceConfig = {
       Type = "notify";
       ExecStart = "${python}/bin/python3 ${source}/vpn_bridge.py";

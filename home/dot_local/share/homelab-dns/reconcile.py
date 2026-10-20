@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Restore MagicDNS link settings and retain private VPN routing domains."""
+"""Restore MagicDNS link settings."""
 import argparse
 import json
 import logging
@@ -10,18 +10,6 @@ from pathlib import Path
 
 def run(*args):
     return subprocess.check_output(args, text=True, timeout=10)
-
-
-def retain_domains(path, domains):
-    old = set(path.read_text().splitlines()) if path.exists() else set()
-    combined = old | domains
-    if combined != old or not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = path.with_suffix(".tmp")
-        temporary.write_text("".join(domain + "\n" for domain in sorted(combined)))
-        temporary.chmod(0o640)
-        temporary.replace(path)
-    path.chmod(0o640)
 
 
 def magic_suffix(config):

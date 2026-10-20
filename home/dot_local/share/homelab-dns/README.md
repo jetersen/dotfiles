@@ -38,18 +38,17 @@ after the server's next down-to-up transition.
 No dnsdist packet cache is enabled. Public fallback answers have a maximum
 one-second TTL to limit caching after recovery. Applications can retain their
 own state or connections beyond DNS expiry. Home and reverse names never use
-public fallback. Known work domains return REFUSED when their VPN is absent,
-except the public `moviestarplanet.tech` zone, which uses ordinary home/public
-resolution. Its private addresses remain reachable through the office site-to-site
-VPN. An active work VPN still takes precedence for its configured domains.
+public fallback. Work domains use ordinary home/public resolution when the work
+VPN is disconnected, including public records with private addresses reachable
+through the office site-to-site VPN. Active VPN routes take precedence for their
+configured domains.
 
 The [OpenVPN plugin](https://github.com/jetersen/dms-openvpn3) supports a selectable
 `dnsdist` backend; its default remains `resolved`. It exports domains and tunnel
 interface identity as user-owned JSON. The root `vpn_bridge.py` validates that
 intent against the live kernel interface and obtains resolver addresses from
 OpenVPN's D-Bus API. It publishes root-owned Lua data that dnsdist reloads without
-restarting. Previously learned work domains, except explicitly public zones,
-remain private after disconnection.
+restarting. Disconnected VPN routes are removed so ordinary resolution resumes.
 
 Prerequisites: dnsdist, Python with dbus-python, bind tools (`dig`), Tailscale,
 NetworkManager, OpenVPN 3 Linux, Avahi, and nss-mdns. Enable the plugin's dnsdist
