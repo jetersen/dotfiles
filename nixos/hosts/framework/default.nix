@@ -55,6 +55,7 @@
     output "eDP-1" { scale 1.5; }
   '';
   home-manager.users.joseph = {
+    imports = [ ./displays.nix ];
     dotfiles.prompt.showBattery = true;
     # Reuse the work dock's serial-based names, independent of connector numbering.
     dotfiles.niri.workspaceOutputs = {
