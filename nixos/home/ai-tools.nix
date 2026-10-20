@@ -65,6 +65,7 @@ in
         agentSkillSources
         // {
           gh-stack = pkgsUnstable.gh-stack.src + "/skills/gh-stack";
+          t3-remote-thread = ../../home/dot_agents/skills/t3-remote-thread;
         }
       );
 }

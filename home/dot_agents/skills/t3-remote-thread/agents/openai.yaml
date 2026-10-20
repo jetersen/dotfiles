@@ -1,0 +1,3 @@
+interface:
+  display_name: "Remote T3 thread"
+  short_description: "Temporary fallback for remote T3 thread launches"
