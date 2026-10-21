@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  osConfig,
+  ...
+}:
 {
   home.pointerCursor = {
     enable = true;
@@ -24,7 +29,7 @@
   xdg.dataFile."dbus-1/services/org.freedesktop.FileManager1.service".text = ''
     [D-BUS Service]
     Name=org.freedesktop.FileManager1
-    Exec=${pkgs.kdePackages.dolphin}/bin/dolphin --daemon
+    Exec=${lib.getExe osConfig.programs.dux-files.package} run --hidden --dbus-activated
   '';
   xdg.mimeApps = {
     enable = true;
@@ -75,7 +80,7 @@
         "text/html" = [ "zen-beta.desktop" ];
         "x-scheme-handler/http" = [ "zen-beta.desktop" ];
         "x-scheme-handler/https" = [ "zen-beta.desktop" ];
-        "inode/directory" = [ "org.kde.dolphin.desktop" ];
+        "inode/directory" = [ "dev.duxlabs.files.desktop" ];
       };
   };
 

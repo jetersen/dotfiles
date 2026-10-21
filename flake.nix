@@ -137,6 +137,11 @@
         flake = false;
       };
     };
+    dux-files = {
+      url = "git+https://github.com/duxlabs-dev/dux-files.git?ref=refs/tags/v2.0.0&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.dank-qml-common.follows = "dms/dank-qml-common";
+    };
     zen-browser = {
       url = "git+https://github.com/0xc000022070/zen-browser-flake.git?ref=main&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -277,6 +282,7 @@
             imports = [
               ./nixos/modules/desktop.nix
               inputs.dank-greeter.nixosModules.default
+              inputs.dux-files.nixosModules.default
             ];
             programs.dms-shell.package =
               lib.mkDefault

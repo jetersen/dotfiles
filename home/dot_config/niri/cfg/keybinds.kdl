@@ -9,7 +9,7 @@ binds {
   // DMS binds the terminal on Mod+T; keep Mod+Return out of muscle memory too.
   Mod+Return hotkey-overlay-title="Open Terminal: Alacritty" { spawn "alacritty"; }
   Mod+B      hotkey-overlay-title="Open Browser: Zen Browser" { spawn "zen-browser"; }
-  Mod+E      hotkey-overlay-title="File Manager: Dolphin" { spawn "dolphin"; }
+  Mod+E      hotkey-overlay-title="File Manager" { spawn-sh "xdg-open \"$HOME\""; }
   Mod+L      hotkey-overlay-title="Lock Screen" { spawn "dms" "ipc" "call" "lock" "lock"; }
   Mod+M      hotkey-overlay-title="Focus or Open Music Assistant" { spawn "focus-music-assistant"; }
   Mod+D      repeat=false { toggle-overview; }

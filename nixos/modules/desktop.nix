@@ -14,6 +14,11 @@
     enableCalendarEvents = false;
     enableAudioWavelength = false;
   };
+  programs.dux-files = {
+    enable = true;
+    systemd.enable = true;
+  };
+  services.gvfs.enable = true;
   xdg.portal = {
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
     config.niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "kde";

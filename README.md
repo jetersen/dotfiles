@@ -63,6 +63,8 @@ Rocket's games filesystem can be checked with `sudo btrfs scrub status /media/ga
 ## Desktop and development
 
 Both machines use Niri, Dux Shell, Dux Greeter, Alacritty, Zed, and Rider.
+Dux Files handles folders and file-manager shortcuts; Dolphin remains available
+as a fallback. Open/save dialogs use the KDE portal, and archives open in Ark.
 Systemd-oomd monitors application memory pressure in `app.slice`; the compositor
 and session services in `session.slice` remain outside that policy.
 Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select

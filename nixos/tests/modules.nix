@@ -14,6 +14,14 @@ let
     in
     {
       tailscaleOperator = builtins.elem "--operator=joseph" c.services.tailscale.extraSetFlags;
+      fileManager = {
+        enabled = c.programs.dux-files.enable && c.programs.dux-files.systemd.enable;
+        gvfs = c.services.gvfs.enable;
+        folders = home.xdg.mimeApps.defaultApplications."inode/directory";
+        dbus = home.xdg.dataFile."dbus-1/services/org.freedesktop.FileManager1.service".text;
+        executable = builtins.unsafeDiscardStringContext (lib.getExe c.programs.dux-files.package);
+        portal = c.xdg.portal.config.niri."org.freedesktop.impl.portal.FileChooser";
+      };
       aspire = {
         installed = builtins.any (p: (p.pname or "") == "aspire-cli") home.home.packages;
         manualInstallOnPath = builtins.elem "${home.home.homeDirectory}/.aspire/bin" home.home.sessionPath;
@@ -80,6 +88,15 @@ let
           c = hosts.${host};
         in
         [
+          {
+            assertion =
+              c.fileManager.enabled
+              && c.fileManager.gvfs
+              && c.fileManager.folders == [ "dev.duxlabs.files.desktop" ]
+              && lib.hasInfix "Exec=${c.fileManager.executable} run --hidden --dbus-activated" c.fileManager.dbus
+              && c.fileManager.portal == "kde";
+            message = "${host}: Dux Files must handle folders and reveal requests while KDE serves file dialogs";
+          }
           {
             assertion =
               c.aspire.installed && !c.aspire.manualInstallOnPath && c.aspire.bundleLoader && c.aspire.bundleIcu;
