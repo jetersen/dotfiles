@@ -9,6 +9,21 @@
   ...
 }:
 let
+  storageMonitor = pkgs.runCommand "dms-storage-monitor" { } ''
+    cp -r ${storageMonitorSource} "$out"
+    chmod -R u+w "$out"
+    # Monitoring needs no PyGObject or privileged disk operations.
+    substituteInPlace "$out/services/StorageService.qml" \
+      --replace-fail '"python3"' '"${pkgs.python3}/bin/python3"'
+    substituteInPlace "$out/services/storage_backend.py" \
+      --replace-fail '"lsblk"' '"${pkgs.util-linux}/bin/lsblk"' \
+      --replace-fail '"findmnt"' '"${pkgs.util-linux}/bin/findmnt"' \
+      --replace-fail '"busctl"' '"${pkgs.systemd}/bin/busctl"'
+    # A new module URL prevents hot reloads from retaining the old singleton.
+    substituteInPlace "$out/StorageMonitorWidget.qml" \
+      --replace-fail 'import "./services" as Services' "import \"file:$out/services\" as Services"
+    PYTHONDONTWRITEBYTECODE=1 ${pkgs.python3}/bin/python3 -m unittest discover -s "$out/tests" -v
+  '';
   kdePaletteTemplate = pkgs.writeText "kdeglobals-template.colors" (
     builtins.readFile "${dmsSource}/quickshell/matugen/templates/kcolorscheme.colors"
     + ''
@@ -40,7 +55,7 @@ in
 
   xdg.configFile = {
     "DankMaterialShell/plugins/storageMonitor" = lib.mkIf osConfig.dotfiles.work.enable {
-      source = storageMonitorSource;
+      source = storageMonitor;
     };
     "matugen/config.toml".source = (pkgs.formats.toml { }).generate "matugen-config.toml" {
       config = { };

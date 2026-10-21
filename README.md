@@ -125,6 +125,10 @@ credentials, Varlock, and private AI instructions. Shared work secrets are in
 `nixos/secrets/framework.yaml`. sops-nix decrypts with the persistent SSH host key.
 Never copy private keys or plaintext secrets into Nix expressions.
 
+Storage Monitor includes Python and util-linux for read-only monitoring of mounted
+filesystems, including LUKS and LVM. Optional UDisks metadata uses busctl. Disk
+actions remain disabled without PyGObject; system and nested layouts are monitor-only.
+
 VPN profiles are imported locally as `moviestarplanet` and `moviestarplanet-tcp`.
 The DMS plugin applies their split DNS domains. Framework uses dnsdist at
 `127.0.0.2`: home resolvers are preferred over LAN or Tailscale, and public
