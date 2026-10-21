@@ -14,8 +14,6 @@ let
         "tests/test_package_updates.py"
         "tests/test_wayland_clipboard.py"
         "nixos/home/wayland-clipboard.py"
-        "tests/test_laptop_display.py"
-        "nixos/hosts/framework/restore-laptop-display.py"
         "nixos/packages/update-claude-code.sh"
         "nixos/packages/update-t3code.sh"
         "nixos/packages/claude-code-manifest.json"
