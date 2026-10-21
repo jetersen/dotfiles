@@ -31,6 +31,10 @@ let
     # and OpenVPN overwrites, including after a transient sync failure.
     substituteInPlace "$out/OpenVpn3Service.qml" \
       --replace-fail 'function refresh(updateDns = false)' 'function refresh(updateDns = true)'
+    # Give hot reloads a new module URL when the package changes, so QML
+    # cannot retain an older singleton from the mutable plugin symlink.
+    substituteInPlace "$out/OpenVpn3Widget.qml" \
+      --replace-fail 'import "."' "import \"file:$out\""
     substituteInPlace "$out/helper/split_dns.py" \
       --replace-fail '"resolvectl"' '"${pkgs.systemd}/bin/resolvectl"'
   '';
@@ -42,7 +46,7 @@ let
 in
 {
   xdg.configFile = {
-    "DankMaterialShell/plugins/openvpn3".source = plugin;
+    "DankMaterialShell/plugins/work-openvpn3".source = plugin;
     "dms-openvpn3/application-domains.json".source =
       config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets.vpn-domains.path;
     "dms-openvpn3/dns.json".text = builtins.toJSON {
