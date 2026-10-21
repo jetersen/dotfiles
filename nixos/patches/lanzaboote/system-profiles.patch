@@ -1,0 +1,1997 @@
+https://github.com/nix-community/lanzaboote/pull/673
+PR head: 4a4bb2a8bcbd5247e41a063abdbd74222621de4b
+Backported to v1.2.0 plus protected-system.patch; only the changelog needed resolution.
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 1d84ac3..07f7cfe 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,17 @@
+ # Changelog
+ 
++## Unreleased
++
++### Added
++
++- Generations of other system profiles are installed to the ESP, with the
++  profile name in the boot entry title and configuration limits per profile.
++
++### Changed
++
++- The requested boot target becomes the default entry, including rollbacks
++  and boot-only deployments.
++
+ ## 1.2.0
+ 
+ ### Changed
+diff --git a/docs/how-to-guides/enable-measured-boot.md b/docs/how-to-guides/enable-measured-boot.md
+index 1d6392c..4fc21aa 100644
+--- a/docs/how-to-guides/enable-measured-boot.md
++++ b/docs/how-to-guides/enable-measured-boot.md
+@@ -30,6 +30,10 @@ systemd-pcrlock.
+ > policy for more than 8
+ > variants per PCR](https://github.com/systemd/systemd/issues/41526).
+ > (PCR 4 variants ≙ 2 boot loader variants x 4 system generation variants)
++>
++> With Measured Boot, `configurationLimit` applies to the generations of all
++> system profiles together (see `nixos-rebuild --profile-name`), keeping the
++> most recently built ones. Specialisations add further variants.
+ 
+ ```nix
+ boot.initrd.systemd.enable = true;
+diff --git a/nix/modules/lanzaboote.nix b/nix/modules/lanzaboote.nix
+index 001407b..617c2c2 100644
+--- a/nix/modules/lanzaboote.nix
++++ b/nix/modules/lanzaboote.nix
+@@ -22,6 +22,10 @@ let
+   ]
+   ++ cfg.extraEfiSysMountPoints;
+ 
++  # Like systemd-boot, make the system that is being switched to the default
++  # boot entry. Only do this if the user has not configured their own default.
++  setDefaultEntry = (cfg.settings.default or null) == "nixos-*" && !(cfg.settings ? preferred);
++
+   mkInstallCommand =
+     efiSysMountPoint:
+     ''
+@@ -41,10 +45,13 @@ let
+           "--pcrlock-directory=${cfg.measuredBoot.pcrlockDirectory}"
+         ]
+         ++ [
++          # lzbt discovers the generations of all system profiles in here.
++          "--profiles-directory=/nix/var/nix/profiles"
+           efiSysMountPoint
+         ]
+       )
+-      + " /nix/var/nix/profiles/system-*-link"
++      # NixOS passes the toplevel of the system to switch to as first argument.
++      + lib.optionalString setDefaultEntry " \${1:+--default-system=\"$1\"}"
+     );
+ 
+   installHook = pkgs.writeShellScriptBin "lzbt" (
+@@ -113,6 +120,11 @@ in
+ 
+         `null` means no limit i.e. all generations
+         that were not garbage collected yet.
++
++        The limit applies to each system profile separately, like with
++        `boot.loader.systemd-boot`. With Measured Boot it applies to the
++        generations of all profiles together, because `systemd-pcrlock` only
++        supports a limited number of variants.
+       '';
+     };
+ 
+@@ -184,6 +196,16 @@ in
+         Configuration for the `systemd-boot`
+ 
+         See `loader.conf(5)` for supported values.
++
++        As long as `default` is `"nixos-*"` and `preferred` is unset, the
++        system that is being switched to becomes the default boot entry (or
++        the preferred one if boot counting is enabled), like with
++        `boot.loader.systemd-boot`. This includes generations of other system
++        profiles, such as those created by `nixos-rebuild --profile-name`.
++
++        Note that `preferred` requires systemd-boot 260 or newer and, unlike
++        `default`, takes precedence over the default entry chosen with
++        `bootctl set-default` or in the boot menu.
+       '';
+     };
+ 
+@@ -596,8 +618,8 @@ in
+           install {PK,KEK,db}.auth ${espMountPoint}/loader/keys/auto/
+ 
+           # Re-sign all the artifacts on the ESP after the new keys have been
+-          # auto enrolled.
+-          ${installHook}/bin/lzbt
++          # auto enrolled. Keep the running system as the default boot entry.
++          ${installHook}/bin/lzbt /run/current-system
+         '';
+     };
+ 
+@@ -622,8 +644,9 @@ in
+         StateDirectory = "auto-cryptenroll";
+         ExecStart = [
+           # Re-create all artifacts on the ESP to generate pcrlock measurements
+-          # for PCR 4. This will also create a new pcrlock policy.
+-          "${installHook}/bin/lzbt"
++          # for PCR 4. This will also create a new pcrlock policy. Keep the
++          # running system as the default boot entry.
++          "${installHook}/bin/lzbt /run/current-system"
+           ''
+             systemd-cryptenroll \
+               --wipe-slot=tpm2 \
+diff --git a/nix/tests/default.nix b/nix/tests/default.nix
+index b8b7035..692b54a 100644
+--- a/nix/tests/default.nix
++++ b/nix/tests/default.nix
+@@ -30,6 +30,10 @@ in
+   measured-boot = runTest ./lanzaboote/measured-boot.nix;
+   auto-reboot = runTest ./lanzaboote/auto-reboot.nix;
+   protected-system = runTest ./lanzaboote/protected-system.nix;
++  system-profiles = runTest (import ./lanzaboote/system-profiles.nix { bootCounting = false; });
++  system-profiles-boot-counting = runTest (
++    import ./lanzaboote/system-profiles.nix { bootCounting = true; }
++  );
+ 
+   systemd-pcrlock = runTest ./lanzaboote/systemd-pcrlock.nix;
+   systemd-measure = runTest ./lanzaboote/systemd-measure.nix;
+diff --git a/nix/tests/lanzaboote/system-profiles.nix b/nix/tests/lanzaboote/system-profiles.nix
+new file mode 100644
+index 0000000..54e2c59
+--- /dev/null
++++ b/nix/tests/lanzaboote/system-profiles.nix
+@@ -0,0 +1,166 @@
++# With boot counting, the system that is being switched to becomes the
++# `preferred` instead of the `default` entry, and systemd-boot falls back to
++# the `default` entry once the preferred one has run out of tries.
++{ bootCounting }:
++{ lib, ... }:
++{
++  name = "lanzaboote-system-profiles" + (if bootCounting then "-boot-counting" else "");
++
++  # The boot counting variant boots six times, which takes longer than the
++  # default timeout allows on slow (emulated) machines.
++  globalTimeout = lib.mkIf bootCounting (lib.mkForce (15 * 60));
++
++  nodes.machine =
++    {
++      config,
++      lib,
++      extendModules,
++      ...
++    }:
++    let
++      # The system that is deployed into an extra system profile. It only
++      # differs in the marker file and, with boot counting, never completes
++      # booting so that its entry runs out of tries.
++      customSystem =
++        (extendModules {
++          modules = [
++            { lanzabooteTest.profileMarker = "custom"; }
++          ]
++          ++ lib.optional bootCounting {
++            systemd.services.failing = {
++              script = "exit 1";
++              requiredBy = [ "boot-complete.target" ];
++              before = [ "boot-complete.target" ];
++              serviceConfig.Type = "oneshot";
++            };
++          };
++        }).config.system.build.toplevel;
++    in
++    {
++      imports = [ ./common/lanzaboote.nix ];
++
++      options.lanzabooteTest.profileMarker = lib.mkOption {
++        type = lib.types.str;
++        default = "system";
++        description = "Marker in /etc to tell the systems of different profiles apart.";
++      };
++
++      config = {
++        lanzabooteTest.persistentRoot = true;
++
++        boot.lanzaboote.bootCounting.initialTries = lib.mkIf bootCounting 2;
++
++        # Boot is successful if multi-user is reached.
++        systemd.targets.boot-complete.after = lib.mkIf bootCounting [ "multi-user.target" ];
++
++        # We need this so switch-to-configuration exists.
++        system.switch.enable = true;
++
++        environment.etc."profile-marker".text = config.lanzabooteTest.profileMarker;
++
++        # Include the profile system in the image so that it can be deployed
++        # without building it inside the VM.
++        system.extraDependencies = lib.mkIf (config.lanzabooteTest.profileMarker == "system") [
++          customSystem
++        ];
++        system.build = { inherit customSystem; };
++      };
++    };
++
++  testScript =
++    { nodes, ... }:
++    let
++      system = nodes.machine.system.build.toplevel;
++      inherit (nodes.machine.system.build) customSystem;
++    in
++    (import ./common/image-helper.nix { inherit (nodes) machine; })
++    + ''
++      import json
++
++      def default_entry():
++        entries = json.loads(machine.succeed("bootctl list --json=short"))
++        return next(entry for entry in entries if entry.get("isDefault"))
++
++      def marker():
++        return machine.succeed("cat /etc/profile-marker").strip()
++
++      def check_loader_conf(entry):
++        loader_conf = machine.succeed("cat /boot/loader/loader.conf")
++        print(loader_conf)
++        key = ${if bootCounting then ''"preferred"'' else ''"default"''}
++        t.assertIn(f"{key} {entry['id']}", loader_conf)
++
++      machine.wait_for_unit("multi-user.target")
++      t.assertEqual(marker(), "system")
++
++      # The Nix store of the image is read-only, so nix-env cannot be used.
++      # Create the same links that `nix-env --profile <profile> --set` would.
++      def set_profile(profile, generation, toplevel):
++        directory, name = profile.rsplit("/", 1)
++        machine.succeed(f"mkdir -p {directory}")
++        machine.succeed(f"ln -s {toplevel} {profile}-{generation}-link")
++        machine.succeed(f"ln -sfn {name}-{generation}-link {profile}")
++
++      with subtest("Deploy into an extra system profile"):
++        set_profile("/nix/var/nix/profiles/system-profiles/custom", 1, "${customSystem}")
++        machine.succeed("${customSystem}/bin/switch-to-configuration boot")
++
++        print(machine.succeed("bootctl list"))
++        entry = default_entry()
++        t.assertIn("[custom]", entry["title"])
++        t.assertTrue(entry["id"].startswith("nixos-profile-custom-generation-1-"), entry["id"])
++        check_loader_conf(entry)
++
++      with subtest("Boot into the extra system profile"):
++        machine.reboot()
++        machine.wait_for_unit("multi-user.target")
++        t.assertEqual(marker(), "custom")
++    ''
++    + (
++      if bootCounting then
++        ''
++
++          with subtest("Fall back to the system profile once the preferred entry is bad"):
++            # The custom system never completes booting, so its second and last try fails as well.
++            machine.reboot()
++            machine.wait_for_unit("multi-user.target")
++            t.assertEqual(marker(), "custom")
++            stubs = machine.succeed("ls -1 /boot/EFI/Linux")
++            print(stubs)
++            t.assertRegex(stubs, r"nixos-profile-custom-generation-1-.*\+0-2\.efi")
++
++            # systemd-boot skips the preferred entry without tries left and uses `default nixos-*`.
++            machine.reboot()
++            machine.wait_for_unit("multi-user.target")
++            t.assertEqual(marker(), "system")
++        ''
++      else
++        ""
++    )
++    + ''
++
++      with subtest("Switch back to the system profile"):
++        set_profile("/nix/var/nix/profiles/system", 2, "${system}")
++        machine.succeed("${system}/bin/switch-to-configuration boot")
++
++        print(machine.succeed("bootctl list"))
++        entry = default_entry()
++        t.assertNotIn("[custom]", entry["title"])
++        t.assertTrue(entry["id"].startswith("nixos-generation-2-"), entry["id"])
++        check_loader_conf(entry)
++
++        machine.reboot()
++        machine.wait_for_unit("multi-user.target")
++        t.assertEqual(marker(), "system")
++
++      with subtest("Garbage collect the deleted profile generation"):
++        t.assertIn("nixos-profile-custom-generation-1-", machine.succeed("ls -1 /boot/EFI/Linux"))
++        machine.succeed("rm /nix/var/nix/profiles/system-profiles/custom /nix/var/nix/profiles/system-profiles/custom-1-link")
++        machine.succeed("/run/current-system/bin/switch-to-configuration boot")
++
++        stubs = machine.succeed("ls -1 /boot/EFI/Linux")
++        print(stubs)
++        t.assertNotIn("nixos-profile-custom", stubs)
++        t.assertTrue(default_entry()["id"].startswith("nixos-generation-2-"))
++    '';
++}
+diff --git a/rust/tool/shared/src/generation.rs b/rust/tool/shared/src/generation.rs
+index 504eb3f..32eb78c 100644
+--- a/rust/tool/shared/src/generation.rs
++++ b/rust/tool/shared/src/generation.rs
+@@ -4,8 +4,9 @@ use std::fmt;
+ use std::fs;
+ use std::os::unix::fs::MetadataExt;
+ use std::path::{Path, PathBuf};
++use std::time::SystemTime;
+ 
+-use anyhow::{Context, Result};
++use anyhow::{Context, Result, bail};
+ use bootspec::BootJson;
+ use bootspec::BootSpec;
+ use bootspec::SpecialisationName;
+@@ -59,10 +60,12 @@ impl From<bootspec::BootJson> for LanzabooteExtension {
+ ///
+ /// NixOS represents a generation as a symlink to a toplevel derivation. This toplevel derivation
+ /// contains most of the information necessary to install the generation onto the EFI System
+-/// Partition. The only information missing is the version number which is encoded in the file name
+-/// of the generation link.
++/// Partition. The only information missing is the profile and version number which are encoded in
++/// the path of the generation link.
+ #[derive(Debug, Clone)]
+ pub struct Generation {
++    /// Name of the system profile, `None` for the default `system` profile
++    pub profile: Option<String>,
+     /// Profile symlink index
+     pub version: u64,
+     /// Build time
+@@ -93,6 +96,7 @@ impl Generation {
+         specialisation: bootspec::Specialisation,
+     ) -> Result<Self> {
+         Ok(Self {
++            profile: link.profile.clone(),
+             version: link.version,
+             build_time: link.build_time,
+             specialisation_name: Some(specialisation_name),
+@@ -128,6 +132,7 @@ impl Generation {
+         let bootspec: BootSpec = boot_json.clone().generation.try_into()?;
+ 
+         Ok(Self {
++            profile: link.profile.clone(),
+             version: link.version,
+             build_time: link.build_time,
+             specialisation_name,
+@@ -148,6 +153,18 @@ impl Generation {
+         }
+     }
+ 
++    /// Describe the profile of the generation for humans.
++    ///
++    /// Emulates how NixOS's current systemd-boot-builder.py adds the profile to the title. Empty
++    /// for the default profile.
++    pub fn describe_profile(&self) -> String {
++        if let Some(profile) = &self.profile {
++            format!(" [{profile}]")
++        } else {
++            "".to_string()
++        }
++    }
++
+     /// Describe the generation in a single line for humans.
+     ///
+     /// Emulates how NixOS's current systemd-boot-builder.py describes generations so that the user
+@@ -170,8 +187,20 @@ impl Generation {
+     }
+ 
+     /// A unique short identifier.
++    ///
++    /// Identifiers of the default profile start with the version number, those of other profiles
++    /// with `profile-`, so that the two can never collide.
+     pub fn version_tag(&self) -> String {
+-        format!("{}{}", self.version, self.describe_specialisation(),)
++        if let Some(profile) = &self.profile {
++            format!(
++                "profile-{}-{}{}",
++                profile,
++                self.version,
++                self.describe_specialisation()
++            )
++        } else {
++            format!("{}{}", self.version, self.describe_specialisation(),)
++        }
+     }
+ }
+ 
+@@ -189,23 +218,38 @@ fn read_build_time(path: &Path) -> Result<Date> {
+ 
+ /// A link pointing to a generation.
+ ///
+-/// Can be built from a symlink in /nix/var/nix/profiles/ alone because the name of the
+-/// symlink encodes the version number.
++/// Can be built from a symlink in /nix/var/nix/profiles/ alone because the path of the
++/// symlink encodes the profile and version number.
+ #[derive(Debug, Clone, PartialEq, Eq)]
+ pub struct GenerationLink {
++    /// Name of the system profile, `None` for the default `system` profile
++    pub profile: Option<String>,
+     pub version: u64,
+     pub path: PathBuf,
+     pub build_time: Option<Date>,
++    /// Modification time of the link, to compare generations of different profiles
++    pub modified: Option<SystemTime>,
+ }
+ 
+ impl GenerationLink {
+     pub fn from_path(path: impl AsRef<Path>) -> Result<Self> {
++        let (profile, version) =
++            parse_profile_and_version(&path).context("Failed to parse profile and version")?;
+         Ok(Self {
+-            version: parse_version(&path).context("Failed to parse version")?,
++            profile,
++            version,
+             path: PathBuf::from(path.as_ref()),
+             build_time: read_build_time(path.as_ref()).ok(),
++            modified: fs::symlink_metadata(path.as_ref())
++                .and_then(|m| m.modified())
++                .ok(),
+         })
+     }
++
++    /// Key to order generations of all profiles from oldest to newest.
++    pub fn age_key(&self) -> (Option<SystemTime>, &Option<String>, u64) {
++        (self.modified, &self.profile, self.version)
++    }
+ }
+ 
+ impl PartialOrd for GenerationLink {
+@@ -216,23 +260,97 @@ impl PartialOrd for GenerationLink {
+ 
+ impl Ord for GenerationLink {
+     fn cmp(&self, other: &Self) -> Ordering {
+-        self.version.cmp(&other.version)
++        (&self.profile, self.version).cmp(&(&other.profile, other.version))
+     }
+ }
+ 
+-/// Parse version number from a path.
++/// Parse profile name and version number from a path.
+ ///
+-/// Expects a path in the format of "system-{version}-link".
+-fn parse_version(path: impl AsRef<Path>) -> Result<u64> {
+-    let generation_version = path
+-        .as_ref()
++/// Expects a path in the format of "system-{version}-link" for the default profile or
++/// "system-profiles/{profile}-{version}-link" for other profiles. Profile names may contain "-".
++fn parse_profile_and_version(path: impl AsRef<Path>) -> Result<(Option<String>, u64)> {
++    let path = path.as_ref();
++    let (name, version) = path
+         .file_name()
+         .and_then(|x| x.to_str())
+-        .and_then(|x| x.split('-').nth(1))
+-        .and_then(|x| x.parse::<u64>().ok())
+-        .with_context(|| format!("Failed to extract version from: {:?}", path.as_ref()))?;
++        .and_then(|x| x.strip_suffix("-link"))
++        .and_then(|x| x.rsplit_once('-'))
++        .and_then(|(name, version)| Some((name, version.parse::<u64>().ok()?)))
++        .with_context(|| format!("Failed to extract version from: {path:?}"))?;
++
++    let in_system_profiles = path
++        .parent()
++        .and_then(Path::file_name)
++        .is_some_and(|x| x == "system-profiles");
++    let profile = if !in_system_profiles {
++        None
++    } else if name.is_empty() {
++        bail!("Failed to extract profile name from: {path:?}");
++    } else if !is_safe_profile_name(name) {
++        // The profile name ends up in file names on the ESP, in loader.conf and in the os-release
++        // of the stub. Refuse anything that could break those before anything is installed.
++        bail!(
++            "Profile name {name:?} of {path:?} contains characters other than ASCII letters, digits, '.', '_' and '-'"
++        );
++    } else {
++        Some(name.to_string())
++    };
++
++    Ok((profile, version))
++}
+ 
+-    Ok(generation_version)
++/// Whether a profile name can be used safely in ESP file names and loader.conf.
++fn is_safe_profile_name(name: &str) -> bool {
++    name.chars()
++        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'))
++}
++
++/// Whether a file name looks like a generation link, i.e. "{name}-{version}-link".
++fn is_generation_link_name(name: &str) -> bool {
++    name.strip_suffix("-link")
++        .and_then(|x| x.rsplit_once('-'))
++        .is_some_and(|(_, version)| version.parse::<u64>().is_ok())
++}
++
++/// Find the generation links of all system profiles in a profiles directory.
++///
++/// Like NixOS's systemd-boot-builder.py, this returns the links of the default profile
++/// ("{directory}/system-{version}-link") and of all other profiles
++/// ("{directory}/system-profiles/{profile}-{version}-link"). Other entries, e.g. the profile
++/// symlinks themselves or the profiles of nix-env, are ignored. A missing "system-profiles"
++/// directory is not an error.
++pub fn discover_generation_links(directory: impl AsRef<Path>) -> Result<Vec<PathBuf>> {
++    let directory = directory.as_ref();
++    let mut links = list_generation_links(directory, "system-")?;
++
++    let system_profiles = directory.join("system-profiles");
++    if system_profiles.is_dir() {
++        links.extend(list_generation_links(&system_profiles, "")?);
++    }
++
++    Ok(links)
++}
++
++/// List the entries of a directory that look like generation links and start with the prefix.
++fn list_generation_links(directory: &Path, prefix: &str) -> Result<Vec<PathBuf>> {
++    let mut links = Vec::new();
++    for entry in fs::read_dir(directory)
++        .with_context(|| format!("Failed to read profiles directory {directory:?}"))?
++    {
++        let path = entry
++            .with_context(|| format!("Failed to read profiles directory {directory:?}"))?
++            .path();
++        let is_link = path
++            .file_name()
++            .and_then(|x| x.to_str())
++            .is_some_and(|name| name.starts_with(prefix) && is_generation_link_name(name));
++        if is_link {
++            links.push(path);
++        } else {
++            log::debug!("Ignoring {path:?}, which is not a generation link.");
++        }
++    }
++    Ok(links)
+ }
+ 
+ #[cfg(test)]
+@@ -244,36 +362,186 @@ mod tests {
+     #[test]
+     fn parse_version_correctly() {
+         let path = Path::new("system-2-link");
+-        let parsed_version = parse_version(path).unwrap();
+-        assert_eq!(parsed_version, 2,);
++        let parsed = parse_profile_and_version(path).unwrap();
++        assert_eq!(parsed, (None, 2));
++
++        let path = Path::new("/nix/var/nix/profiles/system-12-link");
++        let parsed = parse_profile_and_version(path).unwrap();
++        assert_eq!(parsed, (None, 12));
++    }
++
++    #[test]
++    fn parse_profile_correctly() {
++        let path = Path::new("/nix/var/nix/profiles/system-profiles/custom-3-link");
++        let parsed = parse_profile_and_version(path).unwrap();
++        assert_eq!(parsed, (Some("custom".to_string()), 3));
++
++        let path = Path::new("system-profiles/my-host-profile-7-link");
++        let parsed = parse_profile_and_version(path).unwrap();
++        assert_eq!(parsed, (Some("my-host-profile".to_string()), 7));
++
++        let path = Path::new("system-profiles/system-1-link");
++        let parsed = parse_profile_and_version(path).unwrap();
++        assert_eq!(parsed, (Some("system".to_string()), 1));
++
++        let path = Path::new("system-profiles/My.Profile_1-2-link");
++        let parsed = parse_profile_and_version(path).unwrap();
++        assert_eq!(parsed, (Some("My.Profile_1".to_string()), 2));
++    }
++
++    #[test]
++    fn reject_unsafe_profile_names() {
++        for path in [
++            "system-profiles/my profile-1-link",
++            "system-profiles/my*profile-1-link",
++            "system-profiles/my:profile-1-link",
++            "system-profiles/my\nprofile-1-link",
++            "system-profiles/mäin-1-link",
++        ] {
++            let error = parse_profile_and_version(path).unwrap_err();
++            assert!(
++                error.to_string().contains("contains characters"),
++                "{path} should be rejected because of its characters: {error}"
++            );
++        }
++    }
++
++    #[test]
++    fn discover_generation_links_of_all_profiles() {
++        let directory = tempfile::tempdir().unwrap();
++        let profiles = directory.path();
++        let system_profiles = profiles.join("system-profiles");
++        fs::create_dir(&system_profiles).unwrap();
++        for name in [
++            // Generation links of the default profile.
++            "system-1-link",
++            "system-12-link",
++            // Everything else in /nix/var/nix/profiles is ignored.
++            "system",
++            "default-3-link",
++            "per-user",
++            // Generation links of other profiles.
++            "system-profiles/custom-1-link",
++            "system-profiles/my-host-profile-7-link",
++            // The profile symlinks themselves and anything else are ignored.
++            "system-profiles/custom",
++            "system-profiles/my-host-profile",
++            "system-profiles/notes.txt",
++        ] {
++            fs::create_dir(profiles.join(name)).unwrap();
++        }
++
++        let mut links = discover_generation_links(profiles).unwrap();
++        links.sort();
++        assert_eq!(
++            links,
++            [
++                "system-1-link",
++                "system-12-link",
++                "system-profiles/custom-1-link",
++                "system-profiles/my-host-profile-7-link",
++            ]
++            .map(|name| profiles.join(name))
++        );
++    }
++
++    #[test]
++    fn discover_generation_links_without_system_profiles() {
++        let directory = tempfile::tempdir().unwrap();
++        let profiles = directory.path();
++        fs::create_dir(profiles.join("system-1-link")).unwrap();
++
++        let links = discover_generation_links(profiles).unwrap();
++        assert_eq!(links, [profiles.join("system-1-link")]);
++
++        assert!(discover_generation_links(profiles.join("missing")).is_err());
++    }
++
++    #[test]
++    fn parse_malformed_links() {
++        for path in [
++            "system-link",
++            "system-2",
++            "system-x-link",
++            "system--link",
++            "system-profiles/custom",
++            "system-profiles/custom-link",
++            "system-profiles/custom-x-link",
++            "system-profiles/-3-link",
++        ] {
++            assert!(
++                parse_profile_and_version(path).is_err(),
++                "{path} should not parse"
++            );
++        }
+     }
+ 
+     #[test]
+     fn generation_link_ordering() {
+         let gen_0 = GenerationLink {
++            profile: None,
+             version: 0,
+             path: PathBuf::new(),
+             build_time: None,
++            modified: None,
+         };
+         let gen_1 = GenerationLink {
++            profile: None,
+             version: 1,
+             path: PathBuf::new(),
+             build_time: None,
++            modified: None,
+         };
+         assert!(gen_1 > gen_0)
+     }
+ 
++    #[test]
++    fn generation_link_profile_identity() {
++        let system_3 = GenerationLink {
++            profile: None,
++            version: 3,
++            path: PathBuf::new(),
++            build_time: None,
++            modified: None,
++        };
++        let custom_3 = GenerationLink {
++            profile: Some("custom".to_string()),
++            version: 3,
++            path: PathBuf::new(),
++            build_time: None,
++            modified: None,
++        };
++        let custom_1 = GenerationLink {
++            profile: Some("custom".to_string()),
++            version: 1,
++            path: PathBuf::new(),
++            build_time: None,
++            modified: None,
++        };
++
++        // The default profile sorts first, then other profiles by name and version.
++        assert!(system_3 < custom_1);
++        assert!(custom_1 < custom_3);
++
++        let set = BTreeSet::from([system_3, custom_3, custom_1]);
++        assert_eq!(set.len(), 3);
++    }
++
+     #[test]
+     fn generation_link_set() {
+         let gen_0 = GenerationLink {
++            profile: None,
+             version: 0,
+             path: PathBuf::new(),
+             build_time: None,
++            modified: None,
+         };
+         let gen_1 = GenerationLink {
++            profile: None,
+             version: 1,
+             path: PathBuf::new(),
+             build_time: None,
++            modified: None,
+         };
+ 
+         let mut set = BTreeSet::new();
+diff --git a/rust/tool/shared/src/os_release.rs b/rust/tool/shared/src/os_release.rs
+index 1c3281a..4f99075 100644
+--- a/rust/tool/shared/src/os_release.rs
++++ b/rust/tool/shared/src/os_release.rs
+@@ -38,8 +38,9 @@ impl OsRelease {
+         map.insert(
+             "PRETTY_NAME".into(),
+             format!(
+-                "{} ({})",
++                "{}{} ({})",
+                 generation.spec.bootspec.bootspec.label,
++                generation.describe_profile(),
+                 generation.describe()
+             ),
+         );
+diff --git a/rust/tool/systemd/src/cli.rs b/rust/tool/systemd/src/cli.rs
+index 1b09a13..1ead055 100644
+--- a/rust/tool/systemd/src/cli.rs
++++ b/rust/tool/systemd/src/cli.rs
+@@ -71,10 +71,19 @@ struct InstallCommand {
+     #[arg(long)]
+     protected_system: Option<PathBuf>,
+ 
++    /// System (toplevel) whose boot entry becomes the default in loader.conf
++    #[arg(long)]
++    default_system: Option<PathBuf>,
++
++    /// Directory to discover the generation links of all system profiles in (e.g.
++    /// /nix/var/nix/profiles)
++    #[arg(long)]
++    profiles_directory: Option<PathBuf>,
++
+     /// EFI system partition mountpoint (e.g. efiSysMountPoint)
+     esp: PathBuf,
+ 
+-    /// List of generation links (e.g. /nix/var/nix/profiles/system-*-link)
++    /// List of additional generation links, e.g. for building images
+     generations: Vec<PathBuf>,
+ }
+ 
+@@ -119,6 +128,8 @@ fn install(args: InstallCommand) -> Result<()> {
+         args.bootcounting_initial_tries,
+         args.pcrlock_directory,
+         args.protected_system,
++        args.default_system,
++        args.profiles_directory,
+         args.esp,
+         args.generations,
+     );
+diff --git a/rust/tool/systemd/src/install.rs b/rust/tool/systemd/src/install.rs
+index ed6d75b..a976fa0 100644
+--- a/rust/tool/systemd/src/install.rs
++++ b/rust/tool/systemd/src/install.rs
+@@ -1,4 +1,4 @@
+-use std::collections::BTreeSet;
++use std::collections::{BTreeMap, BTreeSet};
+ use std::ffi::OsStr;
+ use std::fs::{self, File};
+ use std::os::unix::prelude::{OsStrExt, PermissionsExt};
+@@ -19,7 +19,7 @@ use crate::version::SystemdVersion;
+ use lanzaboote_tool::architecture::Architecture;
+ use lanzaboote_tool::esp::EspPaths;
+ use lanzaboote_tool::gc::Roots;
+-use lanzaboote_tool::generation::{Generation, GenerationLink};
++use lanzaboote_tool::generation::{Generation, GenerationLink, discover_generation_links};
+ use lanzaboote_tool::os_release::OsRelease;
+ use lanzaboote_tool::pe::{self, append_initrd_secrets, lanzaboote_image};
+ use lanzaboote_tool::signature::Signer;
+@@ -34,6 +34,8 @@ pub struct InstallerBuilder {
+     bootcounting_initial_tries: u32,
+     pcrlock_directory: Option<PathBuf>,
+     protected_system: Option<PathBuf>,
++    default_system: Option<PathBuf>,
++    profiles_directory: Option<PathBuf>,
+     esp: PathBuf,
+     generation_links: Vec<PathBuf>,
+ }
+@@ -49,6 +51,8 @@ impl InstallerBuilder {
+         bootcounting_initial_tries: u32,
+         pcrlock_directory: Option<PathBuf>,
+         protected_system: Option<PathBuf>,
++        default_system: Option<PathBuf>,
++        profiles_directory: Option<PathBuf>,
+         esp: PathBuf,
+         generation_links: Vec<PathBuf>,
+     ) -> Self {
+@@ -61,6 +65,8 @@ impl InstallerBuilder {
+             bootcounting_initial_tries,
+             pcrlock_directory,
+             protected_system,
++            default_system,
++            profiles_directory,
+             esp,
+             generation_links,
+         }
+@@ -77,7 +83,7 @@ impl InstallerBuilder {
+         };
+ 
+         Installer {
+-            broken_gens: BTreeSet::new(),
++            broken_gens: BTreeMap::new(),
+             gc_roots,
+             lanzaboote_stub: self.lanzaboote_stub,
+             systemd: self.systemd,
+@@ -87,6 +93,9 @@ impl InstallerBuilder {
+             bootcounting_initial_tries: self.bootcounting_initial_tries,
+             pcrlock_paths,
+             protected_system: self.protected_system,
++            default_system: self.default_system,
++            default_entry: None,
++            profiles_directory: self.profiles_directory,
+             esp_paths,
+             generation_links: self.generation_links,
+             arch: self.arch,
+@@ -95,7 +104,7 @@ impl InstallerBuilder {
+ }
+ 
+ pub struct Installer<S: Signer> {
+-    broken_gens: BTreeSet<u64>,
++    broken_gens: BTreeMap<Option<String>, BTreeSet<u64>>,
+     gc_roots: Roots,
+     lanzaboote_stub: PathBuf,
+     systemd: PathBuf,
+@@ -105,6 +114,11 @@ pub struct Installer<S: Signer> {
+     bootcounting_initial_tries: u32,
+     pcrlock_paths: Option<PcrlockPaths>,
+     protected_system: Option<PathBuf>,
++    default_system: Option<PathBuf>,
++    /// Boot entry ID of the default system, if it has been installed
++    default_entry: Option<String>,
++    /// Directory to discover the generation links of all profiles in
++    profiles_directory: Option<PathBuf>,
+     esp_paths: SystemdEspPaths,
+     generation_links: Vec<PathBuf>,
+     arch: Architecture,
+@@ -120,6 +134,22 @@ impl<S: Signer> Installer<S> {
+             .map(GenerationLink::from_path)
+             .collect::<Result<BTreeSet<GenerationLink>>>()?;
+ 
++        if let Some(profiles_directory) = &self.profiles_directory {
++            for path in discover_generation_links(profiles_directory)
++                .context("Failed to discover generation links")?
++            {
++                // Unlike the links passed explicitly, a discovered link that cannot be used (e.g.
++                // because of its profile name) must not prevent the other generations from being
++                // installed. Nothing has ever been installed for it, so it can safely be skipped.
++                match GenerationLink::from_path(&path) {
++                    Ok(link) => {
++                        links.insert(link);
++                    }
++                    Err(e) => log::warn!("Ignoring generation link {}: {e:#}", path.display()),
++                }
++            }
++        }
++
+         let booted_link = self
+             .protected_system
+             .as_ref()
+@@ -132,24 +162,68 @@ impl<S: Signer> Installer<S> {
+             })
+             .cloned();
+ 
++        // Resolve the default system once, so that it can be compared with the toplevels of all
++        // generations.
++        self.default_system = self.default_system.take().and_then(|p| {
++            fs::canonicalize(&p)
++                .inspect_err(|e| log::warn!("Failed to resolve default system {p:?}: {e}"))
++                .ok()
++        });
++
++        // With Measured Boot, systemd-pcrlock only supports a limited number of variants, so the
++        // configuration limit applies to the generations of all profiles together. Otherwise it
++        // applies to each profile separately, like in NixOS's systemd-boot-builder.py.
++        let global_limit = self.pcrlock_paths.is_some();
++
+         // A configuration limit of 0 means there is no limit.
+         if self.configuration_limit > 0 {
+-            // Only install the number of generations configured. Reverse the list to only take the
+-            // latest generations and then, after taking them, reverse the list again so that the
+-            // generations are installed from oldest to newest, i.e. from smallest to largest
+-            // generation version.
+-            links = links
+-                .into_iter()
+-                .rev()
+-                .take(self.configuration_limit)
+-                .rev()
+-                .collect()
++            links = if global_limit {
++                // Keep the most recently built generations.
++                let mut sorted = links.into_iter().collect::<Vec<_>>();
++                sorted.sort_by(|a, b| a.age_key().cmp(&b.age_key()));
++                sorted
++                    .into_iter()
++                    .rev()
++                    .take(self.configuration_limit)
++                    .collect()
++            } else {
++                // Reverse the list to only take the latest generations of each profile. The set
++                // orders them from oldest to newest again, i.e. from smallest to largest
++                // generation version.
++                let profiles = links
++                    .iter()
++                    .map(|link| link.profile.clone())
++                    .collect::<BTreeSet<_>>();
++                profiles
++                    .iter()
++                    .flat_map(|profile| {
++                        links
++                            .iter()
++                            .filter(move |link| &link.profile == profile)
++                            .rev()
++                            .take(self.configuration_limit)
++                    })
++                    .cloned()
++                    .collect()
++            }
+         };
+ 
+         if let Some(booted_link) = booted_link
+             && !links.contains(&booted_link)
+         {
+-            links.pop_first();
++            // Make room by removing the oldest generation, of the same profile unless the limit
++            // applies to all profiles together.
++            let oldest = if global_limit {
++                links.iter().min_by_key(|link| link.age_key()).cloned()
++            } else {
++                links
++                    .iter()
++                    .find(|link| link.profile == booted_link.profile)
++                    .cloned()
++            };
++            if let Some(oldest) = oldest {
++                links.remove(&oldest);
++            }
+             links.insert(booted_link);
+         }
+ 
+@@ -180,14 +254,31 @@ impl<S: Signer> Installer<S> {
+                 self.gc_roots.collect_garbage(pcrlock_paths.lanzaboote())?;
+             }
+         } else {
++            let commands = self
++                .broken_gens
++                .iter()
++                .map(|(profile, versions)| {
++                    let profile_arg = profile
++                        .as_ref()
++                        .map(|p| format!("-p /nix/var/nix/profiles/system-profiles/{p} "))
++                        .unwrap_or_default();
++                    let versions = versions
++                        .iter()
++                        .map(ToString::to_string)
++                        .collect::<Vec<String>>()
++                        .join(" ");
++                    format!("`nix-env {profile_arg}--delete-generations {versions}`")
++                })
++                .collect::<Vec<String>>()
++                .join("\n");
+             // This might produce a ridiculous message if you have a lot of malformed generations.
+             let warning = indoc::formatdoc! {"
+                 Garbage collection is disabled because you have malformed NixOS generations that do
+                 not contain a readable bootspec document.
+ 
+                 Remove the malformed generations to re-enable garbage collection with
+-                `nix-env --delete-generations {}`
+-            ", self.broken_gens.iter().map(ToString::to_string).collect::<Vec<String>>().join(" ")};
++                {commands}
++            "};
+             log::warn!("{warning}");
+         };
+ 
+@@ -213,7 +304,10 @@ impl<S: Signer> Installer<S> {
+                     // to manually intervene by getting rid of the old generations to re-enable
+                     // garbage collection. This safeguard against catastrophic failure in case of
+                     // unhandled upstream changes to NixOS.
+-                    self.broken_gens.insert(link.version);
++                    self.broken_gens
++                        .entry(link.profile.clone())
++                        .or_default()
++                        .insert(link.version);
+                 }
+ 
+                 generation_result.ok()
+@@ -230,8 +324,9 @@ impl<S: Signer> Installer<S> {
+         for generation in generations {
+             // The kernels and initrds are content-addressed.
+             // Thus, this cannot overwrite files of old generation with different content.
+-            self.install_generation(&generation)
+-                .with_context(|| format!("Failed to install generation {}", generation.version))?;
++            self.install_generation(&generation).with_context(|| {
++                format!("Failed to install generation {}", generation.version_tag())
++            })?;
+ 
+             for specialisation in generation.specialisations.values() {
+                 self.install_generation(specialisation)
+@@ -256,6 +351,16 @@ impl<S: Signer> Installer<S> {
+     fn install_generation(&mut self, generation: &Generation) -> Result<()> {
+         log::debug!("Installing generation {}", generation.version_tag());
+ 
++        // Like systemd-boot-builder.py, prefer the last matching generation in case several point
++        // to the same toplevel.
++        if let Some(default_system) = &self.default_system
++            && fs::canonicalize(&generation.spec.bootspec.bootspec.toplevel.0)
++                .is_ok_and(|toplevel| &toplevel == default_system)
++        {
++            // systemd-boot identifies UKIs by their file name without boot counting suffix.
++            self.default_entry = Some(format!("{}.efi", stub_prefix(generation, &self.signer)?));
++        }
++
+         // If the generation is already properly installed, don't overwrite it.
+         if self.register_installed_generation(generation)? {
+             return Ok(());
+@@ -537,11 +642,7 @@ impl<S: Signer> Installer<S> {
+             }
+         }
+ 
+-        install(
+-            &self.systemd_boot_loader_config,
+-            &self.esp_paths.systemd_boot_loader_config,
+-        )
+-        .with_context(|| {
++        self.install_systemd_boot_loader_config().with_context(|| {
+             format!(
+                 "Failed to install systemd-boot loader.conf to {:?}",
+                 &self.esp_paths.systemd_boot_loader_config
+@@ -550,6 +651,46 @@ impl<S: Signer> Installer<S> {
+ 
+         Ok(())
+     }
++
++    /// Install the systemd-boot loader.conf.
++    ///
++    /// If the default system has been installed, its entry is made the default, like NixOS's
++    /// systemd-boot-builder.py does. With boot counting, it is configured as the `preferred`
++    /// entry instead, because systemd-boot skips a preferred entry that has run out of tries and
++    /// falls back to the configured `default`.
++    fn install_systemd_boot_loader_config(&self) -> Result<()> {
++        let Some(default_entry) = &self.default_entry else {
++            if self.default_system.is_some() {
++                log::warn!("Default system is not installed, using configured default entry.");
++            }
++            return install(
++                &self.systemd_boot_loader_config,
++                &self.esp_paths.systemd_boot_loader_config,
++            );
++        };
++
++        let key = if self.bootcounting_initial_tries > 0 {
++            "preferred"
++        } else {
++            "default"
++        };
++        let mut loader_config = fs::read_to_string(&self.systemd_boot_loader_config)
++            .context("Failed to read the systemd-boot loader.conf")?
++            .lines()
++            .filter(|line| line.split_whitespace().next() != Some(key))
++            .map(|line| format!("{line}\n"))
++            .collect::<String>();
++        loader_config.push_str(&format!("{key} {default_entry}\n"));
++
++        let tempdir = TempDir::new().context("Failed to create temporary directory.")?;
++        let loader_config_path = tempdir.path().join("loader.conf");
++        fs::write(&loader_config_path, loader_config)
++            .context("Failed to write the systemd-boot loader.conf")?;
++        install(
++            &loader_config_path,
++            &self.esp_paths.systemd_boot_loader_config,
++        )
++    }
+ }
+ 
+ /// Translate an EFI path to an absolute path on the mounted ESP.
+@@ -588,15 +729,22 @@ fn stub_prefix<S: Signer>(generation: &Generation, signer: &S) -> Result<String>
+     let stub_input_hash = Base32Unpadded::encode_string(&Sha256::digest(
+         serde_json::to_string(&stub_inputs).unwrap(),
+     ));
++    // Stubs of generations from other profiles start with "nixos-profile-" so that they can
++    // never collide with the "nixos-generation-" stubs of the default profile.
++    let profile_prefix = generation
++        .profile
++        .as_ref()
++        .map(|profile| format!("profile-{profile}-"))
++        .unwrap_or_default();
+     if let Some(specialisation_name) = &generation.specialisation_name {
+         Ok(format!(
+-            "nixos-generation-{}-specialisation-{}-{}",
+-            generation, specialisation_name, stub_input_hash
++            "nixos-{}generation-{}-specialisation-{}-{}",
++            profile_prefix, generation, specialisation_name, stub_input_hash
+         ))
+     } else {
+         Ok(format!(
+-            "nixos-generation-{}-{}",
+-            generation, stub_input_hash
++            "nixos-{}generation-{}-{}",
++            profile_prefix, generation, stub_input_hash
+         ))
+     }
+ }
+diff --git a/rust/tool/systemd/tests/integration/common.rs b/rust/tool/systemd/tests/integration/common.rs
+index ceb7784..17d7c8e 100644
+--- a/rust/tool/systemd/tests/integration/common.rs
++++ b/rust/tool/systemd/tests/integration/common.rs
+@@ -50,6 +50,19 @@ pub fn setup_generation_link_from_toplevel(
+     toplevel: &Path,
+     profiles_directory: &Path,
+     version: u64,
++) -> Result<PathBuf> {
++    setup_profile_generation_link_from_toplevel(toplevel, profiles_directory, None, version)
++}
++
++/// Create a mock generation link of a profile.
++///
++/// Works like `setup_generation_link_from_toplevel` but creates the link of any profile other
++/// than the default one inside the system-profiles directory.
++pub fn setup_profile_generation_link_from_toplevel(
++    toplevel: &Path,
++    profiles_directory: &Path,
++    profile: Option<&str>,
++    version: u64,
+ ) -> Result<PathBuf> {
+     let bootspec = json!({
+         "org.nixos.bootspec.v1": {
+@@ -92,7 +105,7 @@ pub fn setup_generation_link_from_toplevel(
+                 "loglevel=4"
+               ],
+               "label": "LanzaOS",
+-              "toplevel": toplevel,
++              "toplevel": toplevel.join("specialisation/rescue"),
+               "system": SYSTEM,
+             },
+             "org.nix-community.lanzaboote": {
+@@ -104,7 +117,13 @@ pub fn setup_generation_link_from_toplevel(
+         },
+     });
+ 
+-    let generation_link_path = profiles_directory.join(format!("system-{}-link", version));
++    let generation_link_path = if let Some(profile) = profile {
++        let system_profiles = profiles_directory.join("system-profiles");
++        fs::create_dir_all(&system_profiles)?;
++        system_profiles.join(format!("{profile}-{version}-link"))
++    } else {
++        profiles_directory.join(format!("system-{}-link", version))
++    };
+     fs::create_dir(&generation_link_path)?;
+ 
+     let bootspec_path = generation_link_path.join("boot.json");
+@@ -141,6 +160,7 @@ pub fn setup_toplevel(tmpdir: &Path) -> Result<PathBuf> {
+     let kernel_path = fake_store_path.join("kernel");
+     let nixos_version_path = toplevel.join("nixos-version");
+     let kernel_modules_path = toplevel.join("kernel-modules/lib/modules/6.1.1");
++    let specialisation_path = toplevel.join("specialisation/rescue");
+ 
+     // To simplify the test setup, we use the systemd stub for all PE binaries used by lanzatool.
+     // Lanzatool doesn't care whether its actually a kernel or initrd but only whether it can
+@@ -150,6 +170,7 @@ pub fn setup_toplevel(tmpdir: &Path) -> Result<PathBuf> {
+     fs::copy(&test_systemd_stub, kernel_path)?;
+     fs::write(nixos_version_path, b"23.05")?;
+     fs::create_dir_all(kernel_modules_path)?;
++    fs::create_dir_all(specialisation_path)?;
+ 
+     Ok(toplevel)
+ }
+@@ -164,17 +185,45 @@ fn random_string(length: usize) -> String {
+ 
+ pub struct Lanzaboote {
+     config_limit: u64,
++    bootcounting_initial_tries: u32,
+     protected_system: Option<PathBuf>,
++    default_system: Option<PathBuf>,
++    profiles_directory: Option<PathBuf>,
++    pcrlock_directory: Option<PathBuf>,
+ }
+ 
+ impl Lanzaboote {
+     pub fn new() -> Self {
+         Self {
+             config_limit: 0,
++            bootcounting_initial_tries: 0,
+             protected_system: None,
++            default_system: None,
++            profiles_directory: None,
++            pcrlock_directory: None,
+         }
+     }
+ 
++    pub fn pcrlock_directory(&mut self, pcrlock_directory: PathBuf) -> &mut Self {
++        self.pcrlock_directory = Some(pcrlock_directory);
++        self
++    }
++
++    pub fn profiles_directory(&mut self, profiles_directory: PathBuf) -> &mut Self {
++        self.profiles_directory = Some(profiles_directory);
++        self
++    }
++
++    pub fn bootcounting_initial_tries(&mut self, tries: u32) -> &mut Self {
++        self.bootcounting_initial_tries = tries;
++        self
++    }
++
++    pub fn default_system(&mut self, default_system: PathBuf) -> &mut Self {
++        self.default_system = Some(default_system);
++        self
++    }
++
+     pub fn config_limit(&mut self, config_limit: u64) -> &mut Self {
+         self.config_limit = config_limit;
+         self
+@@ -201,7 +250,7 @@ impl Lanzaboote {
+         );
+ 
+         let test_loader_config_path = tempfile::NamedTempFile::new()?;
+-        let test_loader_config = r"timeout 0\nconsole-mode 1\n";
++        let test_loader_config = "timeout 0\nconsole-mode 1\ndefault nixos-*\n";
+         fs::write(test_loader_config_path.path(), test_loader_config)?;
+ 
+         let mut cmd = Command::new(cargo_bin!("lzbt-systemd"));
+@@ -212,7 +261,7 @@ impl Lanzaboote {
+             .arg("--system")
+             .arg(SYSTEM)
+             .arg("--systemd")
+-            .arg(test_systemd)
++            .arg(&test_systemd)
+             .arg("--systemd-boot-loader-config")
+             .arg(test_loader_config_path.path())
+             .arg("--public-key")
+@@ -220,12 +269,29 @@ impl Lanzaboote {
+             .arg("--private-key")
+             .arg("tests/fixtures/uefi-keys/db.key")
+             .arg("--configuration-limit")
+-            .arg(self.config_limit.to_string());
++            .arg(self.config_limit.to_string())
++            .arg("--bootcounting-initial-tries")
++            .arg(self.bootcounting_initial_tries.to_string());
+ 
+         if let Some(ref protected_system) = self.protected_system {
+             cmd.arg("--protected-system").arg(protected_system);
+         }
+ 
++        if let Some(ref default_system) = self.default_system {
++            cmd.arg("--default-system").arg(default_system);
++        }
++
++        if let Some(ref profiles_directory) = self.profiles_directory {
++            cmd.arg("--profiles-directory").arg(profiles_directory);
++        }
++
++        if let Some(ref pcrlock_directory) = self.pcrlock_directory {
++            // systemd-pcrlock is looked up on PATH, like the NixOS module arranges it.
++            let path = std::env::var("PATH").unwrap_or_default();
++            cmd.env("PATH", format!("{test_systemd}/lib/systemd:{path}"));
++            cmd.arg("--pcrlock-directory").arg(pcrlock_directory);
++        }
++
+         let output = cmd.arg(esp_mountpoint).args(generation_links).output()?;
+ 
+         // Print debugging output.
+@@ -302,6 +368,15 @@ pub fn count_files(path: &Path) -> Result<usize> {
+ }
+ 
+ pub fn image_path(esp: &TempDir, version: u64, toplevel: &Path) -> Result<PathBuf> {
++    profile_image_path(esp, None, version, toplevel)
++}
++
++pub fn profile_image_path(
++    esp: &TempDir,
++    profile: Option<&str>,
++    version: u64,
++    toplevel: &Path,
++) -> Result<PathBuf> {
+     let stub_inputs = [
+         // Generation numbers can be reused if the latest generation was deleted.
+         // To detect this, the stub path depends on the actual toplevel used.
+@@ -316,8 +391,11 @@ pub fn image_path(esp: &TempDir, version: u64, toplevel: &Path) -> Result<PathBu
+     let stub_input_hash = Base32Unpadded::encode_string(&Sha256::digest(
+         serde_json::to_string(&stub_inputs).unwrap(),
+     ));
++    let profile_prefix = profile
++        .map(|profile| format!("profile-{profile}-"))
++        .unwrap_or_default();
+     Ok(esp.path().join(format!(
+-        "EFI/Linux/nixos-generation-{version}-{stub_input_hash}.efi"
++        "EFI/Linux/nixos-{profile_prefix}generation-{version}-{stub_input_hash}.efi"
+     )))
+ }
+ 
+diff --git a/rust/tool/systemd/tests/integration/loader_config.rs b/rust/tool/systemd/tests/integration/loader_config.rs
+new file mode 100644
+index 0000000..7e65bc5
+--- /dev/null
++++ b/rust/tool/systemd/tests/integration/loader_config.rs
+@@ -0,0 +1,193 @@
++use std::fs;
++use std::path::{Path, PathBuf};
++
++use anyhow::{Context, Result};
++use tempfile::{TempDir, tempdir};
++
++use crate::common::{self, profile_image_path, setup_profile_generation_link_from_toplevel};
++
++const CONFIGURED_LOADER_CONFIG: &str = "timeout 0\nconsole-mode 1\ndefault nixos-*\n";
++
++fn read_loader_config(esp: &TempDir) -> String {
++    fs::read_to_string(esp.path().join("loader/loader.conf")).expect("Failed to read loader.conf")
++}
++
++fn file_name(path: &Path) -> String {
++    path.file_name().unwrap().to_string_lossy().into_owned()
++}
++
++#[test]
++fn keep_configured_default_without_default_system() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let generation_link = common::setup_generation_link(tmpdir.path(), profiles.path(), 1)?;
++
++    let output = common::lanzaboote_install(0, esp.path(), [generation_link])?;
++    assert!(output.status.success());
++    assert_eq!(read_loader_config(&esp), CONFIGURED_LOADER_CONFIG);
++
++    Ok(())
++}
++
++/// The default system becomes the default entry, even if it is not the newest generation and
++/// belongs to another profile.
++#[test]
++fn default_system_becomes_default_entry() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let toplevel1 = common::setup_toplevel(tmpdir.path())?;
++    let toplevel2 = common::setup_toplevel(tmpdir.path())?;
++    let custom_toplevel = common::setup_toplevel(tmpdir.path())?;
++
++    let generation_links = [
++        setup_profile_generation_link_from_toplevel(&toplevel1, profiles.path(), None, 1)?,
++        setup_profile_generation_link_from_toplevel(&toplevel2, profiles.path(), None, 40)?,
++        setup_profile_generation_link_from_toplevel(
++            &custom_toplevel,
++            profiles.path(),
++            Some("custom"),
++            3,
++        )?,
++    ];
++
++    let output0 = common::Lanzaboote::new()
++        .default_system(custom_toplevel.clone())
++        .install(esp.path(), &generation_links)?;
++    assert!(output0.status.success());
++    let custom_image = profile_image_path(&esp, Some("custom"), 3, &custom_toplevel)?;
++    assert_eq!(
++        read_loader_config(&esp),
++        format!(
++            "timeout 0\nconsole-mode 1\ndefault {}\n",
++            file_name(&custom_image)
++        )
++    );
++
++    let output1 = common::Lanzaboote::new()
++        .default_system(toplevel1.clone())
++        .install(esp.path(), &generation_links)?;
++    assert!(output1.status.success());
++    let image1 = profile_image_path(&esp, None, 1, &toplevel1)?;
++    assert_eq!(
++        read_loader_config(&esp),
++        format!(
++            "timeout 0\nconsole-mode 1\ndefault {}\n",
++            file_name(&image1)
++        )
++    );
++
++    Ok(())
++}
++
++#[test]
++fn default_system_can_be_a_specialisation() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let toplevel = common::setup_toplevel(tmpdir.path())?;
++    let generation_link =
++        setup_profile_generation_link_from_toplevel(&toplevel, profiles.path(), Some("custom"), 1)?;
++
++    let output = common::Lanzaboote::new()
++        .default_system(toplevel.join("specialisation/rescue"))
++        .install(esp.path(), [generation_link])?;
++    assert!(output.status.success());
++
++    let specialisation_stub = fs::read_dir(esp.path().join("EFI/Linux"))?
++        .filter_map(|entry| entry.ok())
++        .map(|entry| entry.file_name().to_string_lossy().into_owned())
++        .find(|name| name.starts_with("nixos-profile-custom-generation-1-specialisation-rescue-"))
++        .context("Specialisation stub is missing")?;
++    assert_eq!(
++        read_loader_config(&esp),
++        format!("timeout 0\nconsole-mode 1\ndefault {specialisation_stub}\n")
++    );
++
++    Ok(())
++}
++
++/// If several generations point to the default system, the newest one becomes the default.
++#[test]
++fn default_system_prefers_newest_generation() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let toplevel = common::setup_toplevel(tmpdir.path())?;
++    let generation_links = [
++        setup_profile_generation_link_from_toplevel(&toplevel, profiles.path(), None, 1)?,
++        setup_profile_generation_link_from_toplevel(&toplevel, profiles.path(), None, 2)?,
++    ];
++
++    let output = common::Lanzaboote::new()
++        .default_system(toplevel.clone())
++        .install(esp.path(), &generation_links)?;
++    assert!(output.status.success());
++
++    let image2 = profile_image_path(&esp, None, 2, &toplevel)?;
++    assert_eq!(
++        read_loader_config(&esp),
++        format!(
++            "timeout 0\nconsole-mode 1\ndefault {}\n",
++            file_name(&image2)
++        )
++    );
++
++    Ok(())
++}
++
++/// With boot counting, the default system becomes the preferred entry so that systemd-boot falls
++/// back to the configured default once it has run out of tries.
++#[test]
++fn default_system_is_preferred_with_boot_counting() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let toplevel = common::setup_toplevel(tmpdir.path())?;
++    let generation_link =
++        setup_profile_generation_link_from_toplevel(&toplevel, profiles.path(), Some("custom"), 1)?;
++
++    let output = common::Lanzaboote::new()
++        .bootcounting_initial_tries(3)
++        .default_system(toplevel.clone())
++        .install(esp.path(), [generation_link])?;
++    assert!(output.status.success());
++
++    // The stub has a boot counter, but the entry ID does not contain it.
++    let image = profile_image_path(&esp, Some("custom"), 1, &toplevel)?;
++    assert!(image_with_counter(&image, 3).exists());
++    assert_eq!(
++        read_loader_config(&esp),
++        format!(
++            "{CONFIGURED_LOADER_CONFIG}preferred {}\n",
++            file_name(&image)
++        )
++    );
++
++    Ok(())
++}
++
++#[test]
++fn keep_configured_default_if_default_system_is_not_installed() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let generation_link = common::setup_generation_link(tmpdir.path(), profiles.path(), 1)?;
++    let unknown_toplevel = common::setup_toplevel(tmpdir.path())?;
++
++    let output = common::Lanzaboote::new()
++        .default_system(unknown_toplevel)
++        .install(esp.path(), [generation_link])?;
++    assert!(output.status.success());
++    assert_eq!(read_loader_config(&esp), CONFIGURED_LOADER_CONFIG);
++
++    Ok(())
++}
++
++fn image_with_counter(image: &Path, tries: u32) -> PathBuf {
++    image.with_file_name(format!(
++        "{}+{tries}.efi",
++        image.file_stem().unwrap().to_string_lossy()
++    ))
++}
+diff --git a/rust/tool/systemd/tests/integration/main.rs b/rust/tool/systemd/tests/integration/main.rs
+index 659a208..98fc9a5 100644
+--- a/rust/tool/systemd/tests/integration/main.rs
++++ b/rust/tool/systemd/tests/integration/main.rs
+@@ -1,5 +1,7 @@
+ mod common;
+ mod gc;
+ mod install;
++mod loader_config;
+ mod os_release;
++mod profiles;
+ mod systemd_boot;
+diff --git a/rust/tool/systemd/tests/integration/os_release.rs b/rust/tool/systemd/tests/integration/os_release.rs
+index dfc23ee..6b40697 100644
+--- a/rust/tool/systemd/tests/integration/os_release.rs
++++ b/rust/tool/systemd/tests/integration/os_release.rs
+@@ -36,6 +36,45 @@ fn generate_expected_os_release() -> Result<()> {
+     Ok(())
+ }
+ 
++#[test]
++fn generate_expected_os_release_for_profile() -> Result<()> {
++    let esp_mountpoint = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let toplevel = common::setup_toplevel(tmpdir.path())?;
++
++    let generation_link = common::setup_profile_generation_link_from_toplevel(
++        &toplevel,
++        profiles.path(),
++        Some("custom"),
++        1,
++    )
++    .expect("Failed to setup generation link");
++
++    let output0 = common::lanzaboote_install(0, esp_mountpoint.path(), vec![generation_link])?;
++    assert!(output0.status.success());
++
++    let stub_data = fs::read(common::profile_image_path(
++        &esp_mountpoint,
++        Some("custom"),
++        1,
++        &toplevel,
++    )?)?;
++    let os_release_section = pe_section(&stub_data, ".osrel")
++        .context("Failed to read .osrelease PE section.")?
++        .to_owned();
++
++    let expected = expect![[r#"
++        ID=lanzaboote
++        PRETTY_NAME=LanzaOS [custom] (Generation 1, 1970-01-01)
++        VERSION_ID=Generation 1, 1970-01-01
++    "#]];
++
++    expected.assert_eq(&String::from_utf8(os_release_section)?);
++
++    Ok(())
++}
++
+ fn pe_section<'a>(file_data: &'a [u8], section_name: &str) -> Option<&'a [u8]> {
+     let pe_binary = goblin::pe::PE::parse(file_data).ok()?;
+ 
+diff --git a/rust/tool/systemd/tests/integration/profiles.rs b/rust/tool/systemd/tests/integration/profiles.rs
+new file mode 100644
+index 0000000..725d829
+--- /dev/null
++++ b/rust/tool/systemd/tests/integration/profiles.rs
+@@ -0,0 +1,406 @@
++use std::fs;
++use std::path::{Path, PathBuf};
++
++use anyhow::Result;
++use tempfile::{TempDir, tempdir};
++
++use crate::common::{
++    self, count_files, mtime, profile_image_path, setup_profile_generation_link_from_toplevel,
++};
++
++/// Count the stubs on the ESP whose file name starts with the prefix.
++fn count_stubs_with_prefix(esp: &TempDir, prefix: &str) -> usize {
++    fs::read_dir(esp.path().join("EFI/Linux"))
++        .expect("Failed to read EFI/Linux")
++        .filter(|entry| {
++            entry
++                .as_ref()
++                .is_ok_and(|e| e.file_name().to_string_lossy().starts_with(prefix))
++        })
++        .count()
++}
++
++/// Create the generation links of a profile, each with its own toplevel.
++fn setup_profile_generations(
++    tmpdir: &Path,
++    profiles: &Path,
++    profile: Option<&str>,
++    versions: impl IntoIterator<Item = u64>,
++) -> Vec<(PathBuf, PathBuf)> {
++    versions
++        .into_iter()
++        .map(|version| {
++            let toplevel = common::setup_toplevel(tmpdir).expect("Failed to setup toplevel");
++            let link =
++                setup_profile_generation_link_from_toplevel(&toplevel, profiles, profile, version)
++                    .expect("Failed to setup generation link");
++            (link, toplevel)
++        })
++        .collect()
++}
++
++#[test]
++fn install_profile_only() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let custom = setup_profile_generations(tmpdir.path(), profiles.path(), Some("custom"), [1, 2]);
++
++    let output = common::lanzaboote_install(0, esp.path(), custom.iter().map(|(link, _)| link))?;
++    assert!(output.status.success());
++
++    for (version, (_, toplevel)) in [1, 2].into_iter().zip(&custom) {
++        assert!(profile_image_path(&esp, Some("custom"), version, toplevel)?.exists());
++    }
++    // Each generation also has a specialisation.
++    assert_eq!(count_stubs_with_prefix(&esp, "nixos-profile-custom-"), 4);
++    assert_eq!(count_stubs_with_prefix(&esp, "nixos-generation-"), 0);
++
++    Ok(())
++}
++
++/// Install generations of several profiles that share version numbers and even the toplevel.
++/// Each of them must get its own stub, and reinstalling must recognize all of them.
++#[test]
++fn install_mixed_profiles_with_equal_versions() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let toplevel = common::setup_toplevel(tmpdir.path())?;
++    let other_toplevel = common::setup_toplevel(tmpdir.path())?;
++
++    let generation_links = vec![
++        setup_profile_generation_link_from_toplevel(&toplevel, profiles.path(), None, 1)?,
++        setup_profile_generation_link_from_toplevel(&toplevel, profiles.path(), Some("custom"), 1)?,
++        setup_profile_generation_link_from_toplevel(
++            &other_toplevel,
++            profiles.path(),
++            Some("my-host-profile"),
++            1,
++        )?,
++    ];
++    let images = [
++        profile_image_path(&esp, None, 1, &toplevel)?,
++        profile_image_path(&esp, Some("custom"), 1, &toplevel)?,
++        profile_image_path(&esp, Some("my-host-profile"), 1, &other_toplevel)?,
++    ];
++
++    let stub_count = || count_files(&esp.path().join("EFI/Linux")).unwrap();
++    let kernel_and_initrd_count = || count_files(&esp.path().join("EFI/nixos")).unwrap();
++
++    let output0 = common::lanzaboote_install(0, esp.path(), generation_links.clone())?;
++    assert!(output0.status.success());
++    assert_eq!(stub_count(), 6, "Wrong number of stubs after installation");
++    assert_eq!(
++        kernel_and_initrd_count(),
++        2,
++        "Wrong number of kernels & initrds after installation"
++    );
++    for image in &images {
++        assert!(image.exists(), "{image:?} is missing");
++    }
++
++    let mtimes = images.iter().map(|i| mtime(i)).collect::<Vec<_>>();
++    let output1 = common::lanzaboote_install(0, esp.path(), generation_links)?;
++    assert!(output1.status.success());
++    assert_eq!(
++        stub_count(),
++        6,
++        "Wrong number of stubs after reinstallation"
++    );
++    assert_eq!(
++        mtimes,
++        images.iter().map(|i| mtime(i)).collect::<Vec<_>>(),
++        "Stubs were rewritten on reinstallation"
++    );
++
++    Ok(())
++}
++
++#[test]
++fn garbage_collect_deleted_profile_generation() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1]);
++    let custom = setup_profile_generations(tmpdir.path(), profiles.path(), Some("custom"), [1, 2]);
++
++    let all_links = system.iter().chain(&custom).map(|(link, _)| link);
++    let output0 = common::lanzaboote_install(0, esp.path(), all_links)?;
++    assert!(output0.status.success());
++    let custom_1 = profile_image_path(&esp, Some("custom"), 1, &custom[0].1)?;
++    assert!(custom_1.exists());
++
++    // Delete the first generation of the profile.
++    fs::remove_dir_all(&custom[0].0)?;
++    let remaining_links = system.iter().chain(&custom[1..]).map(|(link, _)| link);
++    let output1 = common::lanzaboote_install(0, esp.path(), remaining_links)?;
++    assert!(output1.status.success());
++
++    assert!(!custom_1.exists());
++    assert!(profile_image_path(&esp, Some("custom"), 2, &custom[1].1)?.exists());
++    assert!(profile_image_path(&esp, None, 1, &system[0].1)?.exists());
++    assert_eq!(count_stubs_with_prefix(&esp, "nixos-profile-custom-"), 2);
++
++    Ok(())
++}
++
++/// Like systemd-boot-builder.py, the configuration limit applies to each profile separately.
++#[test]
++fn configuration_limit_applies_per_profile() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1, 2, 3]);
++    let custom =
++        setup_profile_generations(tmpdir.path(), profiles.path(), Some("custom"), [1, 2, 3]);
++
++    let all_links = system.iter().chain(&custom).map(|(link, _)| link);
++    let output = common::lanzaboote_install(2, esp.path(), all_links)?;
++    assert!(output.status.success());
++
++    for (profile, generations) in [(None, &system), (Some("custom"), &custom)] {
++        for (version, (_, toplevel)) in [1, 2, 3].into_iter().zip(generations) {
++            let image = profile_image_path(&esp, profile, version, toplevel)?;
++            assert_eq!(image.exists(), version > 1, "{image:?}");
++        }
++    }
++
++    Ok(())
++}
++
++/// The protected system only replaces the oldest generation of its own profile.
++#[test]
++fn keep_protected_profile_generation() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1, 2, 3]);
++    let custom =
++        setup_profile_generations(tmpdir.path(), profiles.path(), Some("custom"), [1, 2, 3]);
++
++    let all_links = system.iter().chain(&custom).map(|(link, _)| link);
++    let output = common::Lanzaboote::new()
++        .config_limit(2)
++        .protected_system(custom[0].0.clone())
++        .install(esp.path(), all_links)?;
++    assert!(output.status.success());
++
++    for (profile, generations, kept) in [
++        (None, &system, [false, true, true]),
++        (Some("custom"), &custom, [true, false, true]),
++    ] {
++        for ((version, (_, toplevel)), kept) in [1, 2, 3].into_iter().zip(generations).zip(kept) {
++            let image = profile_image_path(&esp, profile, version, toplevel)?;
++            assert_eq!(image.exists(), kept, "{image:?}");
++        }
++    }
++
++    Ok(())
++}
++
++/// A malformed generation of a profile disables garbage collection like one of the default
++/// profile does.
++#[test]
++fn malformed_profile_generation_disables_gc() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1, 2]);
++
++    let output0 = common::lanzaboote_install(0, esp.path(), system.iter().map(|(link, _)| link))?;
++    assert!(output0.status.success());
++
++    // A profile generation without a bootspec and without anything to synthesize one from.
++    let malformed = profiles.path().join("system-profiles/custom-1-link");
++    fs::create_dir_all(&malformed)?;
++
++    let output1 = common::lanzaboote_install(0, esp.path(), [&system[1].0, &malformed])?;
++    assert!(output1.status.success());
++
++    // Without the malformed generation, generation 1 would have been garbage collected.
++    assert!(profile_image_path(&esp, None, 1, &system[0].1)?.exists());
++    let stderr = String::from_utf8(output1.stderr)?;
++    assert!(
++        stderr.contains(
++            "nix-env -p /nix/var/nix/profiles/system-profiles/custom --delete-generations 1"
++        ),
++        "{stderr}"
++    );
++
++    Ok(())
++}
++
++/// Generation links of all profiles are discovered in the profiles directory. Everything else in
++/// there is ignored.
++#[test]
++fn discover_generations_in_profiles_directory() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1, 2]);
++    let custom = setup_profile_generations(tmpdir.path(), profiles.path(), Some("custom"), [1]);
++
++    // The profile symlinks, the profiles of nix-env and other files must be ignored. If any of
++    // them were treated as a generation, it would be malformed and disable garbage collection.
++    std::os::unix::fs::symlink("system-2-link", profiles.path().join("system"))?;
++    std::os::unix::fs::symlink(
++        "custom-1-link",
++        profiles.path().join("system-profiles/custom"),
++    )?;
++    fs::create_dir(profiles.path().join("default-1-link"))?;
++    fs::create_dir(profiles.path().join("per-user"))?;
++    fs::write(profiles.path().join("system-profiles/notes.txt"), b"")?;
++
++    let output = common::Lanzaboote::new()
++        .profiles_directory(profiles.path().to_path_buf())
++        .install(esp.path(), Vec::<PathBuf>::new())?;
++    assert!(output.status.success());
++    assert!(
++        !String::from_utf8(output.stderr)?.contains("Garbage collection is disabled"),
++        "Something other than a generation link was treated as a generation"
++    );
++
++    for (version, (_, toplevel)) in [1, 2].into_iter().zip(&system) {
++        assert!(profile_image_path(&esp, None, version, toplevel)?.exists());
++    }
++    assert!(profile_image_path(&esp, Some("custom"), 1, &custom[0].1)?.exists());
++    // Each generation also has a specialisation.
++    assert_eq!(count_files(&esp.path().join("EFI/Linux"))?, 6);
++
++    Ok(())
++}
++
++/// A profiles directory without system-profiles, like on most hosts, works as before.
++#[test]
++fn discover_generations_without_system_profiles() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1]);
++
++    let output = common::Lanzaboote::new()
++        .profiles_directory(profiles.path().to_path_buf())
++        .install(esp.path(), Vec::<PathBuf>::new())?;
++    assert!(output.status.success());
++    assert!(profile_image_path(&esp, None, 1, &system[0].1)?.exists());
++    assert_eq!(count_stubs_with_prefix(&esp, "nixos-generation-"), 2);
++
++    Ok(())
++}
++
++/// Profile names that cannot be used in file names on the ESP are rejected before anything is
++/// installed.
++#[test]
++fn reject_unsafe_profile_name() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1]);
++    let unsafe_profile =
++        setup_profile_generations(tmpdir.path(), profiles.path(), Some("my profile"), [1]);
++
++    let links = system.iter().chain(&unsafe_profile).map(|(link, _)| link);
++    let output = common::lanzaboote_install(0, esp.path(), links)?;
++    assert!(!output.status.success());
++    let stderr = String::from_utf8(output.stderr)?;
++    assert!(stderr.contains("contains characters"), "{stderr}");
++    assert!(!esp.path().join("EFI/Linux").exists());
++
++    Ok(())
++}
++
++/// A discovered profile with a name that cannot be used on the ESP is skipped with a warning
++/// instead of failing the installation of the other generations.
++#[test]
++fn skip_unsafe_profile_name_on_discovery() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1]);
++    setup_profile_generations(tmpdir.path(), profiles.path(), Some("my profile"), [1]);
++
++    let output = common::Lanzaboote::new()
++        .profiles_directory(profiles.path().to_path_buf())
++        .install(esp.path(), Vec::<PathBuf>::new())?;
++    assert!(output.status.success());
++    let stderr = String::from_utf8(output.stderr)?;
++    assert!(stderr.contains("Ignoring generation link"), "{stderr}");
++    assert!(
++        !stderr.contains("Garbage collection is disabled"),
++        "{stderr}"
++    );
++
++    assert!(profile_image_path(&esp, None, 1, &system[0].1)?.exists());
++    assert_eq!(count_stubs_with_prefix(&esp, "nixos-profile-"), 0);
++
++    Ok(())
++}
++
++/// Set distinct modification times on generation links, oldest first.
++fn set_build_order<'a>(links: impl IntoIterator<Item = &'a PathBuf>) {
++    for (i, link) in links.into_iter().enumerate() {
++        filetime::set_file_mtime(
++            link,
++            filetime::FileTime::from_unix_time(1_000_000 * (i as i64 + 1), 0),
++        )
++        .expect("Failed to set mtime");
++    }
++}
++
++/// With Measured Boot, the configuration limit applies to the generations of all profiles together,
++/// keeping the most recently built ones, and the protected generation evicts the oldest one overall.
++#[test]
++fn configuration_limit_is_global_with_measured_boot() -> Result<()> {
++    let esp = tempdir()?;
++    let tmpdir = tempdir()?;
++    let profiles = tempdir()?;
++    let pcrlock = tempdir()?;
++    let system = setup_profile_generations(tmpdir.path(), profiles.path(), None, [1, 2, 3]);
++    let custom = setup_profile_generations(tmpdir.path(), profiles.path(), Some("custom"), [1, 2]);
++    // Build order: system 1, system 2, custom 1, system 3, custom 2.
++    set_build_order([
++        &system[0].0,
++        &system[1].0,
++        &custom[0].0,
++        &system[2].0,
++        &custom[1].0,
++    ]);
++
++    let all_links = || system.iter().chain(&custom).map(|(link, _)| link.clone());
++    let output = common::Lanzaboote::new()
++        .config_limit(3)
++        .pcrlock_directory(pcrlock.path().to_path_buf())
++        .install(esp.path(), all_links())?;
++    assert!(output.status.success());
++
++    for (profile, generations, kept) in [
++        (None, &system, [false, false, true]),
++        (Some("custom"), &custom, [true, true, false]),
++    ] {
++        for ((version, (_, toplevel)), kept) in (1..).zip(generations).zip(kept) {
++            let image = profile_image_path(&esp, profile, version, toplevel)?;
++            assert_eq!(image.exists(), kept, "{image:?}");
++        }
++    }
++
++    // Protecting the oldest generation evicts the oldest of the kept ones, regardless of profile.
++    let output = common::Lanzaboote::new()
++        .config_limit(3)
++        .pcrlock_directory(pcrlock.path().to_path_buf())
++        .protected_system(system[0].0.clone())
++        .install(esp.path(), all_links())?;
++    assert!(output.status.success());
++
++    for (profile, generations, kept) in [
++        (None, &system, [true, false, true]),
++        (Some("custom"), &custom, [false, true, false]),
++    ] {
++        for ((version, (_, toplevel)), kept) in (1..).zip(generations).zip(kept) {
++            let image = profile_image_path(&esp, profile, version, toplevel)?;
++            assert_eq!(image.exists(), kept, "{image:?}");
++        }
++    }
++
++    Ok(())
++}

@@ -9,3 +9,6 @@ indent_size = 2
 [gitconfig]
 indent_size = 2
 indent_style = tab
+
+[nixos/patches/lanzaboote/*.patch]
+trim_trailing_whitespace = false

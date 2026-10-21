@@ -1,0 +1,2 @@
+# Unified patches retain a leading space on empty context lines.
+nixos/patches/lanzaboote/*.patch whitespace=-blank-at-eol

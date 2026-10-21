@@ -159,6 +159,9 @@
     }:
     let
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      lanzabooteSystemProfiles = import ./nixos/lib/lanzaboote-system-profiles.nix {
+        inherit inputs pkgs;
+      };
       pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
       pkgsAi = import nixpkgs {
         system = "x86_64-linux";
@@ -184,6 +187,13 @@
       packages.x86_64-linux.installer-iso =
         inputs.self.nixosConfigurations.installer.config.system.build.isoImage;
       packages.x86_64-linux.nixos-anywhere = pkgs.nixos-anywhere;
+      packages.x86_64-linux.lanzaboote-system-profiles = lanzabooteSystemProfiles.packages.lzbt;
+      packages.x86_64-linux.lanzaboote-system-profiles-vm =
+        lanzabooteSystemProfiles.checks.tests.system-profiles;
+      packages.x86_64-linux.lanzaboote-system-profiles-boot-counting-vm =
+        lanzabooteSystemProfiles.checks.tests.system-profiles-boot-counting;
+      packages.x86_64-linux.lanzaboote-protected-system-vm =
+        lanzabooteSystemProfiles.checks.tests.protected-system;
       packages.x86_64-linux.ssh-to-age = pkgs.ssh-to-age;
       packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
       packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix { };
@@ -302,7 +312,7 @@
         };
         secure-boot = {
           imports = [
-            inputs.lanzaboote.nixosModules.lanzaboote
+            lanzabooteSystemProfiles.nixosModules.lanzaboote
             ./nixos/modules/secure-boot.nix
           ];
         };

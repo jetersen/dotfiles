@@ -198,9 +198,11 @@ or select one with `nix build .#checks.x86_64-linux.dns-routing`:
 - `tooling-unit` runs the CI orchestration, package updater and Wayland clipboard
   unit suites.
 - `module-contracts` checks selected evaluated service and credential properties.
-- `boot-profile` exercises boot target registration, rollback, failure handling
-  and Comin mirror retention with real Nix profiles in temporary directories.
-- `native-comin` and `native-pc2mqtt` reuse the tested packages built for the systems.
+- `boot-profile` checks both hosts' bootloader wiring and the Lanzaboote hook's
+  profile discovery, requested default and booted-system protection options.
+- `native-comin`, `native-lanzaboote` and `native-pc2mqtt` reuse the tested packages
+  built for the systems. Lanzaboote tests cover profile identity, retention,
+  rollback defaults, signing and malformed generations.
 
 These checks use sandboxed derivations with narrow source inputs. CI roots their
 outputs and publishes eligible paths to Attic; unchanged checks can substitute.
@@ -244,16 +246,24 @@ with `sudo systemctl stop comin`. Reverting the running generation alone does no
 stop Comin from deploying `main` again. Weekly GC removes unrooted store paths;
 retained Comin generations remain protected.
 
-On Rocket and Framework, the bootloader hook registers the requested boot target
-in the standard NixOS system profile before installing boot entries. This keeps
-manual NixOS operations consistent with Comin and lets Lanzaboote 1.2 discover
-Framework's deployments. Boot-only operations register their requested target;
-test operations do not call the hook. Comin retains its own deployment profile.
-The hook tracks only standard generations it creates for Comin and prunes them
-when Comin drops their targets, preserving manual history, the booted system and
-the previous standard selection. Existing boot menu limits still apply. If the
-installer fails, the previous standard selection is restored; partial writes to
-the boot partition may still need repair before rebooting.
+Comin manages deployment generations in `system-profiles/comin`; manual
+`nixos-rebuild` operations use the standard `system` profile. Both bootloaders
+read both histories. Existing standard generations remain available for rollback;
+Comin's retention policy manages its own profile. Use `comin deployment list`
+to inspect Comin history.
+
+Framework uses Lanzaboote v1.2.0 with profile support backported from
+[PR #673](https://github.com/nix-community/lanzaboote/pull/673), pinned at
+`4a4bb2a8bcbd5247e41a063abdbd74222621de4b`. It includes
+the booted-system protection prerequisite and a NixOS VM fixture adjustment.
+The hook discovers named profiles and makes the requested `switch` or `boot`
+target the boot default. Test operations leave boot entries unchanged. Limits
+apply per profile, and the booted generation remains protected. Secure Boot
+signing keys stay on Framework. Rocket uses NixOS's normal systemd-boot builder.
+`nix build .#lanzaboote-system-profiles` runs the patched package's native tests.
+The opt-in `lanzaboote-system-profiles-vm`,
+`lanzaboote-system-profiles-boot-counting-vm` and `lanzaboote-protected-system-vm`
+packages run isolated UEFI boot and rollback tests; these require KVM access.
 
 Comin is pinned to the Forgejo fork's `dotfiles-v0.14` branch, which carries the
 deployment, rewritten-main and reboot-notification fixes with native Go tests.
