@@ -4,23 +4,23 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import vm from 'node:vm';
 
 const source = readFileSync(process.argv[2], 'utf8');
 const profilesPath = process.argv[3];
 const profiles = JSON.parse(readFileSync(profilesPath, 'utf8'));
+const outputModel = vm.createContext({});
+vm.runInContext(readFileSync(process.argv[5], 'utf8').replace(/^\s*\.pragma\b.*$/gm, ''), outputModel);
 function upstreamFunction(name, ...parameters) {
   const body = source.match(new RegExp(`    function ${name}\\([^)]*\\) \\{([\\s\\S]*?)\\n    \\}`))?.[1];
   assert.ok(body, `DMS ${name} must remain identifiable`);
-  return new Function(...parameters, body);
+  return new Function('OutputModel', ...parameters, body).bind(null, outputModel);
 }
 const getOutputIdentifier = upstreamFunction('getOutputIdentifier', 'output', 'outputName', 'SettingsData', 'CompositorService');
-const findConfigBody = upstreamFunction('findConfigEntryByFingerprint', 'data', 'outputIdentifiers', 'autoOnly', 'outputSetFingerprint', 'configFingerprint');
-const fingerprint = upstreamFunction('outputSetFingerprint', 'outputIdentifiers');
-const configFingerprint = upstreamFunction('configFingerprint', 'configEntry');
-const findConfig = (...args) => findConfigBody(...args, fingerprint, configFingerprint);
+const findConfig = upstreamFunction('findConfigEntryByFingerprint', 'data', 'outputIdentifiers', 'autoOnly');
 const panel = { make: 'China Star Optoelectronics Technology Co., Ltd', model: 'MND508ZB1-1', serial: null };
 const monitor = serial => ({ make: 'Dell Inc.', model: 'DELL P2725D', serial });
-const identifier = (output, connector) => getOutputIdentifier(output, connector, { displayNameMode: 'model' }, { isNiri: true });
+const identifier = (output, connector) => getOutputIdentifier(output, connector, { displayNameMode: 'model' }, { compositor: 'niri' });
 const panelId = identifier(panel, 'eDP-1');
 const data = { configurations: profiles };
 for (const connectors of [['DP-7', 'DP-9'], ['DP-8', 'DP-11']]) {

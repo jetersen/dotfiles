@@ -4,6 +4,7 @@
   pkgs,
   osConfig,
   dmsSource,
+  dmsCommonSource,
 }:
 let
   factoryBinds = pkgs.runCommand "niri-factory-binds.kdl" { } ''
@@ -13,12 +14,7 @@ let
   dmsAppIdDefaults =
     pkgs.runCommand "dms-app-id-defaults.json" { nativeBuildInputs = [ pkgs.nodejs ]; }
       ''
-        node - '${dmsSource}/quickshell/Common/settings/SettingsSpec.js' > "$out" <<'JS'
-        const fs = require("node:fs");
-        const source = fs.readFileSync(process.argv[2], "utf8").replace(/^\s*\.(pragma|import)\b.*$/gm, "");
-        const defaults = new Function(source + "\nreturn SPEC.appIdSubstitutions.def;")();
-        process.stdout.write(JSON.stringify(defaults));
-        JS
+        node ${./read-dms-app-id-defaults.mjs} ${dmsSource} ${dmsCommonSource} > "$out"
       '';
   dmsSettings = pkgs.writeText "dms-settings.json" (
     builtins.toJSON (

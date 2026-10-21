@@ -60,7 +60,7 @@ let
     derivationArgs.postCheck = ''
       ${pkgs.nodejs}/bin/node ${../../../tests/test_dms_displays.mjs} \
         ${dmsSource}/quickshell/Modules/Settings/DisplayConfig/DisplayConfigState.qml \
-        ${profiles} "$target"
+        ${profiles} "$target" ${dmsSource}/quickshell/Common/OutputModel.js
     '';
     text = builtins.readFile ./configure-displays.sh;
   };

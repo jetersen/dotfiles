@@ -54,11 +54,11 @@
       flake = false;
     };
     dms-openvpn3 = {
-      url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=f9e01be5ca81840f1b0e5322d40342cbce96e09c&shallow=1";
+      url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=cc46cd65657b824f19c2b3a919990d10d890f8aa&shallow=1";
       flake = false;
     };
     dms-storage-monitor = {
-      url = "git+https://github.com/jetersen/dms-storage-monitor.git?rev=8dbf7f2484b0f81683add744664b3bb17c1389e5&shallow=1";
+      url = "git+https://github.com/jetersen/dms-storage-monitor.git?rev=ff2252bd998f5ab7f998d5b43e19a354f9116b18&shallow=1";
       flake = false;
     };
     skill-finder = {
@@ -118,10 +118,10 @@
       flake = false;
     };
     dms = {
-      url = "git+https://github.com/AvengeMedia/DankMaterialShell.git?ref=refs/tags/v1.6.3&shallow=1";
+      url = "git+https://github.com/duxlabs-dev/dux-shell.git?ref=refs/tags/v2.0.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dank-qml-common = {
-        url = "git+https://github.com/AvengeMedia/dank-qml-common.git?rev=1ae722232da7110d26cd2c355b6615e078e94197&shallow=1";
+        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42&shallow=1";
         flake = false;
       };
       inputs.flake-compat = {
@@ -130,10 +130,10 @@
       };
     };
     dank-greeter = {
-      url = "git+https://github.com/AvengeMedia/dank-greeter.git?ref=refs/tags/v1.6.2&shallow=1";
+      url = "git+https://github.com/duxlabs-dev/dux-greeter.git?ref=refs/tags/v2.0.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dank-qml-common = {
-        url = "git+https://github.com/AvengeMedia/dank-qml-common.git?rev=26396ce432d6c71c3f5367438f96f4a8d667e160&shallow=1";
+        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42&shallow=1";
         flake = false;
       };
     };
@@ -331,6 +331,7 @@
                 };
                 dotfilesPackages = inputs.self.packages.${pkgs.stdenv.hostPlatform.system};
                 dmsSource = inputs.dms;
+                dmsCommonSource = inputs.dms.inputs.dank-qml-common;
                 storageMonitorSource = inputs.dms-storage-monitor;
                 powershellModules = {
                   posh-git = inputs.powershell-posh-git + "/src";

@@ -27,7 +27,7 @@ window-rule {
 // Float DMS / quickshell windows by default.
 window-rule {
   match app-id=r#"org.quickshell$"#
-  match app-id=r#"com.danklinux.dms$"#
+  match app-id=r#"^dev\.duxlabs\.shell$"#
   open-floating true
 }
 

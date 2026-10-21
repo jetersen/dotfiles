@@ -107,55 +107,55 @@
         ]
       },
       "locked": {
-        "lastModified": 1789053332,
-        "narHash": "sha256-Z6tV5jX8Ah6RHIHeSnV6kEwJJZ6Ore+FR8F+vr9xjxY=",
-        "ref": "refs/tags/v1.6.2",
-        "rev": "0175be5c2084e2c5027324403a329e04040cd0bc",
+        "lastModified": 1792524212,
+        "narHash": "sha256-uSaCS7bdByk/8mPSlsxxsK830vw1gErdwQ7olG8hCY4=",
+        "ref": "refs/tags/v2.0.0",
+        "rev": "0044526f90b584916548f0a17dbf31764a6db530",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/dank-greeter.git"
+        "url": "https://github.com/duxlabs-dev/dux-greeter.git"
       },
       "original": {
-        "ref": "refs/tags/v1.6.2",
+        "ref": "refs/tags/v2.0.0",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/dank-greeter.git"
+        "url": "https://github.com/duxlabs-dev/dux-greeter.git"
       }
     },
     "dank-qml-common": {
       "flake": false,
       "locked": {
-        "lastModified": 1788376015,
-        "narHash": "sha256-/tT8rTznLADndTwLBzdgzzgfJH1ZhYQibYo5v/F8U+U=",
+        "lastModified": 1792513666,
+        "narHash": "sha256-RDqPdPrM5lnwRrfFGLz3IwgTjCV2Ie+nrTD3ldj1t/s=",
         "ref": "refs/heads/master",
-        "rev": "26396ce432d6c71c3f5367438f96f4a8d667e160",
+        "rev": "ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/dank-qml-common.git"
+        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
       },
       "original": {
-        "rev": "26396ce432d6c71c3f5367438f96f4a8d667e160",
+        "rev": "ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/dank-qml-common.git"
+        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
       }
     },
     "dank-qml-common_2": {
       "flake": false,
       "locked": {
-        "lastModified": 1791392812,
-        "narHash": "sha256-id6Y5XNO5K3KfXSOsEYVUwiq1ygYGNX5LeKSgHM3GR8=",
+        "lastModified": 1792513666,
+        "narHash": "sha256-RDqPdPrM5lnwRrfFGLz3IwgTjCV2Ie+nrTD3ldj1t/s=",
         "ref": "refs/heads/master",
-        "rev": "1ae722232da7110d26cd2c355b6615e078e94197",
+        "rev": "ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/dank-qml-common.git"
+        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
       },
       "original": {
-        "rev": "1ae722232da7110d26cd2c355b6615e078e94197",
+        "rev": "ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/dank-qml-common.git"
+        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
       }
     },
     "disko": {
@@ -189,34 +189,34 @@
         ]
       },
       "locked": {
-        "lastModified": 1791395223,
-        "narHash": "sha256-yDBOoDewH8LwfsZrG4x5vaCstmp6w2vV70j9hC6dIuk=",
-        "ref": "refs/tags/v1.6.3",
-        "rev": "4a87e8227daf0840b3376fd5e7f891f5900165a6",
+        "lastModified": 1792523829,
+        "narHash": "sha256-hyWdbsyOGXsJxvXG4Tqg0uRI1s3JwPi8DKyWips3Ta8=",
+        "ref": "refs/tags/v2.0.0",
+        "rev": "9b413296b16721f7679fb62e624cb1ed2433fa58",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/DankMaterialShell.git"
+        "url": "https://github.com/duxlabs-dev/dux-shell.git"
       },
       "original": {
-        "ref": "refs/tags/v1.6.3",
+        "ref": "refs/tags/v2.0.0",
         "shallow": true,
         "type": "git",
-        "url": "https://github.com/AvengeMedia/DankMaterialShell.git"
+        "url": "https://github.com/duxlabs-dev/dux-shell.git"
       }
     },
     "dms-openvpn3": {
       "flake": false,
       "locked": {
-        "lastModified": 1791056080,
-        "narHash": "sha256-18fc7itX2bpqb4SpoNpa/u8eSVLRgtWEo5sKn0K/dNc=",
+        "lastModified": 1792581960,
+        "narHash": "sha256-+3V+MbShit/meCJvnG0sOnmrCHzXDrgG0yTl6KA4kRE=",
         "ref": "refs/heads/main",
-        "rev": "f9e01be5ca81840f1b0e5322d40342cbce96e09c",
+        "rev": "cc46cd65657b824f19c2b3a919990d10d890f8aa",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-openvpn3.git"
       },
       "original": {
-        "rev": "f9e01be5ca81840f1b0e5322d40342cbce96e09c",
+        "rev": "cc46cd65657b824f19c2b3a919990d10d890f8aa",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-openvpn3.git"
@@ -225,16 +225,16 @@
     "dms-storage-monitor": {
       "flake": false,
       "locked": {
-        "lastModified": 1787036788,
-        "narHash": "sha256-oShajBrMZb0+MSVDHETL+LXDwIOicYd8IyzPbIRjUlk=",
+        "lastModified": 1792581961,
+        "narHash": "sha256-XOOP2LUly1l3OQrbxdNHwjMt2Jqp3iXbJtBN9Y2sSkE=",
         "ref": "refs/heads/main",
-        "rev": "8dbf7f2484b0f81683add744664b3bb17c1389e5",
+        "rev": "ff2252bd998f5ab7f998d5b43e19a354f9116b18",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-storage-monitor.git"
       },
       "original": {
-        "rev": "8dbf7f2484b0f81683add744664b3bb17c1389e5",
+        "rev": "ff2252bd998f5ab7f998d5b43e19a354f9116b18",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-storage-monitor.git"

@@ -20,6 +20,7 @@ let
               ;
             pkgs = configurations.${name}.pkgs;
             dmsSource = inputs.dms;
+            dmsCommonSource = inputs.dms.inputs.dank-qml-common;
           };
           niriFiles = lib.filterAttrs (name: _: lib.hasPrefix "niri/" name) config.xdg.configFile;
         in

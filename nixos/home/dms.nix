@@ -4,6 +4,7 @@
   pkgs,
   osConfig,
   dmsSource,
+  dmsCommonSource,
   storageMonitorSource,
   ...
 }:
@@ -23,6 +24,7 @@ let
       pkgs
       osConfig
       dmsSource
+      dmsCommonSource
       ;
   };
 

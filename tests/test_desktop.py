@@ -53,6 +53,12 @@ for host in json.loads(Path(sys.argv[1]).read_text()):
                                   re.findall(r'match app-id="([^"]+)"', rule)):
                     destinations.append(target[1])
             assert destinations == [workspace], (host['name'], app_id, destinations)
+        shell_rules = [rule for rule in re.findall(r'window-rule \{([^{}]*)\}', rules)
+                       if 'open-floating true' in rule]
+        shell_patterns = [pattern for rule in shell_rules
+                          for pattern in re.findall(r'match app-id=r#"([^"]+)"#', rule)]
+        assert any(re.search(pattern, 'dev.duxlabs.shell') for pattern in shell_patterns), host['name']
+        assert not any(re.search(pattern, 'devXduxlabsXshell') for pattern in shell_patterns), host['name']
         subprocess.run([host['niri'], 'validate', '-c', str(config / 'niri/config.kdl')],
                        env=environment, check=True)
         print(f"{host['name']}: production activation, plugins and complete Niri config passed", flush=True)
