@@ -62,6 +62,8 @@ ShellRoot {
         onExited: Qt.exit(root.code)
     }
     Component.onCompleted: {
+        // Exercise plugin reload in this engine, without a full shell auto-reload.
+        Quickshell.watchFiles = false;
         try { load(1); phase = 1; }
         catch (e) { result = "FAIL: " + e; code = 1; report.running = true; }
     }
@@ -80,9 +82,13 @@ ShellRoot {
                 const modern = root.popout.pendingVerb !== undefined;
                 const parts = root.popout.storage.partitions;
                 const roots = parts.filter(p => p.name === "system-root");
-                const safe = roots.length === 1 && roots[0].mounted && !roots[0].manageable;
-                const ok = same && modern && safe && root.popout.storage.actionsAvailable === EXPECT_ACTIONS;
-                root.result = JSON.stringify({ok: ok, sameSingleton: same, modernPopout: modern, safeRoot: safe, partitions: parts.map(p => ({name:p.name, mounted:p.mounted, manageable:p.manageable}))});
+                const safe = roots.length === 1 && roots[0].mounted && !roots[0].manageable && !roots[0].canPowerOff;
+                const visible = root.popout.storage.visiblePartitions.filter(p => root.popout.storage.showUnmounted || p.mounted);
+                const groups = new Set(visible.filter(p => p.canPowerOff).map(p => p.physicalGroup));
+                const buttons = visible.filter(p => root.popout.isPowerOffRepresentative(p));
+                const grouped = buttons.length === (EXPECT_ACTIONS ? groups.size : 0);
+                const ok = same && modern && safe && grouped && root.popout.storage.actionsAvailable === EXPECT_ACTIONS;
+                root.result = JSON.stringify({ok: ok, sameSingleton: same, modernPopout: modern, safeRoot: safe, powerOffButtons: buttons.length, grouped: grouped, partitions: parts.map(p => ({name:p.name, mounted:p.mounted, manageable:p.manageable, canPowerOff:p.canPowerOff}))});
                 root.code = ok ? 0 : 1;
                 root.phase = 3; report.running = true;
             }

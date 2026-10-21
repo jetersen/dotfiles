@@ -1,7 +1,0 @@
---- a/StorageMonitorPopout.qml
-+++ b/StorageMonitorPopout.qml
-@@ -485,0 +486 @@
-+                    visible: !root.storage.actionsAvailable
-@@ -489 +490 @@
--                        text: root.storage.actionsAvailable ? "Storage actions use system authorization (udisks2)" : "Monitoring only · storage actions need Python Gio"
-+                        text: "Monitoring only · storage actions need Python Gio"

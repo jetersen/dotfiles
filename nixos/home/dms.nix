@@ -13,7 +13,6 @@ let
   storageMonitor = pkgs.runCommand "dms-storage-monitor" { } ''
     cp -r ${storageMonitorSource} "$out"
     chmod -R u+w "$out"
-    ${pkgs.patch}/bin/patch -d "$out" -p1 < ${../packages/storage-monitor-footer.patch}
     # Gio supports guarded USB actions through the existing UDisks/polkit services.
     substituteInPlace "$out/services/StorageService.qml" \
       --replace-fail '"python3"' '"${storageMonitorPython}/bin/python3"'
@@ -40,6 +39,7 @@ let
     PYTHON
     ${storageMonitorPython}/bin/python3 -c 'import gi; gi.require_version("Gio", "2.0"); from gi.repository import Gio, GLib'
     PYTHONDONTWRITEBYTECODE=1 ${storageMonitorPython}/bin/python3 -m unittest discover -s "$out/tests" -v
+    ${pkgs.nodejs}/bin/node "$out/tests/test_power_off_ui.mjs"
   '';
   kdePaletteTemplate = pkgs.writeText "kdeglobals-template.colors" (
     builtins.readFile "${dmsSource}/quickshell/matugen/templates/kcolorscheme.colors"

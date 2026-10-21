@@ -58,7 +58,7 @@
       flake = false;
     };
     dms-storage-monitor = {
-      url = "git+https://github.com/jetersen/dms-storage-monitor.git?rev=2181edba27c90e15a7d324b591c3218785b37c73&shallow=1";
+      url = "git+https://github.com/jetersen/dms-storage-monitor.git?rev=ede3d36eede4f48ea8579c20246402df2474e4e7&shallow=1";
       flake = false;
     };
     skill-finder = {
