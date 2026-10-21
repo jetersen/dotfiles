@@ -7,6 +7,7 @@ let
   configurations = inputs.self.nixosConfigurations;
 in
 {
+  t3-browser-libraries = import ./browser.nix { inherit pkgs configurations; };
   desktop-activation = import ./desktop.nix { inherit pkgs inputs configurations; };
   dns-routing = import ./dns.nix { inherit pkgs pkgsUnstable; };
   tooling-unit = import ./tooling.nix { inherit pkgs; };

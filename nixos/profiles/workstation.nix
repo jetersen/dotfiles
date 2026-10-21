@@ -11,11 +11,30 @@
   config = {
     home-manager.users.joseph = import ../home/joseph.nix;
 
-    # Aspire extracts generic Linux DCP, Dashboard and managed host binaries.
-    # Patching the Nix-managed CLI alone does not make its bundle executable.
+    # Aspire extracts Linux bundles; T3 downloads Chrome Headless Shell.
+    # Keep their loader libraries at nix-ld's stable system path so existing
+    # T3 servers can launch newly downloaded browsers without restarting.
     programs.nix-ld = {
       enable = true;
-      libraries = [ pkgs.icu ];
+      libraries = with pkgs; [
+        icu
+        alsa-lib
+        at-spi2-core
+        dbus
+        expat
+        glib
+        libgbm
+        libx11
+        libxcb
+        libxcomposite
+        libxdamage
+        libxext
+        libxfixes
+        libxkbcommon
+        libxrandr
+        nspr
+        nss
+      ];
     };
 
     # Monitor application workloads; the compositor and session services live
