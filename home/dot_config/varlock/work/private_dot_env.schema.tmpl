@@ -1,3 +1,3 @@
 {{ if .isWork -}}
-{{ includeTemplate "work-secret" (dict "root" .chezmoi.sourceDir "key" "varlock-work-schema") -}}
+{{ output "sops" "--decrypt" "--extract" "[\"varlock-work-schema\"]" (joinPath .chezmoi.sourceDir ".." "nixos" "secrets" "varlock.yaml") -}}
 {{ end -}}

@@ -51,8 +51,6 @@ in
     ".aws/config".source = config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets.aws-config.path;
     ".kube/config".source = config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets.kube-config.path;
     ".npmrc".source = config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets.npm-config.path;
-    ".config/varlock/work/.env.schema".source =
-      config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets.varlock-work-schema.path;
     "${pluginDirectory}" = {
       source = "${codeartifactProvider}/lib/nuget/plugins/netcore/AWS.CodeArtifact.NuGetCredentialProvider";
       recursive = true;

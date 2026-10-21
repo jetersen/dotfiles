@@ -9,6 +9,12 @@ creation_rules:
           - *joseph
           - *framework
   # Add one age recipient per authorized work machine. Joseph is the recovery recipient.
+  - path_regex: ^nixos/secrets/varlock\.yaml$
+    key_groups:
+      - age:
+          - *joseph
+          - *framework
+          - *rocket
   - path_regex: ^nixos/secrets/work\.yaml$
     key_groups:
       - age:

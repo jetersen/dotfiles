@@ -5,6 +5,7 @@
     ../modules/virtualisation.nix
     ../modules/gitops.nix
     ../modules/storage-maintenance.nix
+    ../modules/work-environment.nix
   ];
   options.dotfiles.work.enable = lib.mkEnableOption "company tools and credentials";
   config = {

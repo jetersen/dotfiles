@@ -40,6 +40,13 @@ let
         config = c.systemd.services.pc2mqtt.environment.PC2MQTT_CONFIG;
         privateRuntime = c.systemd.services.pc2mqtt.serviceConfig.RuntimeDirectoryMode;
       };
+      workEnvironment = {
+        schemaFile = baseNameOf c.sops.secrets.varlock-work-schema.sopsFile;
+        schemaMode = c.sops.secrets.varlock-work-schema.mode;
+        schemaOwner = c.sops.secrets.varlock-work-schema.owner;
+        schemaTarget = c.home-manager.users.joseph.home.file.".config/varlock/work/.env.schema".source;
+        packages = map lib.getName c.home-manager.users.joseph.home.packages;
+      };
     }
   );
   framework = configurations.framework.config;
@@ -105,6 +112,23 @@ let
             assertion =
               c.aspire.installed && !c.aspire.manualInstallOnPath && c.aspire.bundleLoader && c.aspire.bundleIcu;
             message = "${host}: Aspire must use the managed CLI and support extracted Linux bundles";
+          }
+          {
+            assertion =
+              c.workEnvironment.schemaFile == "varlock.yaml"
+              && c.workEnvironment.schemaMode == "0600"
+              && c.workEnvironment.schemaOwner == "joseph"
+              &&
+                toString c.workEnvironment.schemaTarget == toString (
+                  configurations.${host}.config.home-manager.users.joseph.lib.file.mkOutOfStoreSymlink
+                    configurations.${host}.config.sops.secrets.varlock-work-schema.path
+                )
+              && lib.all (name: builtins.elem name c.workEnvironment.packages) [
+                "varlock"
+                "bitwarden-cli"
+                "workenv"
+              ];
+            message = "${host}: provide the private work schema and Bitwarden-backed Varlock tools";
           }
           {
             assertion = c.tailscaleOperator;

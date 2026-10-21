@@ -153,7 +153,14 @@ For text sent to the connecting terminal's clipboard, OSC 52 depends on terminal
 and transport support. Terminal paste sends local clipboard text as keyboard
 input; SSH and mosh do not forward a Wayland clipboard.
 
-Run `bw login` locally before `workenv COMMAND` loads Varlock work secrets.
+Both NixOS hosts provide Varlock, the Bitwarden CLI, and the work schema from
+`nixos/secrets/varlock.yaml`, independently of the full work profile.
+Run `bw login` once on each machine, then unlock interactively with
+`varlock load -p ~/.config/varlock/work/.env.schema`. Varlock prompts for the
+Bitwarden master password and caches the session for the schema's session TTL.
+Use `workenv COMMAND` to inject the resolved variables, including `TEAMCITY_URL`
+and `TEAMCITY_TOKEN`, into a command. Bare `varlock load` uses the current
+directory's schema, so pass the work schema path explicitly.
 Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
 
 ## Automatic deployment
