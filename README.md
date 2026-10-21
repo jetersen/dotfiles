@@ -126,8 +126,9 @@ credentials, Varlock, and private AI instructions. Shared work secrets are in
 Never copy private keys or plaintext secrets into Nix expressions.
 
 Storage Monitor includes Python and util-linux for read-only monitoring of mounted
-filesystems, including LUKS and LVM. UDisks metadata uses busctl; Python Gio enables
-guarded disk actions through UDisks and polkit. System and nested layouts remain monitor-only.
+filesystems, including LUKS and LVM. UDisks metadata uses busctl; udisksctl performs
+guarded disk actions through UDisks and polkit. Python needs no PyGObject/Gio.
+System and nested layouts remain monitor-only.
 Confirmed USB removal unmounts the device's filesystems and physical siblings before
 powering it off. Failed unmounts or changed device identities prevent power-off.
 

@@ -9,17 +9,17 @@
   ...
 }:
 let
-  storageMonitorPython = pkgs.python3.withPackages (ps: [ ps.pygobject3 ]);
   storageMonitor = pkgs.runCommand "dms-storage-monitor" { } ''
     cp -r ${storageMonitorSource} "$out"
     chmod -R u+w "$out"
-    # Gio supports guarded USB actions through the existing UDisks/polkit services.
+    # Standard Python validates state; udisksctl handles actions and authorization.
     substituteInPlace "$out/services/StorageService.qml" \
-      --replace-fail '"python3"' '"${storageMonitorPython}/bin/python3"'
+      --replace-fail '"python3"' '"${pkgs.python3}/bin/python3"'
     substituteInPlace "$out/services/storage_backend.py" \
       --replace-fail '"lsblk"' '"${pkgs.util-linux}/bin/lsblk"' \
       --replace-fail '"findmnt"' '"${pkgs.util-linux}/bin/findmnt"' \
-      --replace-fail '"busctl"' '"${pkgs.systemd}/bin/busctl"'
+      --replace-fail '"busctl"' '"${pkgs.systemd}/bin/busctl"' \
+      --replace-fail '"udisksctl"' '"${pkgs.udisks2}/bin/udisksctl"'
     # Qt can cache both entrypoints and sibling types behind HM's stable symlink,
     # even when Dux changes the entrypoint's query string. Version the wrapper
     # filenames and import the entire plugin through its immutable store URL.
@@ -37,8 +37,7 @@ let
         manifest[key] = "./" + str(wrapper.relative_to(root))
     (root / "plugin.json").write_text(json.dumps(manifest) + "\n")
     PYTHON
-    ${storageMonitorPython}/bin/python3 -c 'import gi; gi.require_version("Gio", "2.0"); from gi.repository import Gio, GLib'
-    PYTHONDONTWRITEBYTECODE=1 ${storageMonitorPython}/bin/python3 -m unittest discover -s "$out/tests" -v
+    PYTHONDONTWRITEBYTECODE=1 ${pkgs.python3}/bin/python3 -m unittest discover -s "$out/tests" -v
     ${pkgs.nodejs}/bin/node "$out/tests/test_power_off_ui.mjs"
   '';
   kdePaletteTemplate = pkgs.writeText "kdeglobals-template.colors" (

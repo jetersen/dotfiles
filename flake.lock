@@ -225,16 +225,16 @@
     "dms-storage-monitor": {
       "flake": false,
       "locked": {
-        "lastModified": 1792590307,
-        "narHash": "sha256-9ju5SQPG6VmmJ0A0sB4uImlBt7+pBSI+W0/QKdu+8QI=",
+        "lastModified": 1792591154,
+        "narHash": "sha256-Dltc7zCxBBkrYaG3FZ3dk8IURMZ7O6ssTK0+hJ22Zn4=",
         "ref": "refs/heads/main",
-        "rev": "ede3d36eede4f48ea8579c20246402df2474e4e7",
+        "rev": "1732a2de807e64e98480d46b75ae76d9bb34b092",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-storage-monitor.git"
       },
       "original": {
-        "rev": "ede3d36eede4f48ea8579c20246402df2474e4e7",
+        "rev": "1732a2de807e64e98480d46b75ae76d9bb34b092",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-storage-monitor.git"

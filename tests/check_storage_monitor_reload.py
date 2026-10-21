@@ -3,7 +3,7 @@
 Usage: python3 tests/check_storage_monitor_reload.py OLD_PLUGIN NEW_PLUGIN DUX_ROOT [--actions-available]
 Use a legacy plugin without the guarded popout as OLD_PLUGIN. This exercises the
 real Qt cache in one process; it creates no windows and invokes no disk actions.
-The Framework root must be present. --actions-available expects Gio support but
+The Framework root must be present. --actions-available expects UDisks CLI support but
 does not invoke any disk actions.
 """
 import argparse
