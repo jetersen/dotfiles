@@ -95,19 +95,6 @@
           "properties": {
             "cache_duration": "none",
             "display_mode": "files",
-            "fetch_virtual_env": false
-          },
-          "template": "{{ if not .Error }} \ue235 {{ .Full }} {{ end }}",
-          "foreground": "#111111",
-          "powerline_symbol": "\ue0b0",
-          "background": "#FFDE57",
-          "type": "python",
-          "style": "powerline"
-        },
-        {
-          "properties": {
-            "cache_duration": "none",
-            "display_mode": "files",
             "fetch_version": true
           },
           "template": " \ue791 {{ if .Error }}{{ .Error }}{{ else }}{{ .Full }}{{ end }} ",

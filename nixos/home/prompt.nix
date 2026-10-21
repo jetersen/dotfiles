@@ -62,7 +62,7 @@ let
     };
     dotnet.format = "[.NET $version](#89b4fa) ";
     nodejs.disabled = true;
-    python.format = "[Py $version( $virtualenv)](#f9e2af) ";
+    python.disabled = true;
     nix_shell.format = "[Nix $state](#89dceb) ";
     battery = {
       disabled = !cfg.showBattery;
