@@ -21,6 +21,7 @@ let
       --replace-fail '"busctl"' '"${pkgs.systemd}/bin/busctl"'
     # A new module URL prevents hot reloads from retaining the old singleton.
     substituteInPlace "$out/StorageMonitorWidget.qml" \
+      "$out/StorageMonitorPopout.qml" "$out/StorageMonitorSettings.qml" \
       --replace-fail 'import "./services" as Services' "import \"file:$out/services\" as Services"
     PYTHONDONTWRITEBYTECODE=1 ${pkgs.python3}/bin/python3 -m unittest discover -s "$out/tests" -v
   '';
