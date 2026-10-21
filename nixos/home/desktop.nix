@@ -67,6 +67,7 @@
         "application/gzip"
         "application/x-gzip"
         "application/x-bzip2"
+        "application/x-bzip2-compressed-tar"
         "application/x-xz"
         "application/zstd"
         "application/x-zstd"
@@ -74,7 +75,10 @@
         "application/x-bzip-compressed-tar"
         "application/x-xz-compressed-tar"
         "application/x-zstd-compressed-tar"
-      ] (_: [ "org.kde.ark.desktop" ])
+        "application/x-lzma"
+        "application/x-lzma-compressed-tar"
+        "application/x-cpio"
+      ] (_: [ "dev.duxlabs.files.desktop" ])
       // {
         "application/pdf" = [ "zen-beta.desktop" ];
         "text/html" = [ "zen-beta.desktop" ];

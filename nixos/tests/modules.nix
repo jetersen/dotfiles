@@ -21,6 +21,8 @@ let
         dbus = home.xdg.dataFile."dbus-1/services/org.freedesktop.FileManager1.service".text;
         executable = builtins.unsafeDiscardStringContext (lib.getExe c.programs.dux-files.package);
         portal = c.xdg.portal.config.niri."org.freedesktop.impl.portal.FileChooser";
+        archives = home.xdg.mimeApps.defaultApplications."application/zip";
+        qtPortal = c.environment.variables.QT_QPA_PLATFORMTHEME;
       };
       aspire = {
         installed = builtins.any (p: (p.pname or "") == "aspire-cli") home.home.packages;
@@ -94,8 +96,10 @@ let
               && c.fileManager.gvfs
               && c.fileManager.folders == [ "dev.duxlabs.files.desktop" ]
               && lib.hasInfix "Exec=${c.fileManager.executable} run --hidden --dbus-activated" c.fileManager.dbus
-              && c.fileManager.portal == "kde";
-            message = "${host}: Dux Files must handle folders and reveal requests while KDE serves file dialogs";
+              && c.fileManager.portal == "dfiles"
+              && c.fileManager.archives == [ "dev.duxlabs.files.desktop" ]
+              && c.fileManager.qtPortal == "xdgdesktopportal";
+            message = "${host}: Dux Files must handle folders, archives, reveal requests and portal file dialogs";
           }
           {
             assertion =

@@ -35,8 +35,8 @@ in
       include "cfg/misc.kdl"
 
       environment {
-        QT_QPA_PLATFORMTHEME "kde"
-        QT_QPA_PLATFORMTHEME_QT6 "kde"
+        QT_QPA_PLATFORMTHEME "xdgdesktopportal"
+        QT_QPA_PLATFORMTHEME_QT6 "xdgdesktopportal"
       }
 
       ${lib.concatMapStringsSep "\n" workspaceDeclaration [

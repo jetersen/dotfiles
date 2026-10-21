@@ -17,11 +17,16 @@
   programs.dux-files = {
     enable = true;
     systemd.enable = true;
+    portal = {
+      enable = true;
+      preferred = true;
+      desktop = "niri";
+    };
   };
   services.gvfs.enable = true;
   xdg.portal = {
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
-    config.niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce "kde";
+    config.niri."org.freedesktop.impl.portal.FileChooser" = lib.mkForce [ "dfiles" ];
     config.niri."org.freedesktop.impl.portal.ScreenCast" = "gnome";
   };
 
@@ -57,8 +62,8 @@
   services.gnome.gnome-keyring.enable = true;
   qt.enable = true;
   environment.variables = {
-    QT_QPA_PLATFORMTHEME = "kde";
-    QT_QPA_PLATFORMTHEME_QT6 = "kde";
+    QT_QPA_PLATFORMTHEME = "xdgdesktopportal";
+    QT_QPA_PLATFORMTHEME_QT6 = "xdgdesktopportal";
     GTK_USE_PORTAL = "1";
   };
   services.udisks2.enable = true;

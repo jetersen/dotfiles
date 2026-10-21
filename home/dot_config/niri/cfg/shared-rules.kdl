@@ -31,6 +31,12 @@ window-rule {
   open-floating true
 }
 
+// Float file choosers while keeping the main file-manager windows tiled.
+window-rule {
+  match app-id=r#"^dev\.duxlabs\.files$"# title=r#"^(Open|Save|Select|Upload|Export|Import|Choose)"#
+  open-floating true
+}
+
 // Let the shell draw the wallpaper behind windows.
 layer-rule {
   match namespace="^quickshell$"
