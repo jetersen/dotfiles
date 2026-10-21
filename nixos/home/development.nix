@@ -40,6 +40,7 @@
     ilspycmd
     dotnet-outdated
     csharpier
+    dotfilesPackages.aspire-cli
     dotfilesPackages.snitch
     dotfilesPackages.central-pkg-converter
     dotfilesPackages.dotnet-counters

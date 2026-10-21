@@ -10,9 +10,16 @@ let
     host:
     let
       c = configurations.${host}.config;
+      home = c.home-manager.users.joseph;
     in
     {
       tailscaleOperator = builtins.elem "--operator=joseph" c.services.tailscale.extraSetFlags;
+      aspire = {
+        installed = builtins.any (p: (p.pname or "") == "aspire-cli") home.home.packages;
+        manualInstallOnPath = builtins.elem "${home.home.homeDirectory}/.aspire/bin" home.home.sessionPath;
+        bundleLoader = c.programs.nix-ld.enable;
+        bundleIcu = builtins.elem configurations.${host}.pkgs.icu c.programs.nix-ld.libraries;
+      };
       comin = {
         checks = c.services.comin.package.doCheck;
         main = (builtins.head c.services.comin.remotes).branches.main.name;
@@ -73,6 +80,11 @@ let
           c = hosts.${host};
         in
         [
+          {
+            assertion =
+              c.aspire.installed && !c.aspire.manualInstallOnPath && c.aspire.bundleLoader && c.aspire.bundleIcu;
+            message = "${host}: Aspire must use the managed CLI and support extracted Linux bundles";
+          }
           {
             assertion = c.tailscaleOperator;
             message = "${host}: joseph must be able to manage Tailscale Serve";

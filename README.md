@@ -81,6 +81,10 @@ Bare and mirror clones leave the current directory unchanged.
 Alacritty shells. Restart shells after configuration changes.
 
 Global development tools are declared in `nixos/home/development.nix`.
+Aspire uses the official Nix packaging with a separately pinned CLI release archive.
+Its extracted Linux bundles use `nix-ld`; keep `~/.aspire/bin` out of the NixOS
+session PATH so older manual installs cannot mask the managed CLI. Restart the
+desktop session after switching to this setup.
 Use direnv or project development shells for different toolchain versions:
 
 ```sh

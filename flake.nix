@@ -5,6 +5,14 @@
     nixpkgs.url = "https://channels.nixos.org/nixos-26.05/nixexprs.tar.xz";
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     nixpkgs-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz";
+    aspire = {
+      url = "git+https://github.com/microsoft/aspire.git?ref=main&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+    aspire-cli-source = {
+      url = "file+https://github.com/microsoft/aspire/releases/download/v13.6.2/aspire-cli-linux-x64-13.6.2.tar.gz";
+      flake = false;
+    };
     comin = {
       url = "git+https://forgejo.jetersen.dev/jetersen/comin.git?ref=dotfiles-v0.14&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -202,6 +210,17 @@
       };
       packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
       packages.x86_64-linux.codex = inputs.nixpkgs-master.legacyPackages.x86_64-linux.codex;
+      # Upstream's Nix manifest can lag behind its published CLI release.
+      packages.x86_64-linux.aspire-cli = inputs.aspire.packages.x86_64-linux.aspire-cli.overrideAttrs {
+        src = inputs.aspire-cli-source;
+        # File inputs have no extension. Isolate the archive contents so upstream's
+        # recursive install does not copy Nix's build-directory env-vars file.
+        unpackCmd = ''mkdir source; tar -xzf "$curSrc" -C source'';
+        sourceRoot = "source";
+        version = builtins.head (
+          builtins.match ".*/v([^/]+)/[^/]+[.]tar[.]gz" locked.nodes.aspire-cli-source.locked.url
+        );
+      };
       packages.x86_64-linux.t3code = pkgs.callPackage ./nixos/packages/t3code.nix {
         codex = inputs.self.packages.x86_64-linux.codex;
         claude-code = pkgsAi.claude-code.override {

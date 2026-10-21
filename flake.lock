@@ -12,6 +12,40 @@
         "url": "https://api.nuget.org/v3-flatcontainer/microsoft.dotnet.apicompat.tool/10.0.402/microsoft.dotnet.apicompat.tool.10.0.402.nupkg"
       }
     },
+    "aspire": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792562180,
+        "narHash": "sha256-WzxENKyEGDrzwVmEfkt/35yILir34pu5S2DiCC0IJhU=",
+        "ref": "main",
+        "rev": "f4ae2cc424d5efda4069e07096d1ead632fdad4d",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/microsoft/aspire.git"
+      },
+      "original": {
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/microsoft/aspire.git"
+      }
+    },
+    "aspire-cli-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-yemRHEwrb5tpry8LfG+Rxwp+05CJC7QA4R327CqqzlA=",
+        "type": "file",
+        "url": "https://github.com/microsoft/aspire/releases/download/v13.6.2/aspire-cli-linux-x64-13.6.2.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/microsoft/aspire/releases/download/v13.6.2/aspire-cli-linux-x64-13.6.2.tar.gz"
+      }
+    },
     "central-pkg-converter-source": {
       "flake": false,
       "locked": {
@@ -582,6 +616,8 @@
     "root": {
       "inputs": {
         "apicompat-source": "apicompat-source",
+        "aspire": "aspire",
+        "aspire-cli-source": "aspire-cli-source",
         "central-pkg-converter-source": "central-pkg-converter-source",
         "comin": "comin",
         "crane": "crane",

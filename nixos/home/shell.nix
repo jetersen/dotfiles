@@ -45,7 +45,6 @@ in
     "${config.home.homeDirectory}/.local/bin"
     "${config.home.homeDirectory}/go/bin"
     "${config.home.homeDirectory}/.krew/bin"
-    "${config.home.homeDirectory}/.aspire/bin"
   ];
   programs.bash = {
     enable = true;
