@@ -150,8 +150,8 @@ Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
 
 Forgejo is primary; its native push mirror updates GitHub for existing chezmoi
 installations. All NixOS hosts follow `main` through Comin. Lightweight Python
-checks run on Kubernetes before full Nix builds run on Rocket with sandboxing
-and a persistent store volume. CI builds both systems
+checks run on Kubernetes before full Nix builds run on either Docker pool with
+sandboxing and a persistent store volume. CI builds both systems
 and development shells, uploads eligible paths to Attic, checks that `main` still
 selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
 out of Attic and may build locally. Lifecycle fetches can see a revision before
@@ -163,6 +163,8 @@ planners use separate persistent evaluation caches. Once both succeed, CI roots
 the selected derivations and realizes their shared graph in one build, then validates
 every selected output before publishing or notifying hosts.
 Compilation is serialized with four cores per build to bound peak memory demand.
+The shared workflow concurrency group permits one Nix CI run across both pools;
+an offline runner does not prevent the other pool from claiming queued builds.
 
 CI runs `checks.x86_64-linux` before publishing or notifying hosts. Run the same
 groups locally with `nix flake check --no-update-lock-file --max-jobs 2 --cores 4`,

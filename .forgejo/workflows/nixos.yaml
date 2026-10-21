@@ -5,6 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
+  # Serialize full Nix runs across both pools, including pull requests and main.
   group: nixos-build
   cancel-in-progress: false
 jobs:
@@ -22,10 +23,8 @@ jobs:
   framework:
     needs: tooling
     if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository
-    runs-on: [linux-docker, runner-rocket]
+    runs-on: linux-docker
     container:
-      # Nix needs mount/network namespaces and pivot_root for strict sandboxing.
-      options: --cap-add=SYS_ADMIN --cap-add=NET_ADMIN --security-opt=seccomp=unconfined
       volumes:
         - dotfiles-nix-cache:/nix
     timeout-minutes: 90
