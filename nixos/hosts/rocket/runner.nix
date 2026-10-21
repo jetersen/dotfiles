@@ -12,6 +12,10 @@ in
     # A timer starts the container health check without blocking desktop boot.
     restartIfChanged = false;
     requires = [ "docker.service" ];
+    # Docker upgrades stop dependent services; pull the runner back into startup
+    # and propagate explicit Docker restarts without restarting it for unit edits.
+    wantedBy = [ "docker.service" ];
+    partOf = [ "docker.service" ];
     wants = [
       "network-online.target"
       "tailscaled.service"

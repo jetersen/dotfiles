@@ -137,7 +137,7 @@ def main():
   started = time.monotonic()
   with (temporary / "build-graph.json").open("w") as output:
     subprocess.run([
-      "nix", "build", *installables, "--no-update-lock-file", "--max-jobs", "2", "--cores", "4",
+      "nix", "build", *installables, "--no-update-lock-file", "--max-jobs", "1", "--cores", "4",
       "--out-link", str(roots / "ci-build-graph"), "--json",
     ], stdout=output, check=True)
   print(f"CI realization wall={time.monotonic() - started:.3f}s", flush=True)

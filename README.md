@@ -149,8 +149,9 @@ Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
 ## Automatic deployment
 
 Forgejo is primary; its native push mirror updates GitHub for existing chezmoi
-installations. All NixOS hosts follow `main` through Comin. CI uses the Kubernetes
-runner with Nix sandboxing and a persistent store volume. It builds both systems
+installations. All NixOS hosts follow `main` through Comin. Lightweight Python
+checks run on Kubernetes before full Nix builds run on Rocket with sandboxing
+and a persistent store volume. CI builds both systems
 and development shells, uploads eligible paths to Attic, checks that `main` still
 selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
 out of Attic and may build locally. Lifecycle fetches can see a revision before
@@ -161,6 +162,7 @@ shells and both Proton outputs alongside a separate Rocket planner. The two nati
 planners use separate persistent evaluation caches. Once both succeed, CI roots
 the selected derivations and realizes their shared graph in one build, then validates
 every selected output before publishing or notifying hosts.
+Compilation is serialized with four cores per build to bound peak memory demand.
 
 CI runs `checks.x86_64-linux` before publishing or notifying hosts. Run the same
 groups locally with `nix flake check --no-update-lock-file --max-jobs 2 --cores 4`,

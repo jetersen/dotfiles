@@ -28,7 +28,17 @@ let
   framework = configurations.framework.config;
   dns = framework.systemd.services.dnsdist;
   bridge = framework.systemd.services.homelab-dns-vpn;
+  runner = configurations.rocket.config.systemd.services.forgejo-runner;
   assertions = [
+    {
+      assertion =
+        builtins.elem "docker.service" runner.wantedBy
+        && builtins.elem "docker.service" runner.partOf
+        && builtins.elem "docker.service" runner.requires
+        && builtins.elem "docker.service" runner.after
+        && !runner.restartIfChanged;
+      message = "Runner must recover with Docker without restarting for unrelated unit edits";
+    }
     {
       assertion = pc2mqtt.doCheck && pc2mqtt.doInstallCheck;
       message = "pc2mqtt native and installed-binary tests must stay enabled";

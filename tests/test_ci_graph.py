@@ -216,7 +216,7 @@ class BuildGraph(unittest.TestCase):
     self.assertEqual(realization[1:realization.index("--no-update-lock-file")],
                      [f"{drv}^{name}" for drv, name in planned])
     self.assertEqual(realization[realization.index("--no-update-lock-file"):],
-                     ["--no-update-lock-file", "--max-jobs", "2", "--cores", "4",
+                     ["--no-update-lock-file", "--max-jobs", "1", "--cores", "4",
                       "--out-link", str(self.directory / "roots/ci-build-graph"), "--json"])
 
   def test_reordered_build_results_are_valid(self):
