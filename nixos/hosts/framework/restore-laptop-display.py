@@ -7,7 +7,12 @@ import sys
 
 def restore_from_events(events, niri):
   for line in events:
-    outputs = json.loads(line).get('OutputsChanged', {}).get('outputs', {})
+    # Niri 26.04 has no OutputsChanged event. Removing an active display
+    # reassigns its workspaces and emits WorkspacesChanged instead.
+    if 'WorkspacesChanged' not in json.loads(line):
+      continue
+    outputs = json.loads(subprocess.check_output(
+      [niri, 'msg', '-j', 'outputs'], text=True, timeout=5))
     # Niri keeps disabled, connected outputs in this map. DPMS sleep retains
     # their logical configuration, so idle blanking does not trigger recovery.
     if set(outputs) != {'eDP-1'} or outputs['eDP-1'].get('logical') is not None:
@@ -17,7 +22,7 @@ def restore_from_events(events, niri):
 
 
 def main(niri):
-  # The stream includes the initial output state, covering service restarts.
+  # The initial workspace state also triggers a check after service restarts.
   with subprocess.Popen([niri, 'msg', '-j', 'event-stream'],
                         stdout=subprocess.PIPE, text=True) as stream:
     try:
