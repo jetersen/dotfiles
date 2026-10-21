@@ -1,8 +1,8 @@
 {
-  "version": "2.1.304",
+  "version": "2.1.305",
   "platforms": {
     "linux-x64": {
-      "checksum": "ea0f135784631619a7a409d07322ecec964f9cc4fd377508ed1ba3f141f27912"
+      "checksum": "86cb722ab68348877dba7971e4d0c659919e05e6228c05e006e83da320e656ef"
     }
   }
 }
