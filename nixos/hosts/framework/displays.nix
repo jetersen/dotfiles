@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  osConfig,
   dmsSource,
   ...
 }:
@@ -66,6 +67,21 @@ let
   };
 in
 {
+  # Keep the panel recoverable even when Qt stalls after its last screen goes.
+  systemd.user.services.restore-laptop-display = {
+    Unit = {
+      Description = "Restore the Framework panel after undocking";
+      After = [ "niri.service" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${lib.getExe pkgs.python3} ${./restore-laptop-display.py} ${lib.getExe osConfig.programs.niri.package}";
+      Restart = "on-failure";
+      RestartSec = 1;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   home.activation.configureDockDisplays = lib.hm.dag.entryAfter [ "configureDms" ] ''
     run ${lib.getExe configureDisplays} ${profiles}
   '';

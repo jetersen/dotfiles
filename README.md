@@ -74,7 +74,9 @@ Music Assistant. Framework's display idle timer turns screens off after 15
 minutes unless DMS Keep Awake is enabled.
 Framework's DMS profiles match the work monitors by serial number, across USB-C
 ports. The work dock uses both Dell monitors with the laptop panel disabled;
-undocking restores the panel at 150% scale. Other display layouts remain local.
+undocking restores the panel at 150% scale. A Niri event listener enables the
+undocked panel even if DMS stalls with no active screens. Other display layouts
+remain local.
 
 Fish, Bash, Zsh, and PowerShell use Starship and Worktrunk's `wt` shell integration.
 Clone helpers enter the newly cloned checkout without writing sidecar files.
