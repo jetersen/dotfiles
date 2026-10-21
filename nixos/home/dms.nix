@@ -13,6 +13,7 @@ let
   storageMonitor = pkgs.runCommand "dms-storage-monitor" { } ''
     cp -r ${storageMonitorSource} "$out"
     chmod -R u+w "$out"
+    ${pkgs.patch}/bin/patch -d "$out" -p1 < ${../packages/storage-monitor-footer.patch}
     # Gio supports guarded USB actions through the existing UDisks/polkit services.
     substituteInPlace "$out/services/StorageService.qml" \
       --replace-fail '"python3"' '"${storageMonitorPython}/bin/python3"'
