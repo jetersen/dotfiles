@@ -54,6 +54,18 @@ in
     };
   };
 
+  # Let OpenVPN keep unrelated DNS off the tunnel even before plugin sync.
+  # Existing profiles retain their credentials and other overrides.
+  home.activation.configureWorkVpnDns = lib.mkIf osConfig.services.resolved.enable (
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      for profile in moviestarplanet moviestarplanet-tcp; do
+        if ${pkgs.openvpn3}/bin/openvpn3 config-manage --config "$profile" --exists --quiet; then
+          $DRY_RUN_CMD ${pkgs.openvpn3}/bin/openvpn3 config-manage --config "$profile" --dns-scope tunnel
+        fi
+      done
+    ''
+  );
+
   # Run the regression suite whenever this integration is built.
   home.extraDependencies = [ dnsCheck ];
 }
