@@ -39,6 +39,17 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
   dotfiles.storage.swapSize = "72G";
 
+  # Keep handling the closed laptop from waking it through its touch inputs.
+  services.udev.extraRules = ''
+    ACTION=="add|bind|change", SUBSYSTEM=="i2c", KERNEL=="i2c-CSW1322:*", TEST=="power/wakeup", ATTR{power/wakeup}="disabled"
+    ACTION=="add|bind|change", SUBSYSTEM=="i2c", KERNEL=="i2c-PIXA3854:*", TEST=="power/wakeup", ATTR{power/wakeup}="disabled"
+  '';
+  # Apply to already-bound devices during a configuration switch, too.
+  systemd.tmpfiles.rules = [
+    "w /sys/bus/i2c/devices/i2c-CSW1322:*/power/wakeup - - - - disabled"
+    "w /sys/bus/i2c/devices/i2c-PIXA3854:*/power/wakeup - - - - disabled"
+  ];
+
   # Goodix can leave fprintd with a suspended device handle mid-verification.
   # These hooks run while user.slice is frozen, before DMS can retry on resume.
   environment.etc."systemd/system-sleep/fprintd".source = pkgs.writeShellScript "fprintd-sleep" ''
