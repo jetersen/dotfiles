@@ -198,6 +198,8 @@ or select one with `nix build .#checks.x86_64-linux.dns-routing`:
 - `tooling-unit` runs the CI orchestration, package updater and Wayland clipboard
   unit suites.
 - `module-contracts` checks selected evaluated service and credential properties.
+- `boot-profile` exercises boot target registration, rollback, failure handling
+  and Comin mirror retention with real Nix profiles in temporary directories.
 - `native-comin` and `native-pc2mqtt` reuse the tested packages built for the systems.
 
 These checks use sandboxed derivations with narrow source inputs. CI roots their
@@ -241,6 +243,17 @@ the active Comin daemon before fetching again. Stop automatic changes
 with `sudo systemctl stop comin`. Reverting the running generation alone does not
 stop Comin from deploying `main` again. Weekly GC removes unrooted store paths;
 retained Comin generations remain protected.
+
+On Rocket and Framework, the bootloader hook registers the requested boot target
+in the standard NixOS system profile before installing boot entries. This keeps
+manual NixOS operations consistent with Comin and lets Lanzaboote 1.2 discover
+Framework's deployments. Boot-only operations register their requested target;
+test operations do not call the hook. Comin retains its own deployment profile.
+The hook tracks only standard generations it creates for Comin and prunes them
+when Comin drops their targets, preserving manual history, the booted system and
+the previous standard selection. Existing boot menu limits still apply. If the
+installer fails, the previous standard selection is restored; partial writes to
+the boot partition may still need repair before rebooting.
 
 Comin is pinned to the Forgejo fork's `dotfiles-v0.14` branch, which carries the
 deployment, rewritten-main and reboot-notification fixes with native Go tests.

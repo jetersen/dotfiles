@@ -10,6 +10,8 @@ let
   startFetch = "${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
 in
 {
+  imports = [ ./standard-boot-profile.nix ];
+
   config = {
     sops.secrets.nix-cache-netrc = {
       owner = "joseph";
