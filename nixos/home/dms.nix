@@ -9,12 +9,13 @@
   ...
 }:
 let
+  storageMonitorPython = pkgs.python3.withPackages (ps: [ ps.pygobject3 ]);
   storageMonitor = pkgs.runCommand "dms-storage-monitor" { } ''
     cp -r ${storageMonitorSource} "$out"
     chmod -R u+w "$out"
-    # Monitoring needs no PyGObject or privileged disk operations.
+    # Gio supports guarded USB actions through the existing UDisks/polkit services.
     substituteInPlace "$out/services/StorageService.qml" \
-      --replace-fail '"python3"' '"${pkgs.python3}/bin/python3"'
+      --replace-fail '"python3"' '"${storageMonitorPython}/bin/python3"'
     substituteInPlace "$out/services/storage_backend.py" \
       --replace-fail '"lsblk"' '"${pkgs.util-linux}/bin/lsblk"' \
       --replace-fail '"findmnt"' '"${pkgs.util-linux}/bin/findmnt"' \
@@ -36,7 +37,8 @@ let
         manifest[key] = "./" + str(wrapper.relative_to(root))
     (root / "plugin.json").write_text(json.dumps(manifest) + "\n")
     PYTHON
-    PYTHONDONTWRITEBYTECODE=1 ${pkgs.python3}/bin/python3 -m unittest discover -s "$out/tests" -v
+    ${storageMonitorPython}/bin/python3 -c 'import gi; gi.require_version("Gio", "2.0"); from gi.repository import Gio, GLib'
+    PYTHONDONTWRITEBYTECODE=1 ${storageMonitorPython}/bin/python3 -m unittest discover -s "$out/tests" -v
   '';
   kdePaletteTemplate = pkgs.writeText "kdeglobals-template.colors" (
     builtins.readFile "${dmsSource}/quickshell/matugen/templates/kcolorscheme.colors"

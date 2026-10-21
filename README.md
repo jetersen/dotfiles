@@ -126,8 +126,8 @@ credentials, Varlock, and private AI instructions. Shared work secrets are in
 Never copy private keys or plaintext secrets into Nix expressions.
 
 Storage Monitor includes Python and util-linux for read-only monitoring of mounted
-filesystems, including LUKS and LVM. Optional UDisks metadata uses busctl. Disk
-actions remain disabled without PyGObject; system and nested layouts are monitor-only.
+filesystems, including LUKS and LVM. UDisks metadata uses busctl; Python Gio enables
+guarded disk actions through UDisks and polkit. System and nested layouts remain monitor-only.
 
 VPN profiles are imported locally as `moviestarplanet` and `moviestarplanet-tcp`.
 The DMS plugin applies their split DNS domains. Framework uses dnsdist at

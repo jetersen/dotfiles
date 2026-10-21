@@ -1,10 +1,12 @@
 """Read-only Wayland check for Storage Monitor updates behind a stable symlink.
 
-Usage: python3 tests/check_storage_monitor_reload.py OLD_PLUGIN NEW_PLUGIN DUX_ROOT
+Usage: python3 tests/check_storage_monitor_reload.py OLD_PLUGIN NEW_PLUGIN DUX_ROOT [--actions-available]
 Use a legacy plugin without the guarded popout as OLD_PLUGIN. This exercises the
 real Qt cache in one process; it creates no windows and invokes no disk actions.
-The Framework root must be present, and the new package must disable disk actions.
+The Framework root must be present. --actions-available expects Gio support but
+does not invoke any disk actions.
 """
+import argparse
 import json
 import os
 from pathlib import Path
@@ -12,7 +14,13 @@ import subprocess
 import sys
 import tempfile
 
-old, new, dux = (Path(p).resolve() for p in sys.argv[1:])
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('old', type=Path)
+parser.add_argument('new', type=Path)
+parser.add_argument('dux', type=Path)
+parser.add_argument('--actions-available', action='store_true')
+args = parser.parse_args()
+old, new, dux = (p.resolve() for p in (args.old, args.new, args.dux))
 with tempfile.TemporaryDirectory(prefix='storage-reload-regression-') as tmp:
     root = Path(tmp)
     for p in dux.iterdir():
@@ -73,7 +81,7 @@ ShellRoot {
                 const parts = root.popout.storage.partitions;
                 const roots = parts.filter(p => p.name === "system-root");
                 const safe = roots.length === 1 && roots[0].mounted && !roots[0].manageable;
-                const ok = same && modern && safe && !root.popout.storage.actionsAvailable;
+                const ok = same && modern && safe && root.popout.storage.actionsAvailable === EXPECT_ACTIONS;
                 root.result = JSON.stringify({ok: ok, sameSingleton: same, modernPopout: modern, safeRoot: safe, partitions: parts.map(p => ({name:p.name, mounted:p.mounted, manageable:p.manageable}))});
                 root.code = ok ? 0 : 1;
                 root.phase = 3; report.running = true;
@@ -82,7 +90,7 @@ ShellRoot {
     }
 }
 '''
-    for key, value in {'PLUGIN_URL': link.as_uri(), 'NEW_SOURCE': str(new), 'LINK_PATH': str(link), 'RESULT_PATH': str(result), 'NEW_COMPONENT': json.loads((new / 'plugin.json').read_text())['component'].removeprefix('./')}.items():
+    for key, value in {'EXPECT_ACTIONS': args.actions_available, 'PLUGIN_URL': link.as_uri(), 'NEW_SOURCE': str(new), 'LINK_PATH': str(link), 'RESULT_PATH': str(result), 'NEW_COMPONENT': json.loads((new / 'plugin.json').read_text())['component'].removeprefix('./')}.items():
         qml = qml.replace(key, json.dumps(value))
     shell = root / 'shell.qml'
     shell.write_text(qml)
