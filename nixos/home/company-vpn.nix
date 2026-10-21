@@ -16,13 +16,29 @@ let
     chmod -R u+w "$out"
     substituteInPlace "$out/OpenVpn3Service.qml" "$out/StartupCheck.qml" \
       --replace-fail '"python3"' '"${python}/bin/python3"'
-    # Cold D-Bus activation can exceed DMS's default ten-second timeout.
-    substituteInPlace "$out/StartupCheck.qml" \
-      --replace-fail $'\n        });' $'\n        }, 0, 60000);'
+    # Dependencies are supplied by Nix. A transient D-Bus activation failure
+    # must not prevent loading the widget that retries service discovery.
+    ${python}/bin/python3 - "$out/plugin.json" <<'PYTHON'
+    import json
+    import pathlib
+    import sys
+    path = pathlib.Path(sys.argv[1])
+    manifest = json.loads(path.read_text())
+    del manifest["startupCheck"]
+    path.write_text(json.dumps(manifest) + "\n")
+    PYTHON
+    # Reuse the existing 60-second refresh for CLI sessions, late DNS metadata
+    # and OpenVPN overwrites, including after a transient sync failure.
+    substituteInPlace "$out/OpenVpn3Service.qml" \
+      --replace-fail 'function refresh(updateDns = false)' 'function refresh(updateDns = true)'
     substituteInPlace "$out/helper/split_dns.py" \
       --replace-fail '"resolvectl"' '"${pkgs.systemd}/bin/resolvectl"'
   '';
 
+  dnsCheck = pkgs.runCommand "openvpn-dns-regression" { } ''
+    ${python}/bin/python3 ${../../tests/test_company_vpn_dns.py} ${plugin} ${pkgs.nodejs}/bin/node
+    touch "$out"
+  '';
 in
 {
   xdg.configFile = {
@@ -38,4 +54,6 @@ in
     };
   };
 
+  # Run the regression suite whenever this integration is built.
+  home.extraDependencies = [ dnsCheck ];
 }
