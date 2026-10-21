@@ -19,10 +19,23 @@ let
       --replace-fail '"lsblk"' '"${pkgs.util-linux}/bin/lsblk"' \
       --replace-fail '"findmnt"' '"${pkgs.util-linux}/bin/findmnt"' \
       --replace-fail '"busctl"' '"${pkgs.systemd}/bin/busctl"'
-    # A new module URL prevents hot reloads from retaining the old singleton.
-    substituteInPlace "$out/StorageMonitorWidget.qml" \
-      "$out/StorageMonitorPopout.qml" "$out/StorageMonitorSettings.qml" \
-      --replace-fail 'import "./services" as Services' "import \"file:$out/services\" as Services"
+    # Qt can cache both entrypoints and sibling types behind HM's stable symlink,
+    # even when Dux changes the entrypoint's query string. Version the wrapper
+    # filenames and import the entire plugin through its immutable store URL.
+    ${pkgs.python3}/bin/python3 - "$out" <<'PYTHON'
+    import json
+    from pathlib import Path
+    import sys
+    root = Path(sys.argv[1])
+    entrypoints = root / root.name
+    entrypoints.mkdir()
+    manifest = json.loads((root / "plugin.json").read_text())
+    for key, component in (("component", "StorageMonitorWidget"), ("settings", "StorageMonitorSettings")):
+        wrapper = entrypoints / (component + ".qml")
+        wrapper.write_text(f'import QtQuick\nimport "file:{root}" as Packaged\nPackaged.{component} {{}}\n')
+        manifest[key] = "./" + str(wrapper.relative_to(root))
+    (root / "plugin.json").write_text(json.dumps(manifest) + "\n")
+    PYTHON
     PYTHONDONTWRITEBYTECODE=1 ${pkgs.python3}/bin/python3 -m unittest discover -s "$out/tests" -v
   '';
   kdePaletteTemplate = pkgs.writeText "kdeglobals-template.colors" (
