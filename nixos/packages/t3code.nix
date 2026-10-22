@@ -12,6 +12,9 @@
   fish,
   codex,
   claude-code,
+  callPackage,
+  asar,
+  python3,
 }:
 let
   manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).t3code;
@@ -36,6 +39,7 @@ let
       cp -r . "$out/"
     '';
   };
+  web = callPackage ./t3code-web.nix { releaseClient = "${cliSource}/client"; };
   cli = stdenv.mkDerivation {
     pname = "t3";
     inherit version;
@@ -54,6 +58,8 @@ let
       mkdir -p "$out/lib/t3" "$out/bin"
       cp -r "$src/"* "$out/lib/t3/"
       chmod -R u+w "$out/lib/t3"
+      rm -r "$out/lib/t3/client"
+      cp -r ${web} "$out/lib/t3/client"
       makeWrapper "$out/lib/t3/t3" "$out/bin/t3" \
         --set T3CODE_DISABLE_AUTO_UPDATE 1 \
         --prefix PATH : ${lib.makeBinPath runtimePackages}
@@ -75,10 +81,31 @@ let
     inherit version;
     src = desktopImage;
   };
+  patchedDesktopContents = stdenvNoCC.mkDerivation {
+    pname = "t3code-desktop-shared-browser";
+    inherit version;
+    src = desktopContents;
+    nativeBuildInputs = [
+      asar
+      python3
+    ];
+    dontBuild = true;
+    installPhase = ''
+      cp -r . "$out"
+      chmod -R u+w "$out"
+      # Retain the release's native-module unpacking layout.
+      unpacked=$(python3 ${./t3code-unpacked.py} "$out/resources/app.asar")
+      asar extract "$out/resources/app.asar" app
+      rm -r app/apps/server/dist/client
+      cp -r ${web} app/apps/server/dist/client
+      rm -r "$out/resources/app.asar" "$out/resources/app.asar.unpacked"
+      asar pack app "$out/resources/app.asar" --unpack-dir "$unpacked"
+    '';
+  };
   desktop = appimageTools.wrapAppImage {
     pname = "t3code-desktop";
     inherit version;
-    src = desktopContents;
+    src = patchedDesktopContents;
     extraPkgs = _: runtimePackages;
     profile = ''
       export T3CODE_DISABLE_AUTO_UPDATE=1
@@ -86,6 +113,9 @@ let
     '';
   };
 in
+assert lib.assertMsg (
+  version == web.version
+) "Rebase the T3 shared-browser renderer patch before updating T3.";
 symlinkJoin {
   name = "t3code-${version}";
   inherit version;
@@ -104,7 +134,7 @@ symlinkJoin {
       --replace-fail 'Exec=AppRun %U' "Exec=$out/bin/t3code-desktop %U"
     install -Dm644 ${desktopContents}/t3code.png "$out/share/pixmaps/t3code.png"
   '';
-  passthru = { inherit cliSource; };
+  passthru = { inherit cliSource web; };
   meta = {
     description = "T3 Code desktop and CLI from the same upstream release";
     homepage = "https://github.com/pingdotgg/t3code";

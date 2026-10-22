@@ -116,6 +116,11 @@ Rocket runs T3 as a lingering user service using `~/.t3`; keep the desktop's
 separate local server disabled. The server runs natively with patched Nix library
 paths so agent commands inherit the host environment. An older client must not
 open newer databases.
+The T3 renderer is rebuilt with `nixos/patches/t3code/shared-browser-runtime.patch`
+so new tabs on connected environments share the server browser with automation.
+Existing desktop tabs keep their separate login state and cannot be automated
+remotely. Rebase this patch and refresh the source and dependency pins in
+`nixos/packages/t3code-web.nix` when updating T3; packaging rejects mismatched versions.
 
 ## Work access and DNS
 
