@@ -79,27 +79,29 @@ index 1d3ede4b..fc138d75 100644
        action: () => {
          openLinkInNewTab(providerMapping.url!);
 diff --git a/src/layouts/default/PlayerOSD/Player.vue b/src/layouts/default/PlayerOSD/Player.vue
-index 5a971bf7..732955bf 100644
+index 5a971bf7..ff6e6f86 100644
 --- a/src/layouts/default/PlayerOSD/Player.vue
 +++ b/src/layouts/default/PlayerOSD/Player.vue
-@@ -19,6 +19,16 @@
+@@ -19,6 +19,18 @@
        </div>
        <div class="mediacontrols-bottom-center">
          <div class="player-center-controls">
 +          <div
 +            v-if="getBreakpointValue('bp7') && currentMediaItem"
-+            class="col-start-1 row-start-1 mr-2 justify-self-end"
++            class="player-center-side-action col-start-1 row-start-1 justify-self-end"
 +          >
 +            <ProviderLinkButton
 +              :mappings="currentMediaItem.provider_mappings"
 +              :title="currentMediaItem.name"
 +              size="icon-lg"
++              variant="ghost-icon"
++              class="text-foreground opacity-[0.62] transition-opacity hover:opacity-100"
 +            />
 +          </div>
            <div class="player-center-transport">
              <div class="player-center-side-action">
                <FavoriteMenuBtn class="player-control-button" />
-@@ -131,6 +141,7 @@
+@@ -131,6 +143,7 @@
  </template>
  
  <script setup lang="ts">
@@ -107,7 +109,7 @@ index 5a971bf7..732955bf 100644
  import { ImageColorPalette, paletteFromServer } from "@/helpers/utils";
  import { getBreakpointValue } from "@/plugins/breakpoint";
  import { store } from "@/plugins/store";
-@@ -153,6 +164,10 @@ interface Props {
+@@ -153,6 +166,10 @@ interface Props {
  }
  const props = defineProps<Props>();
  const showMobileVolumeControls = ref(false);
@@ -250,15 +252,16 @@ index 4de4cbf5..bc59b224 100644
  
 diff --git a/src/components/ProviderLinkButton.vue b/src/components/ProviderLinkButton.vue
 new file mode 100644
-index 00000000..cae5f28f
+index 00000000..329777d0
 --- /dev/null
 +++ b/src/components/ProviderLinkButton.vue
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,91 @@
 +<template>
 +  <Button
 +    v-if="links.length === 1"
-+    variant="ghost"
++    :variant="variant"
 +    :size="size"
++    v-bind="$attrs"
 +    :aria-label="
 +      $t(nativeShareAvailable ? 'provider_links.share' : 'provider_links.copy')
 +    "
@@ -267,18 +270,19 @@ index 00000000..cae5f28f
 +    "
 +    @click.stop="activate(links[0])"
 +  >
-+    <Share2 :class="size === 'icon-lg' ? 'size-5' : 'size-4'" />
++    <Share2 class="size-4" />
 +  </Button>
 +  <DropdownMenu v-else-if="links.length">
 +    <DropdownMenuTrigger as-child>
 +      <Button
-+        variant="ghost"
++        :variant="variant"
 +        :size="size"
++        v-bind="$attrs"
 +        :aria-label="$t('provider_links.share')"
 +        :title="$t('provider_links.share')"
 +        @click.stop
 +      >
-+        <Share2 :class="size === 'icon-lg' ? 'size-5' : 'size-4'" />
++        <Share2 class="size-4" />
 +      </Button>
 +    </DropdownMenuTrigger>
 +    <DropdownMenuContent align="end" class="z-[100001]">
@@ -303,6 +307,7 @@ index 00000000..cae5f28f
 +</template>
 +
 +<script setup lang="ts">
++defineOptions({ inheritAttrs: false });
 +import { Button } from "@/components/ui/button";
 +import {
 +  DropdownMenu,
@@ -325,10 +330,12 @@ index 00000000..cae5f28f
 +  mappings: ProviderMapping[];
 +  title: string;
 +  size?: "icon-sm" | "icon-lg";
++  variant?: "ghost" | "ghost-icon";
 +}
 +
 +const props = withDefaults(defineProps<Props>(), {
 +  size: "icon-sm",
++  variant: "ghost",
 +});
 +const nativeShareAvailable =
 +  IS_MOBILE_UA && typeof navigator.share === "function";
@@ -515,10 +522,11 @@ index 00000000..8513d78e
 +}
 diff --git a/tests/components/ProviderLinkButton.test.ts b/tests/components/ProviderLinkButton.test.ts
 new file mode 100644
-index 00000000..c46fa29f
+index 00000000..00a8f23f
 --- /dev/null
 +++ b/tests/components/ProviderLinkButton.test.ts
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,155 @@
++import { Button } from "@/components/ui/button";
 +import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
 +import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 +import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -595,6 +603,30 @@ index 00000000..c46fa29f
 +    expect(copyProviderLink).toHaveBeenCalledWith(url);
 +    expect(shareProviderLink).not.toHaveBeenCalled();
 +  });
++
++  it.each([1, 2])(
++    "forwards player styling to the trigger with %i providers",
++    async (count) => {
++      const mappings = [
++        providerMapping({ provider_domain: "ytmusic", url }),
++        providerMapping({
++          provider_domain: "spotify",
++          url: "https://open.spotify.com/track/123",
++        }),
++      ].slice(0, count);
++      const wrapper = mountButton(mappings);
++      await wrapper.setProps({ variant: "ghost-icon", size: "icon-lg" });
++      await wrapper.setProps({ class: "player-sharing-test" });
++      const trigger = wrapper.get(
++        count === 1
++          ? '[aria-label="provider_links.copy"]'
++          : '[aria-label="provider_links.share"]',
++      );
++      expect(trigger.classes()).toContain("player-sharing-test");
++      expect(wrapper.getComponent(Button).props("variant")).toBe("ghost-icon");
++      expect(trigger.get("svg").classes()).toContain("size-4");
++    },
++  );
 +
 +  it("offers the native share sheet on mobile", async () => {
 +    device.mobile = true;
