@@ -1,6 +1,7 @@
 """Run with the built configure-dms executable as the first argument."""
 import os
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -12,6 +13,13 @@ CONFIGURE_DMS = sys.argv.pop(1) if __name__ == '__main__' and len(sys.argv) > 1 
 
 @unittest.skipUnless(CONFIGURE_DMS, 'requires the built configure-dms executable')
 class DmsActivationTests(unittest.TestCase):
+  def assert_dms_screenshots(self, binds):
+    for key in ['Print', 'XF86Launch1']:
+      for prefix, mode in [('', ''), ('Ctrl+', ' "full"'), ('Alt+', ' "window"')]:
+        actions = re.findall(r'^\s*' + re.escape(prefix + key) + r'\s[^\n{]*\{\s*([^}]+)\}',
+                             binds, re.MULTILINE)
+        self.assertEqual(actions, [f'spawn "dms" "screenshot"{mode}; '])
+
   def activate(self, root):
     environment = dict(os.environ, HOME=str(root), XDG_CONFIG_HOME=str(root / 'config'),
                        XDG_DATA_HOME=str(root / 'data'), XDG_DATA_DIRS='/no-system-data',
@@ -30,6 +38,7 @@ class DmsActivationTests(unittest.TestCase):
       before = binds.read_bytes()
       self.assertNotIn(b'Alt+Space', before)
       self.assertIn(b'binds {', before)
+      self.assert_dms_screenshots(before.decode())
       self.activate(root)
       self.assertEqual(binds.read_bytes(), before)
 
@@ -43,6 +52,26 @@ class DmsActivationTests(unittest.TestCase):
       before = binds.read_bytes()
       self.assertNotIn(b'Alt+Space', before)
       self.assertIn(b'keep-me', before)
+      self.activate(root)
+      self.assertEqual(binds.read_bytes(), before)
+
+  def test_legacy_screenshots_migrate_and_preserve_custom_binds(self):
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      binds = root / 'config/niri/dms/binds.kdl'
+      binds.parent.mkdir(parents=True)
+      legacy = '\n'.join(
+        f' {prefix}{key} {{ {action}; }}'
+        for key in ['Print', 'XF86Launch1']
+        for prefix, action in [('', 'screenshot'), ('Ctrl+', 'screenshot-screen'),
+                               ('Alt+', 'screenshot-window')])
+      binds.write_text('binds {\n' + legacy + '\n Mod+F11 { spawn "keep-me"; }\n'
+                       ' Mod+Print { spawn "satty"; }\n}\n')
+      self.activate(root)
+      before = binds.read_bytes()
+      self.assert_dms_screenshots(before.decode())
+      self.assertIn(b'keep-me', before)
+      self.assertIn(b'Mod+Print { spawn "satty"; }', before)
       self.activate(root)
       self.assertEqual(binds.read_bytes(), before)
 

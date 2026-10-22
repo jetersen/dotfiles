@@ -70,7 +70,9 @@ and session services in `session.slice` remain outside that policy.
 Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select
 monitor and workspace preferences. DMS-generated bindings and display settings
 remain writable. Super+L locks, Super+D opens the overview, and Super+M focuses
-Music Assistant. Framework's display idle timer turns screens off after 15
+Music Assistant. Print selects a region with DMS; Ctrl+Print captures the focused
+screen and Alt+Print captures the focused window on both hosts.
+Framework's display idle timer turns screens off after 15
 minutes unless DMS Keep Awake is enabled.
 Framework's DMS profiles match the work monitors by serial number, across USB-C
 ports. The work dock uses both Dell monitors with the laptop panel disabled;

@@ -7,6 +7,7 @@
   dmsCommonSource,
 }:
 let
+  dms = lib.escapeShellArg (lib.getExe osConfig.programs.dms-shell.package);
   factoryBinds = pkgs.runCommand "niri-factory-binds.kdl" { } ''
     substitute ${dmsSource}/core/internal/config/embedded/niri-binds.kdl "$out" \
       --replace-fail '{{TERMINAL_COMMAND}}' alacritty
@@ -71,7 +72,14 @@ let
       fi
 
       # Reserve Alt+Space for switching keyboard layouts, including on first login.
-      ${lib.escapeShellArg (lib.getExe osConfig.programs.dms-shell.package)} keybinds remove niri Alt+Space
+      ${dms} keybinds remove niri Alt+Space
+
+      # Keep both hosts on DMS screenshots, including bindings seeded by older Niri defaults.
+      for key in Print XF86Launch1; do
+        ${dms} keybinds set niri "$key" 'spawn "dms" "screenshot"' --desc 'Screenshot: Region'
+        ${dms} keybinds set niri "Ctrl+$key" 'spawn "dms" "screenshot" "full"' --desc 'Screenshot: Full Screen'
+        ${dms} keybinds set niri "Alt+$key" 'spawn "dms" "screenshot" "window"' --desc 'Screenshot: Window'
+      done
     '';
   };
   plugins =
