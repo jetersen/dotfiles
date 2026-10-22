@@ -79,25 +79,27 @@ index 1d3ede4b..fc138d75 100644
        action: () => {
          openLinkInNewTab(providerMapping.url!);
 diff --git a/src/layouts/default/PlayerOSD/Player.vue b/src/layouts/default/PlayerOSD/Player.vue
-index 5a971bf7..94c629c8 100644
+index 5a971bf7..732955bf 100644
 --- a/src/layouts/default/PlayerOSD/Player.vue
 +++ b/src/layouts/default/PlayerOSD/Player.vue
-@@ -16,6 +16,14 @@
-           :color-palette="coverImageColorPalette"
-           :primary-color="$vuetify.theme.current.dark ? '#fff' : '#000'"
-         />
-+        <ProviderLinkButton
-+          v-if="
-+            store.curQueueItem?.media_item &&
-+            'provider_mappings' in store.curQueueItem.media_item
-+          "
-+          :mappings="store.curQueueItem.media_item.provider_mappings"
-+          :title="store.curQueueItem.media_item.name"
-+        />
+@@ -19,6 +19,16 @@
        </div>
        <div class="mediacontrols-bottom-center">
          <div class="player-center-controls">
-@@ -131,6 +139,7 @@
++          <div
++            v-if="getBreakpointValue('bp7') && currentMediaItem"
++            class="col-start-1 row-start-1 mr-2 justify-self-end"
++          >
++            <ProviderLinkButton
++              :mappings="currentMediaItem.provider_mappings"
++              :title="currentMediaItem.name"
++              size="icon-lg"
++            />
++          </div>
+           <div class="player-center-transport">
+             <div class="player-center-side-action">
+               <FavoriteMenuBtn class="player-control-button" />
+@@ -131,6 +141,7 @@
  </template>
  
  <script setup lang="ts">
@@ -105,6 +107,17 @@ index 5a971bf7..94c629c8 100644
  import { ImageColorPalette, paletteFromServer } from "@/helpers/utils";
  import { getBreakpointValue } from "@/plugins/breakpoint";
  import { store } from "@/plugins/store";
+@@ -153,6 +164,10 @@ interface Props {
+ }
+ const props = defineProps<Props>();
+ const showMobileVolumeControls = ref(false);
++const currentMediaItem = computed(() => {
++  const item = store.curQueueItem?.media_item;
++  return item && "provider_mappings" in item ? item : undefined;
++});
+ 
+ // The controls beside the queue button reach into the room the actions to their
+ // right leave free, so each waits for the width it fits in. Measured, that room
 diff --git a/src/layouts/default/PlayerOSD/PlayerFullscreen.vue b/src/layouts/default/PlayerOSD/PlayerFullscreen.vue
 index 6534be5a..fb3d00dd 100644
 --- a/src/layouts/default/PlayerOSD/PlayerFullscreen.vue
@@ -153,17 +166,99 @@ index f3be82fb..4925b347 100644
      "uri_copied": "URI copied to clipboard",
      "uri_copy_failed": "Failed to copy URI to clipboard",
      "search_all_providers": "Search all providers for matches",
+diff --git a/tests/layouts/Player.test.ts b/tests/layouts/Player.test.ts
+index 4de4cbf5..bc59b224 100644
+--- a/tests/layouts/Player.test.ts
++++ b/tests/layouts/Player.test.ts
+@@ -1,3 +1,4 @@
++import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
+ import Player from "@/layouts/default/PlayerOSD/Player.vue";
+ import PlayerBarGroupControl from "@/layouts/default/PlayerOSD/PlayerBarGroupControl.vue";
+ import PlayerBarMobileVolumeSheet from "@/layouts/default/PlayerOSD/PlayerBarMobileVolumeSheet.vue";
+@@ -7,12 +8,18 @@ import PlaybackSpeedBtn from "@/layouts/default/PlayerOSD/PlayerControlBtn/Playb
+ import QueueBtn from "@/layouts/default/PlayerOSD/PlayerControlBtn/QueueBtn.vue";
+ import SleepTimerBtn from "@/layouts/default/PlayerOSD/PlayerControlBtn/SleepTimerBtn.vue";
+ import PlayerVolume from "@/layouts/default/PlayerOSD/PlayerVolume.vue";
+-import type { Player as PlayerModel } from "@/plugins/api/interfaces";
++import type {
++  QueueItem,
++  Player as PlayerModel,
++} from "@/plugins/api/interfaces";
+ import { store } from "@/plugins/store";
+ import { shallowMount, type VueWrapper } from "@vue/test-utils";
+ import { nextTick } from "vue";
+ import { afterEach, describe, expect, it, vi } from "vitest";
+ 
++import { queueItem } from "../fixtures/queueItem";
++import { track } from "../fixtures/track";
++
+ vi.mock("@/plugins/router", () => ({ default: { push: vi.fn() } }));
+ 
+ vi.mock("@/plugins/api", () => {
+@@ -40,6 +47,7 @@ vi.mock("@/plugins/store", async () => {
+ const mockStore = store as unknown as {
+   activePlayer?: PlayerModel;
+   activePlayerId?: string;
++  curQueueItem?: QueueItem;
+ };
+ 
+ // bp7: the width from which the countdown fits beside the queue button
+@@ -85,6 +93,7 @@ afterEach(() => {
+   wrapper = undefined;
+   mockStore.activePlayer = undefined;
+   mockStore.activePlayerId = undefined;
++  mockStore.curQueueItem = undefined;
+   if (originalInnerWidth) {
+     Object.defineProperty(window, "innerWidth", originalInnerWidth);
+   }
+@@ -138,6 +147,36 @@ describe("Player floating mobile bar", () => {
+ });
+ 
+ describe("Player desktop bar", () => {
++  it.each([1099, 1100, 1300])(
++    "offers sharing beside favorite only when it fits at %i px",
++    (width) => {
++      mockStore.curQueueItem = queueItem({ media_item: track() });
++      setViewportWidth(width);
++      const player = mountPlayer(false);
++      const sharing = player.findComponent(ProviderLinkButton);
++      expect(sharing.exists()).toBe(width >= SLEEP_TIMER_BREAKPOINT);
++      if (sharing.exists()) {
++        expect(sharing.props("size")).toBe("icon-lg");
++        expect(
++          player.find(".mediacontrols-left provider-link-button-stub").exists(),
++        ).toBe(false);
++        expect(
++          player
++            .find(".player-center-transport provider-link-button-stub")
++            .exists(),
++        ).toBe(false);
++      }
++      expect(player.findComponent(FavoriteMenuBtn).exists()).toBe(true);
++    },
++  );
++
++  it("hides sharing without a current media item", () => {
++    setViewportWidth(PLAYBACK_SPEED_BREAKPOINT);
++    expect(mountPlayer(false).findComponent(ProviderLinkButton).exists()).toBe(
++      false,
++    );
++  });
++
+   it("leaves the desktop player outside the floating container", () => {
+     const player = mountPlayer(false);
+ 
 diff --git a/src/components/ProviderLinkButton.vue b/src/components/ProviderLinkButton.vue
 new file mode 100644
-index 00000000..1b25d4b7
+index 00000000..cae5f28f
 --- /dev/null
 +++ b/src/components/ProviderLinkButton.vue
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,86 @@
 +<template>
 +  <Button
 +    v-if="links.length === 1"
 +    variant="ghost"
-+    size="icon-sm"
++    :size="size"
 +    :aria-label="
 +      $t(nativeShareAvailable ? 'provider_links.share' : 'provider_links.copy')
 +    "
@@ -172,21 +267,21 @@ index 00000000..1b25d4b7
 +    "
 +    @click.stop="activate(links[0])"
 +  >
-+    <Share2 class="size-4" />
++    <Share2 :class="size === 'icon-lg' ? 'size-5' : 'size-4'" />
 +  </Button>
 +  <DropdownMenu v-else-if="links.length">
 +    <DropdownMenuTrigger as-child>
 +      <Button
 +        variant="ghost"
-+        size="icon-sm"
++        :size="size"
 +        :aria-label="$t('provider_links.share')"
 +        :title="$t('provider_links.share')"
 +        @click.stop
 +      >
-+        <Share2 class="size-4" />
++        <Share2 :class="size === 'icon-lg' ? 'size-5' : 'size-4'" />
 +      </Button>
 +    </DropdownMenuTrigger>
-+    <DropdownMenuContent align="end">
++    <DropdownMenuContent align="end" class="z-[100001]">
 +      <template v-for="link in links" :key="link.url">
 +        <DropdownMenuItem
 +          v-if="nativeShareAvailable"
@@ -226,7 +321,15 @@ index 00000000..1b25d4b7
 +import { Copy, Share2 } from "@lucide/vue";
 +import { computed } from "vue";
 +
-+const props = defineProps<{ mappings: ProviderMapping[]; title: string }>();
++interface Props {
++  mappings: ProviderMapping[];
++  title: string;
++  size?: "icon-sm" | "icon-lg";
++}
++
++const props = withDefaults(defineProps<Props>(), {
++  size: "icon-sm",
++});
 +const nativeShareAvailable =
 +  IS_MOBILE_UA && typeof navigator.share === "function";
 +const links = computed(() => providerLinks(props.mappings));
@@ -239,11 +342,11 @@ index 00000000..1b25d4b7
 +</script>
 diff --git a/src/composables/useProviderLinkSharing.test.ts b/src/composables/useProviderLinkSharing.test.ts
 new file mode 100644
-index 00000000..0db1c83f
+index 00000000..f3bf4916
 --- /dev/null
 +++ b/src/composables/useProviderLinkSharing.test.ts
-@@ -0,0 +1,56 @@
-+import { beforeEach, describe, expect, it, vi } from "vitest";
+@@ -0,0 +1,57 @@
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 +import { copyProviderLink, shareProviderLink } from "./useProviderLinkSharing";
 +
 +const { copyToClipboard, success, error } = vi.hoisted(() => ({
@@ -257,6 +360,7 @@ index 00000000..0db1c83f
 +const url = "https://music.youtube.com/watch?v=meuR1l4j-xs";
 +
 +describe("provider link sharing", () => {
++  afterEach(() => vi.unstubAllGlobals());
 +  beforeEach(() => {
 +    vi.clearAllMocks();
 +    vi.stubGlobal("navigator", {});
@@ -411,12 +515,12 @@ index 00000000..8513d78e
 +}
 diff --git a/tests/components/ProviderLinkButton.test.ts b/tests/components/ProviderLinkButton.test.ts
 new file mode 100644
-index 00000000..da2e4593
+index 00000000..c46fa29f
 --- /dev/null
 +++ b/tests/components/ProviderLinkButton.test.ts
-@@ -0,0 +1,77 @@
+@@ -0,0 +1,130 @@
 +import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
-+import { mount } from "@vue/test-utils";
++import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 +import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 +import { providerMapping } from "../fixtures/providerMapping";
 +
@@ -435,36 +539,51 @@ index 00000000..da2e4593
 +  },
 +}));
 +vi.mock("@/plugins/api", () => ({
-+  api: { getProviderManifest: () => ({ name: "YouTube Music" }) },
++  api: {
++    getProviderManifest: (domain: string) => ({
++      name: domain === "ytmusic" ? "YouTube Music" : "Spotify",
++    }),
++  },
 +}));
 +
 +const url = "https://music.youtube.com/watch?v=meuR1l4j-xs";
++const wrappers: VueWrapper[] = [];
 +
 +function mountButton(
 +  mappings = [providerMapping({ provider_domain: "ytmusic", url })],
++  realDropdown = false,
 +) {
-+  return mount(ProviderLinkButton, {
++  const wrapper = mount(ProviderLinkButton, {
++    attachTo: document.body,
 +    props: { mappings, title: "Attention" },
 +    global: {
 +      mocks: {
 +        $t: (key: string, args?: { provider: string }) =>
 +          args ? `${key}: ${args.provider}` : key,
 +      },
-+      stubs: {
-+        DropdownMenu: { template: "<div><slot /></div>" },
-+        DropdownMenuTrigger: { template: "<div><slot /></div>" },
-+        DropdownMenuContent: { template: "<div><slot /></div>" },
-+        DropdownMenuItem: {
-+          emits: ["select"],
-+          template: "<button @click=\"$emit('select')\"><slot /></button>",
-+        },
-+      },
++      stubs: realDropdown
++        ? {}
++        : {
++            DropdownMenu: { template: "<div><slot /></div>" },
++            DropdownMenuTrigger: { template: "<div><slot /></div>" },
++            DropdownMenuContent: { template: "<div><slot /></div>" },
++            DropdownMenuItem: {
++              emits: ["select"],
++              template: "<button @click=\"$emit('select')\"><slot /></button>",
++            },
++          },
 +    },
 +  });
++  wrappers.push(wrapper);
++  return wrapper;
 +}
 +
 +describe("ProviderLinkButton", () => {
-+  afterEach(() => vi.unstubAllGlobals());
++  afterEach(() => {
++    wrappers.splice(0).forEach((wrapper) => wrapper.unmount());
++    document.body.innerHTML = "";
++    vi.unstubAllGlobals();
++  });
 +  beforeEach(() => {
 +    vi.clearAllMocks();
 +    device.mobile = false;
@@ -484,6 +603,44 @@ index 00000000..da2e4593
 +    await wrapper.get('[aria-label="provider_links.share"]').trigger("click");
 +    expect(shareProviderLink).toHaveBeenCalledWith(url, "Attention");
 +    expect(copyProviderLink).not.toHaveBeenCalled();
++  });
++
++  it("copies on mobile when native sharing is unavailable", async () => {
++    device.mobile = true;
++    vi.stubGlobal("navigator", {});
++    const wrapper = mountButton();
++    await wrapper.get('[aria-label="provider_links.copy"]').trigger("click");
++    expect(copyProviderLink).toHaveBeenCalledWith(url);
++    expect(shareProviderLink).not.toHaveBeenCalled();
++  });
++
++  it("offers each provider in a menu above the fullscreen player", async () => {
++    const spotifyUrl = "https://open.spotify.com/track/123";
++    const wrapper = mountButton(
++      [
++        providerMapping({ provider_domain: "ytmusic", url }),
++        providerMapping({ provider_domain: "spotify", url: spotifyUrl }),
++      ],
++      true,
++    );
++    await wrapper
++      .get('[aria-label="provider_links.share"]')
++      .trigger("keydown", { key: "Enter" });
++    await flushPromises();
++    const menu = document.body.querySelector('[role="menu"]');
++    expect(menu).not.toBeNull();
++    expect(menu?.classList.contains("z-[100001]")).toBe(true);
++    const choices = [
++      ...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]'),
++    ];
++    expect(choices.map((choice) => choice.textContent?.trim())).toEqual([
++      "provider_links.copy_from: YouTube Music",
++      "provider_links.copy_from: Spotify",
++    ]);
++    choices[1].click();
++    await flushPromises();
++    expect(copyProviderLink).toHaveBeenCalledWith(spotifyUrl);
++    expect(shareProviderLink).not.toHaveBeenCalled();
 +  });
 +
 +  it("hides sharing when the item has no public website link", () => {
