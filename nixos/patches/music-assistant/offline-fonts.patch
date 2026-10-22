@@ -1,0 +1,32 @@
+--- a/vite.config.ts
++++ b/vite.config.ts
+@@ -6,7 +6,6 @@
+ import { defineConfig } from "vite";
+ import { VitePWA } from "vite-plugin-pwa";
+ import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
+-import webfontDownload from "vite-plugin-webfont-dl";
+ 
+ // https://vitejs.dev/config/
+ export default defineConfig({
+@@ -16,9 +15,6 @@
+       template: { transformAssetUrls },
+     }),
+     tailwindcss(),
+-    webfontDownload([
+-      "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&display=swap",
+-    ]),
+     vuetify({
+       autoImport: true,
+       styles: {
+--- a/src/main.ts
++++ b/src/main.ts
+@@ -1,3 +1,9 @@
++import "@fontsource/roboto/100.css";
++import "@fontsource/roboto/300.css";
++import "@fontsource/roboto/400.css";
++import "@fontsource/roboto/500.css";
++import "@fontsource/roboto/700.css";
++import "@fontsource/roboto/900.css";
+ /**
+  * main.ts
+  *

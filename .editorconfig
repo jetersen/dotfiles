@@ -15,3 +15,6 @@ trim_trailing_whitespace = false
 
 [nixos/patches/t3code/*.patch]
 trim_trailing_whitespace = false
+
+[nixos/patches/music-assistant/*.patch]
+trim_trailing_whitespace = false

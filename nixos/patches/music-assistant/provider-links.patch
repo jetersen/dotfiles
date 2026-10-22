@@ -1,0 +1,494 @@
+diff --git a/src/components/InfoHeader.vue b/src/components/InfoHeader.vue
+index 61d51427..7c7f6d02 100644
+--- a/src/components/InfoHeader.vue
++++ b/src/components/InfoHeader.vue
+@@ -385,6 +385,11 @@
+               <!-- details can be reached out of library context, so always show
+               the membership badge (bookshelf when in library, else source) -->
+               <provider-icon :domain="getProviderIconDomain(item)" :size="25" />
++              <ProviderLinkButton
++                v-if="'provider_mappings' in item"
++                :mappings="item.provider_mappings"
++                :title="item.name"
++              />
+               <!-- audio analysis details (full track details only) -->
+               <AudioAnalysisMetadata
+                 v-if="item.media_type == MediaType.TRACK"
+@@ -491,6 +496,7 @@
+ </template>
+ 
+ <script setup lang="ts">
++import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
+ import AudioAnalysisMetadata from "@/components/AudioAnalysisMetadata.vue";
+ import MarkdownText from "@/components/MarkdownText.vue";
+ import Toolbar from "@/components/Toolbar.vue";
+diff --git a/src/components/ProviderDetails.vue b/src/components/ProviderDetails.vue
+index 1d3ede4b..fc138d75 100644
+--- a/src/components/ProviderDetails.vue
++++ b/src/components/ProviderDetails.vue
+@@ -51,7 +51,11 @@
+                 !providerMapping.provider_domain.startsWith('file')
+               "
+               style="opacity: 0.4"
+-              :title="$t('tooltip.open_provider_link')"
++              :title="
++                $t('provider_links.open_on', {
++                  provider: getProviderName(providerMapping),
++                })
++              "
+               @click.prevent="openLinkInNewTab(providerMapping.url)"
+               >{{ getProviderUri(providerMapping) }}</a
+             >
+@@ -60,6 +64,10 @@
+             }}</span>
+           </template>
+           <template #append>
++            <ProviderLinkButton
++              :mappings="[providerMapping]"
++              :title="itemDetails.name"
++            />
+             <!-- hi res icon -->
+             <v-img
+               v-if="providerMapping.audio_format.bit_depth > 16"
+@@ -132,6 +140,7 @@
+ </template>
+ 
+ <script setup lang="ts">
++import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
+ import { ChevronDown, ChevronUp, DatabaseSearch } from "@lucide/vue";
+ import Container from "@/components/Container.vue";
+ import GenreExclusionManager from "@/components/genre/GenreExclusionManager.vue";
+@@ -216,7 +225,7 @@ const copyUriToClipboard = async function (uri: string) {
+   }
+ };
+ 
+-const getProviderName = function (providerMapping: ProviderMapping) {
++const getProviderName = function (providerMapping: ProviderMappingRef) {
+   const providerInstance = api.getProvider(providerMapping.provider_instance);
+   if (providerInstance) {
+     return providerInstance.name;
+@@ -253,7 +262,9 @@ const onMenu = function (evt: Event, providerMapping: ProviderMappingRef) {
+     !providerMapping.provider_domain.startsWith("file")
+   ) {
+     menuItems.push({
+-      label: t("tooltip.open_provider_link"),
++      label: t("provider_links.open_on", {
++        provider: getProviderName(providerMapping),
++      }),
+       icon: "mdi-open-in-new",
+       action: () => {
+         openLinkInNewTab(providerMapping.url!);
+diff --git a/src/layouts/default/PlayerOSD/Player.vue b/src/layouts/default/PlayerOSD/Player.vue
+index 5a971bf7..94c629c8 100644
+--- a/src/layouts/default/PlayerOSD/Player.vue
++++ b/src/layouts/default/PlayerOSD/Player.vue
+@@ -16,6 +16,14 @@
+           :color-palette="coverImageColorPalette"
+           :primary-color="$vuetify.theme.current.dark ? '#fff' : '#000'"
+         />
++        <ProviderLinkButton
++          v-if="
++            store.curQueueItem?.media_item &&
++            'provider_mappings' in store.curQueueItem.media_item
++          "
++          :mappings="store.curQueueItem.media_item.provider_mappings"
++          :title="store.curQueueItem.media_item.name"
++        />
+       </div>
+       <div class="mediacontrols-bottom-center">
+         <div class="player-center-controls">
+@@ -131,6 +139,7 @@
+ </template>
+ 
+ <script setup lang="ts">
++import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
+ import { ImageColorPalette, paletteFromServer } from "@/helpers/utils";
+ import { getBreakpointValue } from "@/plugins/breakpoint";
+ import { store } from "@/plugins/store";
+diff --git a/src/layouts/default/PlayerOSD/PlayerFullscreen.vue b/src/layouts/default/PlayerOSD/PlayerFullscreen.vue
+index 6534be5a..fb3d00dd 100644
+--- a/src/layouts/default/PlayerOSD/PlayerFullscreen.vue
++++ b/src/layouts/default/PlayerOSD/PlayerFullscreen.vue
+@@ -46,6 +46,14 @@
+           </Button>
+         </template>
+         <template #append>
++          <ProviderLinkButton
++            v-if="
++              store.curQueueItem?.media_item &&
++              'provider_mappings' in store.curQueueItem.media_item
++            "
++            :mappings="store.curQueueItem.media_item.provider_mappings"
++            :title="store.curQueueItem.media_item.name"
++          />
+           <PlayerFullscreenHeaderControls
+             :lyrics-state="lyricsState"
+             :lyrics-active="showLyrics"
+@@ -487,6 +495,7 @@
+ </template>
+ 
+ <script setup lang="ts">
++import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
+ import LyricsViewer from "@/components/LyricsViewer.vue";
+ import MarqueeText from "@/components/MarqueeText.vue";
+ import PanelDragHandle from "@/components/PanelDragHandle.vue";
+diff --git a/src/translations/en.json b/src/translations/en.json
+index f3be82fb..4925b347 100644
+--- a/src/translations/en.json
++++ b/src/translations/en.json
+@@ -1350,6 +1350,16 @@
+     },
+     "yes": "Yes",
+     "no": "No",
++    "provider_links": {
++        "share": "Share link",
++        "copy": "Copy link",
++        "open_on": "Open on {provider}",
++        "share_on": "Share {provider} link",
++        "copy_from": "Copy {provider} link",
++        "copied": "Link copied to clipboard",
++        "copy_failed": "Failed to copy link",
++        "share_failed": "Failed to share link"
++    },
+     "uri_copied": "URI copied to clipboard",
+     "uri_copy_failed": "Failed to copy URI to clipboard",
+     "search_all_providers": "Search all providers for matches",
+diff --git a/src/components/ProviderLinkButton.vue b/src/components/ProviderLinkButton.vue
+new file mode 100644
+index 00000000..1b25d4b7
+--- /dev/null
++++ b/src/components/ProviderLinkButton.vue
+@@ -0,0 +1,78 @@
++<template>
++  <Button
++    v-if="links.length === 1"
++    variant="ghost"
++    size="icon-sm"
++    :aria-label="
++      $t(nativeShareAvailable ? 'provider_links.share' : 'provider_links.copy')
++    "
++    :title="
++      $t(nativeShareAvailable ? 'provider_links.share' : 'provider_links.copy')
++    "
++    @click.stop="activate(links[0])"
++  >
++    <Share2 class="size-4" />
++  </Button>
++  <DropdownMenu v-else-if="links.length">
++    <DropdownMenuTrigger as-child>
++      <Button
++        variant="ghost"
++        size="icon-sm"
++        :aria-label="$t('provider_links.share')"
++        :title="$t('provider_links.share')"
++        @click.stop
++      >
++        <Share2 class="size-4" />
++      </Button>
++    </DropdownMenuTrigger>
++    <DropdownMenuContent align="end">
++      <template v-for="link in links" :key="link.url">
++        <DropdownMenuItem
++          v-if="nativeShareAvailable"
++          @select="shareProviderLink(link.url, title)"
++        >
++          <Share2 class="size-4" />
++          {{ $t("provider_links.share_on", { provider: providerName(link) }) }}
++        </DropdownMenuItem>
++        <DropdownMenuItem
++          v-if="!nativeShareAvailable"
++          @select="copyProviderLink(link.url)"
++        >
++          <Copy class="size-4" />
++          {{ $t("provider_links.copy_from", { provider: providerName(link) }) }}
++        </DropdownMenuItem>
++      </template>
++    </DropdownMenuContent>
++  </DropdownMenu>
++</template>
++
++<script setup lang="ts">
++import { Button } from "@/components/ui/button";
++import {
++  DropdownMenu,
++  DropdownMenuContent,
++  DropdownMenuItem,
++  DropdownMenuTrigger,
++} from "@/components/ui/dropdown-menu";
++import {
++  copyProviderLink,
++  shareProviderLink,
++} from "@/composables/useProviderLinkSharing";
++import { providerLinks, type ProviderLink } from "@/helpers/provider_links";
++import { IS_MOBILE_UA } from "@/helpers/device";
++import { api } from "@/plugins/api";
++import type { ProviderMapping } from "@/plugins/api/interfaces";
++import { Copy, Share2 } from "@lucide/vue";
++import { computed } from "vue";
++
++const props = defineProps<{ mappings: ProviderMapping[]; title: string }>();
++const nativeShareAvailable =
++  IS_MOBILE_UA && typeof navigator.share === "function";
++const links = computed(() => providerLinks(props.mappings));
++const providerName = (link: ProviderLink) =>
++  api.getProviderManifest(link.provider)?.name ?? link.provider;
++const activate = (link: ProviderLink) =>
++  nativeShareAvailable
++    ? shareProviderLink(link.url, props.title)
++    : copyProviderLink(link.url);
++</script>
+diff --git a/src/composables/useProviderLinkSharing.test.ts b/src/composables/useProviderLinkSharing.test.ts
+new file mode 100644
+index 00000000..0db1c83f
+--- /dev/null
++++ b/src/composables/useProviderLinkSharing.test.ts
+@@ -0,0 +1,56 @@
++import { beforeEach, describe, expect, it, vi } from "vitest";
++import { copyProviderLink, shareProviderLink } from "./useProviderLinkSharing";
++
++const { copyToClipboard, success, error } = vi.hoisted(() => ({
++  copyToClipboard: vi.fn(),
++  success: vi.fn(),
++  error: vi.fn(),
++}));
++vi.mock("@/helpers/utils", () => ({ copyToClipboard }));
++vi.mock("@/plugins/i18n", () => ({ $t: (key: string) => key }));
++vi.mock("vue-sonner", () => ({ toast: { success, error } }));
++const url = "https://music.youtube.com/watch?v=meuR1l4j-xs";
++
++describe("provider link sharing", () => {
++  beforeEach(() => {
++    vi.clearAllMocks();
++    vi.stubGlobal("navigator", {});
++  });
++
++  it("opens native sharing with the public URL", async () => {
++    const share = vi.fn().mockResolvedValue(undefined);
++    vi.stubGlobal("navigator", { share });
++    await shareProviderLink(url, "Attention");
++    expect(share).toHaveBeenCalledWith({ url, title: "Attention" });
++    expect(copyToClipboard).not.toHaveBeenCalled();
++  });
++
++  it("copies the public URL when native sharing is unavailable", async () => {
++    copyToClipboard.mockResolvedValue(true);
++    await shareProviderLink(url, "Attention");
++    expect(copyToClipboard).toHaveBeenCalledWith(url);
++    expect(success).toHaveBeenCalledWith("provider_links.copied");
++  });
++
++  it("does not treat dismissing the share sheet as a failure", async () => {
++    vi.stubGlobal("navigator", {
++      share: vi
++        .fn()
++        .mockRejectedValue(new DOMException("Cancelled", "AbortError")),
++    });
++    await shareProviderLink(url, "Attention");
++    expect(error).not.toHaveBeenCalled();
++    expect(copyToClipboard).not.toHaveBeenCalled();
++  });
++
++  it("reports sharing and clipboard failures", async () => {
++    vi.stubGlobal("navigator", {
++      share: vi.fn().mockRejectedValue(new Error("Unavailable")),
++    });
++    await shareProviderLink(url, "Attention");
++    expect(error).toHaveBeenCalledWith("provider_links.share_failed");
++    copyToClipboard.mockResolvedValue(false);
++    await copyProviderLink(url);
++    expect(error).toHaveBeenCalledWith("provider_links.copy_failed");
++  });
++});
+diff --git a/src/composables/useProviderLinkSharing.ts b/src/composables/useProviderLinkSharing.ts
+new file mode 100644
+index 00000000..12fb8505
+--- /dev/null
++++ b/src/composables/useProviderLinkSharing.ts
+@@ -0,0 +1,25 @@
++import { copyToClipboard } from "@/helpers/utils";
++import { $t } from "@/plugins/i18n";
++import { toast } from "vue-sonner";
++
++export async function copyProviderLink(url: string): Promise<void> {
++  const success = await copyToClipboard(url);
++  if (success) toast.success($t("provider_links.copied"));
++  else toast.error($t("provider_links.copy_failed"));
++}
++
++export async function shareProviderLink(
++  url: string,
++  title: string,
++): Promise<void> {
++  if (typeof navigator.share !== "function") {
++    await copyProviderLink(url);
++    return;
++  }
++  try {
++    await navigator.share({ url, title });
++  } catch (error) {
++    if (error instanceof Error && error.name === "AbortError") return;
++    toast.error($t("provider_links.share_failed"));
++  }
++}
+diff --git a/src/helpers/provider_links.test.ts b/src/helpers/provider_links.test.ts
+new file mode 100644
+index 00000000..ed102490
+--- /dev/null
++++ b/src/helpers/provider_links.test.ts
+@@ -0,0 +1,40 @@
++import { describe, expect, it } from "vitest";
++import { providerMapping } from "../../tests/fixtures/providerMapping";
++import { providerLinks } from "./provider_links";
++
++describe("providerLinks", () => {
++  it("shares the source link once across provider accounts", () => {
++    const mapping = providerMapping({
++      provider_domain: "ytmusic",
++      url: "https://music.youtube.com/watch?v=meuR1l4j-xs&si=tracking",
++    });
++    expect(
++      providerLinks([mapping, { ...mapping, provider_instance: "other" }]),
++    ).toEqual([{ url: mapping.url, provider: "ytmusic" }]);
++  });
++
++  it("keeps album browse URLs without inventing a track ID", () => {
++    const url = "https://music.youtube.com/browse/MPREb_pRx4LBJiFWR";
++    expect(
++      providerLinks([providerMapping({ provider_domain: "ytmusic", url })]),
++    ).toEqual([{ url, provider: "ytmusic" }]);
++  });
++
++  it("excludes local paths, internal URIs and malformed provider links", () => {
++    expect(
++      providerLinks([
++        providerMapping(),
++        providerMapping({ url: "not a URL" }),
++        providerMapping({ url: "ytmusic://track/x" }),
++        providerMapping({ url: "javascript:alert(1)" }),
++        providerMapping({
++          url: "https://music.youtube.com/playlist?list=None",
++        }),
++        providerMapping({
++          provider_domain: "filesystem_local",
++          url: "https://server/music/file.flac",
++        }),
++      ]),
++    ).toEqual([]);
++  });
++});
+diff --git a/src/helpers/provider_links.ts b/src/helpers/provider_links.ts
+new file mode 100644
+index 00000000..8513d78e
+--- /dev/null
++++ b/src/helpers/provider_links.ts
+@@ -0,0 +1,27 @@
++import type { ProviderMapping } from "@/plugins/api/interfaces";
++
++export interface ProviderLink {
++  url: string;
++  provider: string;
++}
++
++/** Public website links supplied by the server, deduplicated across accounts. */
++export function providerLinks(mappings: ProviderMapping[]): ProviderLink[] {
++  const links = new Map<string, ProviderLink>();
++  for (const mapping of mappings) {
++    if (!mapping.url || mapping.provider_domain.startsWith("file")) continue;
++    let url: URL;
++    try {
++      url = new URL(mapping.url);
++    } catch {
++      continue;
++    }
++    if (!["https:", "http:"].includes(url.protocol)) continue;
++    if (url.searchParams.get("list") === "None") continue;
++    links.set(mapping.url, {
++      url: mapping.url,
++      provider: mapping.provider_domain,
++    });
++  }
++  return [...links.values()];
++}
+diff --git a/tests/components/ProviderLinkButton.test.ts b/tests/components/ProviderLinkButton.test.ts
+new file mode 100644
+index 00000000..da2e4593
+--- /dev/null
++++ b/tests/components/ProviderLinkButton.test.ts
+@@ -0,0 +1,77 @@
++import ProviderLinkButton from "@/components/ProviderLinkButton.vue";
++import { mount } from "@vue/test-utils";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { providerMapping } from "../fixtures/providerMapping";
++
++const { shareProviderLink, copyProviderLink, device } = vi.hoisted(() => ({
++  shareProviderLink: vi.fn(),
++  copyProviderLink: vi.fn(),
++  device: { mobile: false },
++}));
++vi.mock("@/composables/useProviderLinkSharing", () => ({
++  shareProviderLink,
++  copyProviderLink,
++}));
++vi.mock("@/helpers/device", () => ({
++  get IS_MOBILE_UA() {
++    return device.mobile;
++  },
++}));
++vi.mock("@/plugins/api", () => ({
++  api: { getProviderManifest: () => ({ name: "YouTube Music" }) },
++}));
++
++const url = "https://music.youtube.com/watch?v=meuR1l4j-xs";
++
++function mountButton(
++  mappings = [providerMapping({ provider_domain: "ytmusic", url })],
++) {
++  return mount(ProviderLinkButton, {
++    props: { mappings, title: "Attention" },
++    global: {
++      mocks: {
++        $t: (key: string, args?: { provider: string }) =>
++          args ? `${key}: ${args.provider}` : key,
++      },
++      stubs: {
++        DropdownMenu: { template: "<div><slot /></div>" },
++        DropdownMenuTrigger: { template: "<div><slot /></div>" },
++        DropdownMenuContent: { template: "<div><slot /></div>" },
++        DropdownMenuItem: {
++          emits: ["select"],
++          template: "<button @click=\"$emit('select')\"><slot /></button>",
++        },
++      },
++    },
++  });
++}
++
++describe("ProviderLinkButton", () => {
++  afterEach(() => vi.unstubAllGlobals());
++  beforeEach(() => {
++    vi.clearAllMocks();
++    device.mobile = false;
++  });
++
++  it("copies the source link directly on desktop", async () => {
++    const wrapper = mountButton();
++    await wrapper.get('[aria-label="provider_links.copy"]').trigger("click");
++    expect(copyProviderLink).toHaveBeenCalledWith(url);
++    expect(shareProviderLink).not.toHaveBeenCalled();
++  });
++
++  it("offers the native share sheet on mobile", async () => {
++    device.mobile = true;
++    vi.stubGlobal("navigator", { share: vi.fn() });
++    const wrapper = mountButton();
++    await wrapper.get('[aria-label="provider_links.share"]').trigger("click");
++    expect(shareProviderLink).toHaveBeenCalledWith(url, "Attention");
++    expect(copyProviderLink).not.toHaveBeenCalled();
++  });
++
++  it("hides sharing when the item has no public website link", () => {
++    expect(mountButton([providerMapping()]).find("button").exists()).toBe(
++      false,
++    );
++  });
++});

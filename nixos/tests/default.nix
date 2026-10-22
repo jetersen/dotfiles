@@ -22,4 +22,5 @@ in
   native-comin = configurations.framework.config.services.comin.package;
   native-lanzaboote = configurations.framework.config.boot.lanzaboote.package;
   native-pc2mqtt = inputs.self.packages.x86_64-linux.pc2mqtt;
+  native-music-assistant-frontend = inputs.self.packages.x86_64-linux.music-assistant-frontend;
 }

@@ -72,6 +72,9 @@ monitor and workspace preferences. DMS-generated bindings and display settings
 remain writable. Super+L locks, Super+D opens the overview, and Super+M focuses
 Music Assistant. Print selects a region with DMS; Ctrl+Print captures the focused
 screen and Alt+Print captures the focused window on both hosts.
+The Music Assistant companion loads its frontend from the selected server.
+`nix build .#music-assistant-frontend` builds the patched frontend separately;
+keep its version compatible with the server when updating the source pin.
 Framework's display idle timer turns screens off after 15
 minutes unless DMS Keep Awake is enabled.
 Framework's DMS profiles match the work monitors by serial number, across USB-C

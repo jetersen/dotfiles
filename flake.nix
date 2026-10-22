@@ -198,6 +198,9 @@
       packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
       packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix { };
       packages.x86_64-linux.microfetch = pkgs.callPackage ./nixos/packages/microfetch.nix { };
+      packages.x86_64-linux.music-assistant-frontend =
+        pkgs.callPackage ./nixos/packages/music-assistant-frontend.nix
+          { };
       packages.x86_64-linux.pc2mqtt = pkgs.callPackage ./nixos/packages/pc2mqtt.nix {
         craneLib = inputs.crane.mkLib pkgs;
       };
