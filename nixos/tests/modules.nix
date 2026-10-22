@@ -14,6 +14,11 @@ let
     in
     {
       tailscaleOperator = builtins.elem "--operator=joseph" c.services.tailscale.extraSetFlags;
+      ssh = {
+        linked = home.home.file.".ssh/config".enable;
+        generated = home.home.file.".ssh/config".text;
+        activation = home.home.activation.configureSsh;
+      };
       fileManager = {
         enabled = c.programs.dux-files.enable && c.programs.dux-files.systemd.enable;
         gvfs = c.services.gvfs.enable;
@@ -97,6 +102,15 @@ let
           c = hosts.${host};
         in
         [
+          {
+            assertion =
+              !c.ssh.linked
+              && lib.hasInfix "Include local.config" c.ssh.generated
+              && lib.hasInfix "Host framework" c.ssh.generated
+              && lib.hasInfix "/bin/install -m 600" c.ssh.activation.data
+              && builtins.elem "linkGeneration" c.ssh.activation.after;
+            message = "${host}: install the generated SSH config as a private user-owned file for FHS clients";
+          }
           {
             assertion =
               c.fileManager.enabled
