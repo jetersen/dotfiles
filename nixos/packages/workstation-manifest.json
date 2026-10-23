@@ -1,8 +1,8 @@
 {
   "vite-plus": {
     "repo": "voidzero-dev/vite-plus",
-    "version": "v1.3.0",
-    "sha256": "3fb3a668472e1312eedd7598b3f6c511acebc2f6497c293a5ee04eba248eee7e"
+    "version": "v1.4.0",
+    "sha256": "992558abc9621384434a22d80e06e117615680f14a3e17a58eb287fd30a07694"
   },
   "topf": {
     "repo": "postfinance/topf",
