@@ -6,8 +6,8 @@
   },
   "topf": {
     "repo": "postfinance/topf",
-    "version": "v0.6.1",
-    "sha256": "6f399e527cb8588b02d7d28eae9a61c49680f4cd5e82d98be7a5c5001c80d341"
+    "version": "v0.6.2",
+    "sha256": "793dc87c97a6545fd73db82c3558306644d9e6914010f2636d1470cf55272405"
   },
   "freelens": {
     "repo": "freelensapp/freelens",
