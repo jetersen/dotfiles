@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1792627566,
-        "narHash": "sha256-w6GUouuMAh5PZ4Ux88H2QzCYhHjoIZd0u1dqP0Ed3kg=",
+        "lastModified": 1792697487,
+        "narHash": "sha256-6CtjZRAkq3zxcIxQ1geUYvwihLV3U3Gat0XCdJNwW2o=",
         "ref": "main",
-        "rev": "8f73d674d0689589521e23e525e7e7f5dba5c764",
+        "rev": "633b57683e16d89c6b7a3ab19a89fcc0fc75124e",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -452,10 +452,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1792491056,
-        "narHash": "sha256-6n1Dn+WYtD8lprnSi+0k4FjbKfIVNG8lblpJ5MiiqXs=",
+        "lastModified": 1792697326,
+        "narHash": "sha256-2UBK0jdmPANGaeAIoVOZY+hSPB2Gy13ZuZeSxP3vF8k=",
         "ref": "master",
-        "rev": "efb6d0d5e2394c3c5416a18652808aba206c0988",
+        "rev": "1b418b8f203e49a92f250f8babdd19af1b6f7a7f",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/NixOS/nixos-hardware.git"
@@ -482,11 +482,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1792649334,
-        "narHash": "sha256-sIuUjRYD1AOHkbxOK0NCCLpb9u43QY35eEYMumlAB4s=",
+        "lastModified": 1792713266,
+        "narHash": "sha256-fP8i/Rp7UHzvfW9ihN5msiZxiGZ1RBN+VYoISTXPvbY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f27fecd91e88d0a3604d9e0c326670f54cd4683c",
+        "rev": "0efde09fa2afb93d2ed7e9c643b4603acee2f0ea",
         "type": "github"
       },
       "original": {
@@ -742,10 +742,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1792056300,
-        "narHash": "sha256-YU1LjDe1o2Ymg5zEiCHbmMXLkDCtxHQRiVqZ3nC5GGk=",
+        "lastModified": 1792308394,
+        "narHash": "sha256-r4G33ygU307QCwyngAS6E9BMhnCRPyZrL7UxRCMrqo0=",
         "ref": "master",
-        "rev": "44931708c62937c2b1bf7953902989fa5bb9ee1b",
+        "rev": "a1438ca361b05d1e70854d5495abcb34fdf6ff47",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/Mic92/sops-nix.git"
