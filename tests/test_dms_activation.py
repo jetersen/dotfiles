@@ -34,6 +34,11 @@ class DmsActivationTests(unittest.TestCase):
       self.activate(root)
       binds = root / 'config/niri/dms/binds.kdl'
       settings = json.loads((root / 'config/DankMaterialShell/settings.json').read_text())
+      workspace = next(widget for widget in settings['barConfigs'][0]['leftWidgets']
+                       if isinstance(widget, dict) and widget['id'] == 'workspaceSwitcher')
+      self.assertEqual(workspace['workspaceIndicatorStyle'], 'dots')
+      self.assertTrue(workspace['showWorkspaceApps'])
+      self.assertTrue(workspace['showOccupiedWorkspacesOnly'])
       self.assertGreater(len(settings['appIdSubstitutions']), 1)
       before = binds.read_bytes()
       self.assertNotIn(b'Alt+Space', before)

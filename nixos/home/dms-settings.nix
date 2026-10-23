@@ -13,7 +13,13 @@
       showOnLastDisplay = true;
       leftWidgets = [
         "launcherButton"
-        "workspaceSwitcher"
+        {
+          id = "workspaceSwitcher";
+          enabled = true;
+          workspaceIndicatorStyle = "dots";
+          showWorkspaceApps = true;
+          showOccupiedWorkspacesOnly = true;
+        }
         "focusedWindow"
       ];
       centerWidgets = [
@@ -55,7 +61,6 @@
     }
   ];
   barElevationEnabled = false;
-  showOccupiedWorkspacesOnly = true;
   workspaceNameIcons = {
     chat = {
       type = "icon";
