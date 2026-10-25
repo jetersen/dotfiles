@@ -8,6 +8,8 @@ let
         path = ../../. + "/${path}";
       })
       [
+        "home/dot_agents/skills/t3-completion-notifier/scripts"
+        "home/dot_agents/skills/t3-remote-thread/scripts"
         "tests/test_ci_graph.py"
         "nixos/ci/build-graph.py"
         "nixos/ci/build-systems.sh"
@@ -24,7 +26,8 @@ in
 pkgs.runCommand "tooling-unit-checks"
   {
     nativeBuildInputs = [
-      pkgs.python3
+      (pkgs.python3.withPackages (p: [ p.websocket-client ]))
+      pkgs.openssl
       pkgs.bash
       pkgs.jq
     ];
@@ -34,5 +37,7 @@ pkgs.runCommand "tooling-unit-checks"
     chmod -R u+w source
     cd source
     python3 -m unittest discover -s tests -p 'test_*.py' -v
+    python3 -B -m unittest discover -s home/dot_agents/skills/t3-completion-notifier/scripts -p 'test_poll.py' -v
+    python3 -B -m unittest discover -s home/dot_agents/skills/t3-remote-thread/scripts -p 'test_t3_remote.py' -v
     touch "$out"
   ''

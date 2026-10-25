@@ -1,5 +1,11 @@
 { pkgs, ... }:
+let
+  t3Port = 3773;
+in
 {
+  # Preserve localhost clients while admitting remote T3 traffic only over Tailscale.
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ t3Port ];
+
   # Keep the remote server available before desktop login.
   users.users.joseph.linger = true;
 
@@ -32,7 +38,7 @@
             "T3CODE_HOME=${config.home.homeDirectory}/.t3"
             "T3CODE_DISABLE_AUTO_UPDATE=1"
           ];
-          ExecStart = "${t3code}/bin/t3 serve --no-browser";
+          ExecStart = "${t3code}/bin/t3 serve --no-browser --tailscale-serve --host 0.0.0.0 --port ${toString t3Port}";
           KillMode = "mixed";
           OOMPolicy = "continue";
           Restart = "always";

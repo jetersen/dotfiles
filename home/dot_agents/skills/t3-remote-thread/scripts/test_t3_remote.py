@@ -1,9 +1,20 @@
 """Exercise routing, credential boundaries and ambiguous launch handling offline."""
 
 import contextlib
+import base64
+import hashlib
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import copy
 import io
 import json
+import os
+from pathlib import Path
+import shutil
+import ssl
+import struct
+import subprocess
+import tempfile
+import threading
 import unittest
 from unittest.mock import Mock, patch
 from urllib.error import HTTPError
@@ -175,6 +186,161 @@ class BridgeTests(unittest.TestCase):
             client.get("api/projects")
         self.assertNotIn("private-token", str(error.exception))
 
+    @unittest.skipUnless(shutil.which("openssl"), "TLS fixture needs openssl")
+    def test_https_and_wss_verify_tls_and_ignore_environment_proxy(self):
+        records = []
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cert, key = root / "cert.pem", root / "key.pem"
+            subprocess.run(
+                [
+                    "openssl",
+                    "req",
+                    "-x509",
+                    "-newkey",
+                    "rsa:2048",
+                    "-nodes",
+                    "-days",
+                    "1",
+                    "-subj",
+                    "/CN=localhost",
+                    "-addext",
+                    "subjectAltName=DNS:localhost",
+                    "-keyout",
+                    str(key),
+                    "-out",
+                    str(cert),
+                ],
+                capture_output=True,
+                check=True,
+                timeout=10,
+            )
+
+            class Handler(BaseHTTPRequestHandler):
+                def log_message(self, *args):
+                    pass
+
+                def do_GET(self):
+                    records.append((self.path, self.headers.get("Authorization")))
+                    if self.path.startswith("/ws?"):
+                        accept = base64.b64encode(
+                            hashlib.sha1(
+                                (
+                                    self.headers["Sec-WebSocket-Key"]
+                                    + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+                                ).encode()
+                            ).digest()
+                        ).decode()
+                        self.send_response(101)
+                        self.send_header("Upgrade", "websocket")
+                        self.send_header("Connection", "Upgrade")
+                        self.send_header("Sec-WebSocket-Accept", accept)
+                        self.end_headers()
+                        first, second = self.rfile.read(2)
+                        length = second & 127
+                        if length == 126:
+                            length = struct.unpack("!H", self.rfile.read(2))[0]
+                        mask = self.rfile.read(4)
+                        data = self.rfile.read(length)
+                        request = json.loads(
+                            bytes(b ^ mask[i % 4] for i, b in enumerate(data))
+                        )
+                        payload = json.dumps(
+                            {
+                                "_tag": "Exit",
+                                "requestId": request["id"],
+                                "exit": {"_tag": "Success", "value": {"ok": True}},
+                            }
+                        ).encode()
+                        header = (
+                            bytes([0x81, len(payload)])
+                            if len(payload) < 126
+                            else struct.pack("!BBH", 0x81, 126, len(payload))
+                        )
+                        self.wfile.write(header + payload)
+                        self.wfile.flush()
+                        self.close_connection = True
+                        return
+                    payload = json.dumps(
+                        {"environmentId": "remote"}
+                        if self.path.startswith("/.well-known")
+                        else {"authenticated": True}
+                    ).encode()
+                    self.send_response(200)
+                    self.send_header("Content-Length", str(len(payload)))
+                    self.end_headers()
+                    self.wfile.write(payload)
+
+            server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+            server.daemon_threads = True
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(cert, key)
+            server.socket = context.wrap_socket(server.socket, server_side=True)
+            worker = threading.Thread(target=server.serve_forever, daemon=True)
+            worker.start()
+            value = catalog()
+            value["profiles"][0].update(
+                httpBaseUrl=f"https://localhost:{server.server_port}/",
+                wsBaseUrl=f"wss://localhost:{server.server_port}/",
+            )
+            route, token = bridge.select_route(value, "remote", None)
+            client = bridge.Remote(route, token)
+            try:
+                with self.assertRaises(bridge.BridgeError):
+                    client.verify()
+                with self.assertRaises(bridge.BridgeError):
+                    client.rpc("server.getConfig", {})
+                self.assertEqual(records, [])
+                with patch.dict(
+                    os.environ,
+                    {
+                        "SSL_CERT_FILE": str(cert),
+                        "NIX_SSL_CERT_FILE": str(cert),
+                        "https_proxy": "http://127.0.0.1:1",
+                        "HTTPS_PROXY": "http://127.0.0.1:1",
+                        "no_proxy": "",
+                        "NO_PROXY": "",
+                    },
+                ):
+                    # Construct while proxy settings are present: opener discovery happens here.
+                    bridge.Remote(route, token).verify()
+                    self.assertEqual(
+                        records,
+                        [
+                            ("/.well-known/t3/environment", None),
+                            ("/api/auth/session", "Bearer private-token"),
+                        ],
+                    )
+                    self.assertEqual(
+                        bridge.Remote(route, token).rpc("server.getConfig", {}),
+                        {"ok": True},
+                    )
+                    self.assertEqual(
+                        records[-1],
+                        ("/ws?orchestrationProtocol=2", "Bearer private-token"),
+                    )
+                    wrong_ws = {
+                        **route,
+                        "wsBaseUrl": route["wsBaseUrl"].replace(
+                            "localhost", "127.0.0.1"
+                        ),
+                    }
+                    with self.assertRaises(bridge.BridgeError):
+                        bridge.Remote(wrong_ws, token).rpc("server.getConfig", {})
+                    wrong = {
+                        **route,
+                        "httpBaseUrl": route["httpBaseUrl"].replace(
+                            "localhost", "127.0.0.1"
+                        ),
+                    }
+                    with self.assertRaises(bridge.BridgeError):
+                        bridge.Remote(wrong, token).verify()
+                    self.assertEqual(len(records), 3)
+            finally:
+                server.shutdown()
+                server.server_close()
+                worker.join()
+
     def test_invalid_target_and_local_attachments_are_refused(self):
         for key, value in (
             ("projectId", "local-project"),
@@ -204,10 +370,14 @@ class BridgeTests(unittest.TestCase):
         ]
         with (
             patch.object(websocket, "create_connection", return_value=ws) as connect,
+            patch.object(bridge.http.client, "HTTPSConnection") as tls,
             patch.object(bridge.uuid, "uuid4", return_value="request-id"),
         ):
             self.assertEqual(remote().rpc("server.getConfig", {}), {"ok": True})
         self.assertEqual(connect.call_args.kwargs["redirect_limit"], 0)
+        self.assertIs(connect.call_args.kwargs["socket"], tls.return_value.sock)
+        tls.return_value.connect.assert_called_once()
+        tls.return_value.close.assert_called_once()
         frames = [json.loads(call.args[0]) for call in ws.send.call_args_list]
         self.assertEqual(frames[0]["tag"], "server.getConfig")
         self.assertEqual(frames[1], {"_tag": "Pong"})
@@ -220,11 +390,33 @@ class BridgeTests(unittest.TestCase):
         ws.getstatus.return_value = 307
         with (
             patch.object(websocket, "create_connection", return_value=ws),
+            patch.object(bridge.http.client, "HTTPSConnection"),
             self.assertRaises(bridge.BridgeError),
         ):
             remote().rpc("orchestration.launchThread", request())
         ws.send.assert_not_called()
         ws.close.assert_called_once()
+
+    def test_failed_or_missing_tls_socket_never_falls_back(self):
+        import websocket
+
+        for failed in [True, False]:
+            connection = Mock()
+            connection.sock = None
+            connection.connect.side_effect = (
+                OSError("private-token") if failed else None
+            )
+            with (
+                patch.object(
+                    bridge.http.client, "HTTPSConnection", return_value=connection
+                ),
+                patch.object(websocket, "create_connection") as connect,
+                self.assertRaises(bridge.BridgeError) as error,
+            ):
+                remote().rpc("server.getConfig", {})
+            connect.assert_not_called()
+            connection.close.assert_called_once()
+            self.assertNotIn("private-token", str(error.exception))
 
     def test_lost_launch_response_preserves_ids_and_does_not_retry(self):
         client = remote()

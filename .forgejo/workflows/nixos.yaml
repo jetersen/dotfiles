@@ -20,6 +20,7 @@ jobs:
       - run: python3 -m unittest discover -s tests -p 'test_ci_graph.py'
       - run: python3 -m unittest discover -s tests -p 'test_package_updates.py'
       - run: python3 -m unittest discover -s tests -p 'test_wayland_clipboard.py'
+      - run: python3 -B -m unittest discover -s home/dot_agents/skills/t3-completion-notifier/scripts -p 'test_poll.py'
   framework:
     needs: tooling
     if: forgejo.event_name != 'pull_request' || forgejo.event.pull_request.head.repo.full_name == forgejo.repository

@@ -57,8 +57,21 @@ let
   framework = configurations.framework.config;
   dns = framework.systemd.services.dnsdist;
   bridge = framework.systemd.services.homelab-dns-vpn;
-  runner = configurations.rocket.config.systemd.services.forgejo-runner;
+  rocket = configurations.rocket.config;
+  runner = rocket.systemd.services.forgejo-runner;
   assertions = [
+    {
+      assertion =
+        lib.hasInfix " serve --no-browser --tailscale-serve --host 0.0.0.0 --port 3773" (
+          builtins.head rocket.home-manager.users.joseph.systemd.user.services.t3code.Service.ExecStart
+        )
+        && builtins.elem 3773 rocket.networking.firewall.interfaces.tailscale0.allowedTCPPorts
+        && !builtins.elem 3773 rocket.networking.firewall.allowedTCPPorts
+        && !builtins.any (
+          range: range.from <= 3773 && range.to >= 3773
+        ) rocket.networking.firewall.allowedTCPPortRanges;
+      message = "Rocket: T3 must manage Tailscale Serve, retain localhost access and admit its direct listener through the Tailscale firewall only";
+    }
     {
       assertion =
         builtins.elem "docker.service" runner.wantedBy

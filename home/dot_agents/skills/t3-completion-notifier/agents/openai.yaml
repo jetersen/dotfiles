@@ -1,0 +1,3 @@
+interface:
+  display_name: "T3 completion notifier"
+  short_description: "Wake a T3 thread when a local poll finds completion"

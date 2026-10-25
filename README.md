@@ -115,12 +115,16 @@ version and x86_64 Linux checksum. Codex and Zed use the pinned master package s
 For manual updates, run `nixos/packages/update-claude-code.sh [VERSION]` or
 `nixos/packages/update-t3code.sh VERSION`, then push for CI deployment.
 Credentials and sessions remain local.
-Both hosts let `joseph` manage Tailscale Serve. On Framework, enable Tailscale HTTPS
-in T3's connection settings and relaunch the desktop app to use its MagicDNS HTTPS URL.
-Rocket runs T3 as a lingering user service using `~/.t3`; keep the desktop's
-separate local server disabled. The server runs natively with patched Nix library
-paths so agent commands inherit the host environment. An older client must not
-open newer databases.
+Both hosts let `joseph` manage Tailscale Serve. For direct tailnet access on
+Framework, enable Network access in T3's connection settings and use its Tailscale
+IP endpoint; the desktop app must remain running. Tailscale HTTPS optionally
+provides a MagicDNS HTTPS URL through Serve.
+Rocket runs T3 as a lingering user service using `~/.t3`, with `--tailscale-serve`
+managing its private HTTPS endpoint. It also listens on IPv4 port 3773. Localhost
+remains available; the firewall admits remote access to this port only through
+`tailscale0`. Keep the desktop's separate local server disabled.
+The server runs natively with patched Nix library paths so agent commands inherit
+the host environment. An older client must not open newer databases.
 The T3 renderer is rebuilt with `nixos/patches/t3code/shared-browser-runtime.patch`
 so new tabs on connected environments share the server browser with automation.
 Existing desktop tabs keep their separate login state and cannot be automated
@@ -205,8 +209,8 @@ or select one with `nix build .#checks.x86_64-linux.dns-routing`:
   The Framework idle check tests state logic in the patched QML source.
 - `dns-routing` runs real dnsdist with loopback DNS and verified TLS DoH fixtures,
   checking routing, fail-closed behavior, backend restart recovery and fallback TTL.
-- `tooling-unit` runs the CI orchestration, package updater and Wayland clipboard
-  unit suites.
+- `tooling-unit` runs the CI orchestration, package updater, Wayland clipboard and
+  T3 remote-thread and completion notifier unit suites.
 - `module-contracts` checks selected evaluated service and credential properties.
 - `boot-profile` checks both hosts' bootloader wiring and the Lanzaboote hook's
   profile discovery, requested default and booted-system protection options.

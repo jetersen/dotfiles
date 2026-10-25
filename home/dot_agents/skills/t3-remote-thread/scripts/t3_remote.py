@@ -7,6 +7,7 @@
 import argparse
 import base64
 import hashlib
+import http.client
 import json
 import os
 import sys
@@ -15,7 +16,7 @@ import uuid
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit, urlunsplit
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 
 class BridgeError(Exception):
@@ -145,7 +146,7 @@ class Remote:
             "Authorization": "Bearer " + token,
             "x-t3-orchestration-protocol": "2",
         }
-        self.opener = build_opener(NoRedirect())
+        self.opener = build_opener(ProxyHandler({}), NoRedirect())
 
     def get(self, path, *, authenticated=True, missing_ok=False):
         request = Request(
@@ -156,6 +157,7 @@ class Remote:
             with self.opener.open(request, timeout=20) as response:
                 return json.load(response)
         except HTTPError as error:
+            error.close()
             if missing_ok and error.code == 404:
                 return None
             raise BridgeError(
@@ -189,9 +191,21 @@ class Remote:
             )
         )
         request_id = str(uuid.uuid4())
+        # A preconnected, verified TLS socket bypasses proxy discovery. In 1.9.0,
+        # http_no_proxy alone is discarded unless http_proxy_host is also set.
+        connection = http.client.HTTPSConnection(
+            parsed.hostname, parsed.port or 443, timeout=20
+        )
         try:
+            connection.connect()
+            if connection.sock is None:
+                raise BridgeError("TLS connection did not provide a socket.")
             ws = websocket.create_connection(
-                url, header=self.headers, timeout=20, redirect_limit=0
+                url,
+                header=self.headers,
+                timeout=20,
+                redirect_limit=0,
+                socket=connection.sock,
             )
             try:
                 if ws.getstatus() != 101:
@@ -232,6 +246,8 @@ class Remote:
             raise BridgeError(
                 "T3 WebSocket request failed; do not automatically retry launches."
             ) from None
+        finally:
+            connection.close()
 
     def projects(self):
         return self.get("api/projects")["projects"]
