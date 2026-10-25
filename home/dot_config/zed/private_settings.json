@@ -48,5 +48,23 @@
         }
       }
     }
+  },
+  "theme_overrides": {
+    "DankShell Dark": {
+      "hidden": "#a6adc8",
+      "tab.active_background": "#45475a"
+    },
+    "DankShell Light": {
+      "hidden": "#5c5f77",
+      "tab.active_background": "#ccd0da"
+    },
+    "DankShell Dark Transparent": {
+      "hidden": "#a6adc8",
+      "tab.active_background": "#45475a"
+    },
+    "DankShell Light Transparent": {
+      "hidden": "#5c5f77",
+      "tab.active_background": "#ccd0da"
+    }
   }
 }
