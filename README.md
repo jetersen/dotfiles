@@ -67,6 +67,15 @@ Dux Files handles folders, archives, file-manager shortcuts and portal open/save
 dialogs. Dolphin and Ark remain available as fallbacks.
 Systemd-oomd monitors application memory pressure in `app.slice`; the compositor
 and session services in `session.slice` remain outside that policy.
+
+Run `unlock-keyring` as your desktop user over SSH when applications such as `gh`
+need credentials from a locked GNOME login keyring. It prompts for the keyring
+password in the terminal and verifies that the existing desktop service unlocked.
+For a single remote command, use `ssh -t HOST unlock-keyring`, then run
+`gh auth status`. Avoid `gnome-keyring-daemon --unlock`, which can start a second
+daemon. NixOS supplies the helper's Python and D-Bus dependencies; other Linux
+installations need Python 3 and `dbus-python`.
+
 Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select
 monitor and workspace preferences. DMS-generated bindings and display settings
 remain writable. Super+L locks, Super+D opens the overview, and Super+M focuses
@@ -211,6 +220,8 @@ or select one with `nix build .#checks.x86_64-linux.dns-routing`:
   checking routing, fail-closed behavior, backend restart recovery and fallback TTL.
 - `tooling-unit` runs the CI orchestration, package updater, Wayland clipboard and
   T3 remote-thread and completion notifier unit suites.
+- `keyring-unlock` exercises remote unlocking against an isolated GNOME keyring,
+  including incorrect passwords and a replaced control socket.
 - `module-contracts` checks selected evaluated service and credential properties.
 - `boot-profile` checks both hosts' bootloader wiring and the Lanzaboote hook's
   profile discovery, requested default and booted-system protection options.

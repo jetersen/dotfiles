@@ -5,6 +5,8 @@
   ...
 }:
 {
+  home.packages = [ (pkgs.callPackage ../packages/unlock-keyring.nix { }) ];
+
   home.pointerCursor = {
     enable = true;
     package = pkgs.catppuccin-cursors.mochaMauve;

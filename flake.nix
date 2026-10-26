@@ -205,6 +205,7 @@
         craneLib = inputs.crane.mkLib pkgs;
       };
       packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix { };
+      packages.x86_64-linux.unlock-keyring = pkgs.callPackage ./nixos/packages/unlock-keyring.nix { };
       packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix { };
       packages.x86_64-linux.dotnet-lambda =
         nugetTool "lambda-tools-source" "dotnet-lambda"

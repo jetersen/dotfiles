@@ -12,6 +12,7 @@ in
   desktop-activation = import ./desktop.nix { inherit pkgs inputs configurations; };
   dns-routing = import ./dns.nix { inherit pkgs pkgsUnstable; };
   tooling-unit = import ./tooling.nix { inherit pkgs; };
+  keyring-unlock = import ./keyring.nix { inherit pkgs; };
   module-contracts = import ./modules.nix {
     inherit pkgs pkgsUnstable configurations;
     pc2mqtt = inputs.self.packages.x86_64-linux.pc2mqtt;
