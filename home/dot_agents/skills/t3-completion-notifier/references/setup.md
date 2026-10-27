@@ -43,7 +43,7 @@ The job ID must encode every dimension that distinguishes an execution (for exam
 
 For remote delivery, set the exact `httpsOrigin` described in [local-compatibility.md](local-compatibility.md); omit it for loopback. The same document covers both the desktop app and CLI, including desktop archive verification.
 
-Write its saved prompt using [webhook-message.md](webhook-message.md), which maps the actual event fields and provides a handoff template. The T3 schedule argument has this shape. Use `request_secret` for the user's signing key, then substitute its returned `secretRef` and the job/watch values before calling the live tool:
+Write its saved prompt using [webhook-message.md](webhook-message.md), which maps the actual event fields and provides a handoff template. The T3 schedule argument has this shape. Provision the signing key through T3's current `request_secret` flow, then substitute its returned `secretRef` and the job/watch values before calling the live tool:
 
 ```json
 {
@@ -58,7 +58,9 @@ Write its saved prompt using [webhook-message.md](webhook-message.md), which map
 }
 ```
 
-Use `enabled:false` during preparation if useful, then enable the exact new task before local delivery testing. Bind to this thread explicitly. Omit coalescing for a one-use event. Signatures are required by this helper. Filters select the intended event; they do not authenticate the sender. Replay dedupe limits repeated dispatch. Never invent a signing key or ask for one in chat. The SQLite fallback obtains the selected schedule's existing key in memory; native API resolvers need the same user-provided key in existing local credential storage. No Varlock installation is required.
+Use `enabled:false` during preparation if useful, then enable the exact new task before local delivery testing. Bind to this thread explicitly. Omit coalescing for a one-use event. Signatures are required by this helper. Filters select the intended event; they do not authenticate the sender. Replay dedupe limits repeated dispatch.
+
+Private entry is T3's current provisioning workflow, not a cryptographic requirement for a user-chosen or externally issued key. Retain the secret request's `clientRequestId` and any pending call handle. If the call yields while other preparation continues, resume that same call to collect its result before reporting that user input is still missing. Recover a lost response with the same `clientRequestId` rather than opening another card. When the result is saved, consume its one-use `secretRef` and continue through activation and first-tick verification. Keep the raw key out of chat, command output and configuration. The SQLite fallback obtains the selected schedule's existing key in memory; native API resolvers need that same signing key in existing local credential storage. No Varlock installation is required.
 
 ## Start and inspect
 
@@ -86,4 +88,4 @@ python3 -B -m unittest discover -s "$SKILL/scripts" -p test_poll.py
 T3_NOTIFY_SYSTEMD_TEST=1 python3 -B -m unittest discover -s "$SKILL/scripts" -p test_poll.py
 ```
 
-The first uses temporary status files, a synthetic read-only SQLite store, and disposable signed loopback HTTP/HTTPS endpoints. It checks certificate/hostname verification, remote HTTP rejection, proxy/redirect refusal, and identical-event retries. The second additionally creates one unique transient user timer, observes a quiet active tick, switches its fixture to terminal, retries a failed HTTP delivery, checks acknowledgement and timer stop, then cleans its exact units. It never calls T3 or a production provider. Run on the intended timer host. Add job-specific fixture checks for its adapter and completion evidence before installation.
+The first uses temporary status files, a synthetic read-only SQLite store, and disposable signed loopback HTTP/HTTPS endpoints. It checks certificate/hostname verification, remote HTTP rejection, proxy/redirect refusal, and identical-event retries. The second additionally creates one unique transient user timer, observes a quiet active tick, switches its fixture to terminal, retries a failed HTTP delivery, checks acknowledgement and timer stop, then cleans its exact units. It never calls T3 or a production provider. Run on the intended timer host. Job-specific fixtures should exercise the adapter's status and evidence parsing, including wrong execution identities and missing or invalid completion evidence, before installation.
