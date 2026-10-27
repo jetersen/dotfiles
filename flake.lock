@@ -482,11 +482,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1793060739,
-        "narHash": "sha256-2RCSyUZX+kIVm7ZTEufYk0Fn1H7r+4bc1l9L0A4+9+E=",
+        "lastModified": 1793079221,
+        "narHash": "sha256-mq60UruvsGmKzASmTq11iSAfpG8N5UqpmgWGdm/yxzY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7d8a6233da5249c78fcf1ac208c75293ae82e942",
+        "rev": "c1db351638341950e4e6af2e381d798255f4d65c",
         "type": "github"
       },
       "original": {
@@ -787,10 +787,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1792963762,
-        "narHash": "sha256-ThRNX0+T2Gb3ZD0Xf+/R3wJdL93/mW80ubMnLjZelTY=",
+        "lastModified": 1793063583,
+        "narHash": "sha256-avFKNlbqAAdwJtmB5gbB5W/1fQz0ftIH4ET6FQcpXu0=",
         "ref": "main",
-        "rev": "ed68d814d6cf2e221ba43d84f1e32429f5e2786f",
+        "rev": "cfb35e5835c4ca6faa811ba38a94f755ecfcb393",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/0xc000022070/zen-browser-flake.git"
