@@ -183,7 +183,8 @@ Both NixOS hosts provide Varlock, the Bitwarden CLI, and the work schema from
 `nixos/secrets/varlock.yaml`, independently of the full work profile.
 Run `bw login` once on each machine, then unlock interactively with
 `varlock load -p ~/.config/varlock/work/.env.schema`. Varlock prompts for the
-Bitwarden master password and caches the session for the schema's session TTL.
+Bitwarden master password and caches the session for eight hours, as configured
+by the work schema's `sessionTtl`.
 Use `workenv COMMAND` to inject the resolved variables, including `TEAMCITY_URL`
 and `TEAMCITY_TOKEN`, into a command. Bare `varlock load` uses the current
 directory's schema, so pass the work schema path explicitly.
