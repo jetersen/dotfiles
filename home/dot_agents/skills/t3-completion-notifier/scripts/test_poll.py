@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
 import json
 import os
+import select
 import shutil
 from pathlib import Path
 import socket
@@ -516,6 +517,185 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     archive.write_bytes(b'updated bundle')
     with self.assertRaises(ValueError):
       local_endpoint.resolve(c)
+
+  def service_config(self):
+    c = self.database_config()
+    c['t3Compatibility'].pop('runtimePid')
+    c['t3Compatibility'].pop('runtimeIdentity')
+    c['t3Compatibility']['runtimeUnit'] = 'fixture-t3.service'
+    c['endpointTimeout'], c['httpTimeout'] = 10, 1
+    self.service_state = self.root / 'service.json'
+    ctl = self.root / 'systemctl'
+    ctl.write_text('#!' + sys.executable + '\nimport json\nfrom pathlib import Path\n'
+                   'for k,v in json.loads(Path(' + repr(str(self.service_state)) + ').read_text()).items():\n'
+                   ' print(k+"="+str(v))\n')
+    ctl.chmod(0o700)
+    c['systemctl'] = str(ctl)
+    c['endpointCommand'] = [sys.executable, '-B', str(HERE / 'local_endpoint.py'), '--config', str(self.config_path)]
+    self.c = c
+    self.config_path.write_text(json.dumps(c))
+    return c
+
+  def runtime_server(self, c, port=0, database=None, host='127.0.0.1'):
+    """A real child owns a synthetic SQLite file and loopback HTTP listener."""
+    script = self.root / 'runtime.py'
+    script.write_text('''import hashlib,hmac,json,sqlite3,sys
+from http.server import HTTPServer,BaseHTTPRequestHandler
+from pathlib import Path
+db=sqlite3.connect(sys.argv[1])
+class Handler(BaseHTTPRequestHandler):
+ def log_message(self,*args):pass
+ def do_POST(self):
+  body=self.rfile.read(int(self.headers['Content-Length']))
+  key=b'synthetic-signing-key-for-disposable-tests'
+  signature='sha256='+hmac.new(key,body,hashlib.sha256).hexdigest()
+  valid=hmac.compare_digest(self.headers.get('x-t3-notify-signature',''),signature)
+  if valid:Path(sys.argv[4]).write_bytes(body)
+  self.send_response(202 if valid else 401)
+  self.send_header('x-t3-hook-outcome','accepted' if valid else 'rejected_signature')
+  self.end_headers()
+class Server(HTTPServer):
+ address_family=__import__('socket').AF_INET6 if ':' in sys.argv[2] else __import__('socket').AF_INET
+server=Server((sys.argv[2],int(sys.argv[3])),Handler)
+print(json.dumps({'port':server.server_port}),flush=True)
+server.serve_forever()
+''')
+    process = subprocess.Popen([sys.executable, str(script), database or c['t3Compatibility']['database'],
+                                host, str(port), str(self.root / 'received.json')],
+                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    def close():
+      if process.poll() is None:
+        process.terminate()
+      process.wait(timeout=5)
+      process.stdout.close()
+    self.addCleanup(close)
+    self.assertTrue(select.select([process.stdout], [], [], 5)[0], 'Fixture startup timed out')
+    ready = json.loads(process.stdout.readline())
+    self.service_state.write_text(json.dumps({'LoadState': 'loaded', 'ActiveState': 'active',
+                                            'MainPID': process.pid}))
+    address = '[' + host + ']' if ':' in host else host
+    c['t3Compatibility']['origin'] = f'http://{address}:{ready["port"]}'
+    self.config_path.write_text(json.dumps(c))
+    return process, ready['port']
+
+  def test_service_restart_retries_pending_event_without_rebinding_config(self):
+    c = self.service_config()
+    first, port = self.runtime_server(c)
+    before = Path(c['t3Compatibility']['database']).read_bytes()
+    self.assertEqual(local_endpoint.resolve(c)['signingKey'], KEY)
+    first.terminate(); first.wait(timeout=5)
+    self.service_state.write_text(json.dumps({'LoadState': 'loaded', 'ActiveState': 'inactive', 'MainPID': 0}))
+    with self.assertRaises(RuntimeError):
+      self.tick(deliver=poll.post)
+    pending = (self.state / 'pending-terminal.json').read_bytes()
+    config = self.config_path.read_bytes()
+    replacement, _ = self.runtime_server(c, port)
+    self.assertNotEqual(first.pid, replacement.pid)
+    self.assertEqual(self.config_path.read_bytes(), config)
+    def no_lookup(_):
+      self.fail('Pending delivery must not rerun the job adapter')
+    self.assertEqual(self.tick(fetch=no_lookup, deliver=poll.post), 'notified')
+    self.assertEqual((self.state / 'pending-terminal.json').read_bytes(), pending)
+    self.assertEqual(json.loads((self.root / 'received.json').read_text())['eventId'], json.loads(pending)['eventId'])
+    self.assertEqual(Path(c['t3Compatibility']['database']).read_bytes(), before)
+    self.assertEqual(len(self.stops), 1)
+
+  def test_service_runtime_rejects_wrong_listener_database_or_binary(self):
+    c = self.service_config()
+    process, port = self.runtime_server(c)
+    self.assertEqual(local_endpoint.resolve(c)['signingKey'], KEY)
+    for change in [{'runtimeSha256': '0' * 64}, {'origin': f'http://127.0.0.1:{port % 65535 + 1}'},
+                   {'runtimePid': process.pid}, {'runtimeUnit': '../fixture-t3.service'}]:
+      with self.assertRaises(ValueError):
+        local_endpoint.resolve({**c, 't3Compatibility': {**c['t3Compatibility'], **change}})
+    wrong_db = self.root / 'other.sqlite'
+    shutil.copyfile(c['t3Compatibility']['database'], wrong_db)
+    with self.assertRaises(ValueError):
+      local_endpoint.resolve({**c, 't3Compatibility': {**c['t3Compatibility'], 'database': str(wrong_db)}})
+    # A listener owned by another process in the same network namespace is insufficient.
+    self.service_state.write_text(json.dumps({'LoadState': 'loaded', 'ActiveState': 'active', 'MainPID': os.getpid()}))
+    with closing(sqlite3.connect(c['t3Compatibility']['database'])):
+      with self.assertRaises(ValueError):
+        local_endpoint.resolve(c)
+
+  def test_service_change_during_resolution_is_rejected(self):
+    c = self.service_config()
+    process, port = self.runtime_server(c)
+    connect = sqlite3.connect
+    def restart(*args, **kwargs):
+      connection = connect(*args, **kwargs)
+      process.terminate(); process.wait(timeout=5)
+      self.runtime_server(c, port)
+      return connection
+    with patch.object(local_endpoint.sqlite3, 'connect', side_effect=restart):
+      with self.assertRaises(ValueError):
+        local_endpoint.resolve(c)
+
+  def test_service_unavailable_does_not_read_credentials(self):
+    c = self.service_config()
+    process, _ = self.runtime_server(c)
+    for state in [{'LoadState': 'not-found', 'ActiveState': 'inactive', 'MainPID': 0},
+                  {'LoadState': 'loaded', 'ActiveState': 'deactivating', 'MainPID': process.pid},
+                  {'LoadState': 'loaded', 'ActiveState': 'active', 'MainPID': 0}]:
+      self.service_state.write_text(json.dumps(state))
+      with patch.object(local_endpoint.sqlite3, 'connect', side_effect=AssertionError('Credential read')):
+        with self.assertRaises(ValueError):
+          local_endpoint.resolve(c)
+
+  @unittest.skipUnless(socket.has_ipv6, 'IPv6 is unavailable')
+  def test_service_ipv6_listener_ownership(self):
+    c = self.service_config()
+    try:
+      process, _ = self.runtime_server(c, host='::1')
+    except (json.JSONDecodeError, OSError):
+      self.skipTest('IPv6 loopback is unavailable')
+    self.assertEqual(local_endpoint.resolve(c)['signingKey'], KEY)
+
+  @unittest.skipUnless(os.environ.get('T3_NOTIFY_SYSTEMD_TEST') == '1', 'explicit disposable systemd smoke')
+  def test_real_user_service_restart_delivers_preserved_event(self):
+    c = self.service_config()
+    bootstrap, port = self.runtime_server(c)
+    bootstrap.terminate(); bootstrap.wait(timeout=5)
+    ctl = str(Path(shutil.which('systemctl')).resolve())
+    name = 't3-notify-runtime-fixture-' + c['watchId'] + '.service'
+    ready = self.root / 'ready.json'
+    c['systemctl'] = ctl
+    c['t3Compatibility']['runtimeUnit'] = name
+    self.config_path.write_text(json.dumps(c))
+    def cleanup():
+      subprocess.run([ctl, '--user', 'stop', name], capture_output=True, timeout=5)
+      subprocess.run([ctl, '--user', 'reset-failed', name], capture_output=True, timeout=5)
+    self.addCleanup(cleanup)
+    # The launcher exits; the fixture server remains in its own user service.
+    subprocess.run(['systemd-run', '--user', '--unit=' + name, '--property=Type=exec',
+                    '--property=UMask=0077', '--property=Restart=always', '--property=RestartSec=5',
+                    '--property=StandardOutput=file:' + str(ready), '--property=StandardError=null',
+                    sys.executable, str(self.root / 'runtime.py'), c['t3Compatibility']['database'],
+                    '127.0.0.1', str(port), str(self.root / 'received.json')],
+                   capture_output=True, check=True, timeout=5)
+    def wait_runtime(different=None):
+      deadline = time.monotonic() + 20
+      while time.monotonic() < deadline:
+        try:
+          pid, _ = local_endpoint.runtime_state(c)
+          local_endpoint.verify_binding(pid, local_endpoint.urllib.parse.urlsplit(c['t3Compatibility']['origin']),
+                                        Path(c['t3Compatibility']['database']))
+          if pid != different:
+            return pid
+        except (OSError, ValueError, RuntimeError):
+          pass
+        time.sleep(.1)
+      self.fail('Disposable user service did not become ready')
+    first_pid = wait_runtime()
+    subprocess.run([ctl, '--user', 'kill', '--signal=KILL', name], capture_output=True, check=True, timeout=5)
+    with self.assertRaises(RuntimeError):
+      self.tick(deliver=poll.post)
+    pending = (self.state / 'pending-terminal.json').read_bytes()
+    second_pid = wait_runtime(first_pid)
+    self.assertNotEqual(first_pid, second_pid)
+    self.assertEqual(self.tick(deliver=poll.post), 'notified')
+    self.assertEqual((self.state / 'pending-terminal.json').read_bytes(), pending)
+    self.assertEqual(json.loads((self.root / 'received.json').read_text())['eventId'], json.loads(pending)['eventId'])
 
   @unittest.skipUnless(os.environ.get('T3_NOTIFY_SYSTEMD_TEST') == '1', 'explicit disposable systemd smoke')
   def test_real_timer_active_terminal_ack_stop(self):

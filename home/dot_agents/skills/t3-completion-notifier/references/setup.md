@@ -2,6 +2,20 @@
 
 Requires Linux, Python 3.11+, and an existing systemd user manager. Check whether the user manager survives logout; discover its bus normally if needed. Do not enable lingering or change login policy silently. The helper itself needs no third-party Python packages or Varlock. OpenSSL is used only by the disposable TLS tests.
 
+## Job independence
+
+The timer and the job's orchestrator must both survive the T3/provider session ending. For a remote job, verify that its authoritative controller runs independently. For a local orchestrator, inspect its ancestry and cgroup and verify a separate owned user service rather than relying on an agent terminal, `nohup`, `disown` or a lock. A process can be outside the T3 server's cgroup yet still belong to a provider scope that T3 cancels.
+
+Use read-only checks against the exact discovered runner, for example:
+
+```sh
+ps -o pid,ppid,sid,pgid,comm -p "$JOB_PID"
+cat "/proc/$JOB_PID/cgroup"
+systemctl --user show "$JOB_UNIT" -p MainPID -p ControlGroup -p KillMode -p RemainAfterExit
+```
+
+For an already-running job, use its authorized checkpoint/recovery policy to establish an independent orchestrator if needed; inspect current child jobs first and avoid duplicate submissions. The notifier does not move, resume or restart the job. Capture durable exit/result evidence independently of transient unit collection. If an interrupted orchestrator leaves remote work running, the receiving agent must reconcile it before recovery.
+
 ## Status adapter
 
 Write a job-specific, read-only executable that prints exactly one JSON object and exits zero for a completed status lookup:
@@ -88,4 +102,4 @@ python3 -B -m unittest discover -s "$SKILL/scripts" -p test_poll.py
 T3_NOTIFY_SYSTEMD_TEST=1 python3 -B -m unittest discover -s "$SKILL/scripts" -p test_poll.py
 ```
 
-The first uses temporary status files, a synthetic read-only SQLite store, and disposable signed loopback HTTP/HTTPS endpoints. It checks certificate/hostname verification, remote HTTP rejection, proxy/redirect refusal, and identical-event retries. The second additionally creates one unique transient user timer, observes a quiet active tick, switches its fixture to terminal, retries a failed HTTP delivery, checks acknowledgement and timer stop, then cleans its exact units. It never calls T3 or a production provider. Run on the intended timer host. Job-specific fixtures should exercise the adapter's status and evidence parsing, including wrong execution identities and missing or invalid completion evidence, before installation.
+The first uses temporary status files, a synthetic read-only SQLite store, and disposable signed loopback HTTP/HTTPS endpoints. It checks certificate/hostname verification, remote HTTP rejection, proxy/redirect refusal, and identical-event retries across a same-code server restart. Service-mode resolver fixtures use real child processes, loopback listeners and synthetic SQLite files to check ownership and rejection boundaries. The second additionally checks a quiet active tick, terminal delivery retry and timer stop with a unique transient timer. It also restarts a separate disposable server service and delivers its preserved pending event. Both tests clean their exact units and never call T3 or a production provider. Run on the intended timer host. Job-specific fixtures should exercise the adapter's status and evidence parsing, including wrong execution identities and missing or invalid completion evidence, before installation.

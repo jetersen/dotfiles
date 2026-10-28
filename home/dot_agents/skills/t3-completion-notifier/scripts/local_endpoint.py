@@ -3,13 +3,16 @@ import argparse
 from contextlib import closing
 import hashlib
 import json
+import os
 from pathlib import Path
+import re
 import resource
+import socket
 import sqlite3
 import sys
 import urllib.parse
 
-from poll import endpoint_url, loopback_url, SIGNATURE
+from poll import command, endpoint_url, loopback_url, SIGNATURE
 
 
 def runtime_identity(pid):
@@ -21,18 +24,69 @@ def runtime_identity(pid):
           'startTicks': int(stat[19])}
 
 
+def runtime_state(c):
+  compat = c['t3Compatibility']
+  if 'runtimeUnit' not in compat:
+    pid = compat['runtimePid']
+    identity = runtime_identity(pid)
+    if identity != compat['runtimeIdentity']:
+      raise ValueError('Runtime restarted; rediscover compatibility')
+    return pid, identity
+  name = compat['runtimeUnit']
+  if (not isinstance(name, str) or len(name) > 255 or
+      not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9_:@.-]*\.service', name) or
+      'runtimePid' in compat or 'runtimeIdentity' in compat or
+      not Path(c['systemctl']).is_absolute()):
+    raise ValueError('One explicit user service required')
+  raw = command([c['systemctl'], '--user', 'show', name,
+                 '--property=LoadState,ActiveState,MainPID'], 2, 4096)
+  fields = dict(line.split('=', 1) for line in raw.decode().splitlines() if '=' in line)
+  pid = int(fields['MainPID'])
+  if (fields.get('LoadState') != 'loaded' or fields.get('ActiveState') != 'active' or
+      pid <= 0 or
+      Path('/proc', str(pid)).stat().st_uid != os.getuid()):
+    raise ValueError('Expected user service unavailable')
+  return pid, runtime_identity(pid)
+
+
+def verify_binding(pid, origin, database):
+  """Verify the declared local listener and SQLite inode before releasing credentials."""
+  expected_db = database.stat()
+  owns_db, sockets = False, set()
+  for fd in Path('/proc', str(pid), 'fd').iterdir():
+    try:
+      target = os.readlink(fd)
+      if target.startswith('socket:['):
+        sockets.add(target[8:-1])
+      stat = fd.stat()
+      owns_db |= (stat.st_dev, stat.st_ino) == (expected_db.st_dev, expected_db.st_ino)
+    except FileNotFoundError:
+      continue  # An unrelated descriptor can close during the snapshot.
+  if not owns_db:
+    raise ValueError('Runtime does not own configured database')
+  ipv4 = origin.hostname == '127.0.0.1'
+  address = socket.inet_pton(socket.AF_INET if ipv4 else socket.AF_INET6, origin.hostname)
+  address = b''.join(address[i:i + 4][::-1] for i in range(0, len(address), 4)).hex().upper()
+  table = Path('/proc', str(pid), 'net', 'tcp' if ipv4 else 'tcp6').read_text()
+  for line in table.splitlines()[1:]:
+    fields = line.split()
+    host, port = fields[1].split(':')
+    if (fields[3] == '0A' and fields[9] in sockets and int(port, 16) == origin.port and
+        host in {address, '0' * len(address)}):
+      return
+  raise ValueError('Runtime does not own configured loopback listener')
+
+
 def resolve(c):
   compat = c['t3Compatibility']
   origin = compat['origin']
   parsed = urllib.parse.urlsplit(loopback_url(origin + '/'))
   if parsed.path != '/' or origin.endswith('/'):
     raise ValueError('Bare loopback origin required')
-  pid = compat['runtimePid']
-  identity = runtime_identity(pid)
-  if identity != compat['runtimeIdentity']:
-    raise ValueError('Runtime restarted; rediscover compatibility')
+  pid, identity = runtime_state(c)
   # Inspect the exact bundle before pinning its hash, boot ID and start time.
   with (Path('/proc') / str(pid) / 'exe').open('rb') as stream:
+    executable = os.fstat(stream.fileno())
     digest = hashlib.file_digest(stream, 'sha256').hexdigest()
   if digest != compat['runtimeSha256'] or runtime_identity(pid) != identity:
     raise ValueError('Runtime changed; inspect compatibility again')
@@ -48,6 +102,8 @@ def resolve(c):
   db = Path(compat['database'])
   if not db.is_absolute():
     raise ValueError('Absolute database required')
+  if 'runtimeUnit' in compat:
+    verify_binding(pid, parsed, db)
   # Read only this exact new task's credentials; never enumerate app secrets.
   with closing(sqlite3.connect(db.as_uri() + '?mode=ro', uri=True, timeout=2)) as connection:
     row = connection.execute(
@@ -70,6 +126,13 @@ def resolve(c):
   if (not isinstance(token, str) or not token or len(token) > 512 or
       not isinstance(key, str) or not 32 <= len(key.encode()) <= 4096):
     raise ValueError('Missing or invalid credentials')
+  if runtime_state(c) != (pid, identity):
+    raise ValueError('Runtime changed during credential resolution')
+  current_exe = Path('/proc', str(pid), 'exe').stat()
+  if (current_exe.st_dev, current_exe.st_ino) != (executable.st_dev, executable.st_ino):
+    raise ValueError('Runtime executable changed')
+  if 'runtimeUnit' in compat:
+    verify_binding(pid, parsed, db)
   delivery_origin = c.get('httpsOrigin', origin)
   url = delivery_origin + '/api/hooks/' + urllib.parse.quote(c['scheduledTaskId'], safe='') + '/' + urllib.parse.quote(token, safe='')
   return {'url': endpoint_url(c, url), 'signingKey': key}

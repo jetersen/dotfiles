@@ -39,24 +39,37 @@ Search matching source under `~/git` first, then verify it against the **running
 - Positive admission is status 202 with `x-t3-hook-outcome: accepted|duplicate`, replay dedupe lasts seven days, and asynchronous dispatch may still fail after acceptance.
 - The identified process owns the discovered listener/database. Any selected network route reaches that exact environment.
 
-Record the inspected executable's SHA-256, boot ID, and process start ticks. `runtime_identity(pid)` in the helper reads the latter two from Linux `/proc`; capture only those non-secret fields, never call the credential resolver in visible output. These guards detect restart/PID reuse, including the same executable, at each credential-resolution attempt. Active status-only ticks do not resolve credentials. The helper does not independently revalidate listener/database ownership, so rediscover that relationship after a restart or routing change. If the same inspected executable/bundle and exact listener/database binding remain valid, refresh only `runtimePid` and `runtimeIdentity` in the existing watch config; keep its watch ID, schedule and pending/receipt state. A listener change alone does not require recreating the webhook or changing transport. For a regular Electron desktop app, include the exact loaded `resources/app.asar` in `runtimeArtifacts` as shown below. The helper hashes each declared artifact as well as the process executable; an executable hash alone does not cover embedded server code. Discover the loaded archive from the process/installation, not a newer desktop launcher on PATH.
+For T3 managed by an existing systemd user service, use its exact discovered `runtimeUnit` and pin the inspected executable's SHA-256. At each credential-resolution attempt, the helper obtains the active unit's current `MainPID`, requires the same user and inspected executable/bundle, and verifies that process owns both the configured loopback listener and SQLite file. It checks process identity, executable identity and ownership again before returning credentials. Temporary downtime fails that tick; later ticks discover a replacement process running the same inspected code. No config rewrite or new event is needed after an ordinary restart. A changed executable or declared artifact still requires compatibility inspection before updating its pin.
 
-Add to the watch config (illustrative paths/port/identity only):
+Example for a standalone server managed by a user service (discover all values):
 
 ```json
 {
+  "endpointTimeout": 10,
   "t3Compatibility": {
     "origin": "http://127.0.0.1:12345",
     "database": "/absolute/discovered/app.sqlite",
-    "runtimePid": 1234,
-    "runtimeSha256": "sha256-of-inspected-running-server-executable",
-    "runtimeIdentity": {"bootId": "discovered-boot-id", "startTicks": 123456},
-    "runtimeArtifacts": [{"path":"/absolute/loaded/resources/app.asar","sha256":"sha256-of-inspected-loaded-archive"}]
+    "runtimeUnit": "discovered-t3.service",
+    "runtimeSha256": "sha256-of-inspected-running-server-executable"
   }
 }
 ```
 
-Omit `runtimeArtifacts` only for a self-contained standalone executable whose inspected hash covers the server code.
+The unit's main process must be the server that owns the listener/database. Do not select a desktop launcher or wrapper whose child owns them. Discover the absolute `systemctl` path as in setup.md. The ownership check requires readable Linux `/proc` metadata for that process. If an unchanged server restarts during a check, the helper rejects that attempt and retries later with the same pending event. Active status-only ticks do not resolve credentials. This mode checks local listener ownership; verify any remote HTTPS proxy still reaches that exact environment separately.
+
+For an unmanaged server or the regular desktop app, replace `runtimeUnit` with explicit `runtimePid` and `runtimeIdentity` instead:
+
+```json
+{
+  "runtimePid": 1234,
+  "runtimeIdentity": {"bootId": "discovered-boot-id", "startTicks": 123456},
+  "runtimeArtifacts": [{"path":"/absolute/loaded/resources/app.asar","sha256":"sha256-of-inspected-loaded-archive"}]
+}
+```
+
+These fields belong inside `t3Compatibility`. `runtime_identity(pid)` reads boot ID and process start ticks from Linux `/proc`; capture only that non-secret identity, never credential resolver output. This fixed-PID mode deliberately requires manual rediscovery after restart/PID reuse and does not independently revalidate listener/database ownership. For a regular Electron app, include its exact loaded `resources/app.asar` in `runtimeArtifacts`; an executable hash alone does not cover embedded server code. Discover the loaded archive from the process/installation, not a newer launcher on PATH. Omit artifacts only for a self-contained inspected executable. The same artifact pins also apply in service mode when needed.
+
+During manual recovery, verify the same inspected code and exact listener/database binding, then refresh only `runtimePid` and `runtimeIdentity`. Preserve the watch ID, schedule, pending event and acceptance receipt. An accepted event must not be rearmed by deleting its receipt; reconcile it and use a new watch for separately resumed work.
 
 Set `endpointCommand` to `["/absolute/python3", "/absolute/skill/scripts/local_endpoint.py", "--config", "/absolute/watch/config.json"]`. The resolver requires the expected project/thread, enabled webhook, exact job/watch/terminal-event filters, `{{body.eventId}}` replay key, no coalescing, and the fixed signature descriptor in setup.md. Unsigned schedules fail closed. For a remote sender, the resolver must still run on the T3 host through an already authorized mechanism, or use native API discovery plus its own local key storage. It cannot read a remote SQLite store simply because the listener is reachable over Tailscale or HTTPS.
 
