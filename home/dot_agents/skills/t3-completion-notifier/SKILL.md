@@ -10,7 +10,7 @@ Use a systemd user timer for short status checks and a T3 webhook to wake this t
 1. Define the exact execution identity and authoritative success/failure evidence. Missing results or a disappeared process do not establish success.
 2. Read [setup.md](references/setup.md) for the adapter, config, webhook prompt and commands. Use a private watch directory and a fresh UUID; retain both when resuming that same watch.
 3. Read the live T3 scheduling schemas. Create one signed webhook bound to this thread, with exact job/watch/event filters, event-ID replay dedupe and no coalescing. Complete the private signing-key request and consume its `secretRef`. Recover uncertain creation responses using the original `clientRequestId`.
-4. Use loopback locally or an existing verified HTTPS endpoint remotely. Use service discovery. Read [local-compatibility.md](references/local-compatibility.md) when implementing credential discovery or the SQLite fallback.
+4. Use a local webhook or an existing Tailscale HTTPS endpoint with the same signing setup. Use service discovery. Read [local-compatibility.md](references/local-compatibility.md) for endpoint and credential discovery.
 5. Validate the job adapter with active, successful, failed, wrong-identity and incomplete-evidence fixtures. Enable the webhook, preflight, start the timer and verify its first tick. Replace old agent check-ins after a valid active tick, or after terminal reconciliation if already finished. Give queued old turns a supersession check.
 
 Report the host, cadence, state/log path and schedule ID. Keep each watch's helper/config stable until reconciliation.

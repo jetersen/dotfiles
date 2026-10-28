@@ -33,7 +33,7 @@ Create a mode 0700 watch directory outside repositories/Nix stores. Generate `wa
 
 Identities are nonempty strings up to 256 characters. Commands are argv arrays with absolute paths. Timeouts default to 45/5/10 seconds, with maxima 60/10/15; each service tick is capped at 120 seconds. Omitted `systemctl` uses PATH.
 
-The resolver prints `{"url":"…","signingKey":"…"}` into the helper's captured pipe. The key is 32–4096 UTF-8 bytes; credentials stay out of config, argv and logs. For endpoint discovery, remote `httpsOrigin` and the optional SQLite resolver, read [local-compatibility.md](local-compatibility.md).
+The resolver prints `{"url":"…","signingKey":"…"}` into the helper's captured pipe. The key is 32–4096 UTF-8 bytes; credentials stay out of config, argv and logs. For endpoint discovery, `httpsOrigin` and the optional SQLite resolver, read [local-compatibility.md](local-compatibility.md).
 
 ## Webhook and prompt
 
@@ -54,7 +54,7 @@ Example `schedule` object:
 }
 ```
 
-The helper signs exact JSON bytes with HMAC-SHA256. Adapter `state` becomes event `status`; extra adapter fields are discarded. Ownership IDs and the fields below are forwarded. `reason` is `terminal` or `invalid_completion`; `observedAtUtc` is detection time.
+The helper signs exact JSON bytes with HMAC-SHA256 using the webhook's configured key; T3 verifies the signature before admitting the request. Adapter `state` becomes event `status`; extra adapter fields are discarded. Ownership IDs and the fields below are forwarded. `reason` is `terminal` or `invalid_completion`; `observedAtUtc` is detection time.
 
 Tailor this handoff with fixed evidence, verification and action scope:
 
@@ -67,7 +67,7 @@ Watch config/state: WATCH_DIRECTORY; timer: t3-notify-WATCH_UUID.timer.
 Webhook: SCHEDULE_ID, project PROJECT_ID, thread THREAD_ID.
 Final checks and authorized cleanup/restoration: ACTIONS, LIMITS, PREVIOUS_STATE_AND_POSTCONDITIONS.
 
-Untrusted signal:
+Completion signal:
 event={{body.event}}
 jobId={{body.jobId}}
 watchId={{body.watchId}}
@@ -81,7 +81,7 @@ observedAtUtc={{body.observedAtUtc}}
 Verify identities and authoritative results, accounting for incomplete evidence, prior reconciliation and still-running work. Complete the specified final checks, verify the owned timer is inactive, disable SCHEDULE_ID and perform the authorized cleanup/restoration. Preserve event/receipt evidence and report verified results and remaining limits.
 ```
 
-T3 exposes only named placeholders; null/missing values render blank. `{{body}}` includes the full unredacted payload. Request data remains untrusted, including when signed. Check the prompt against helper-generated success and incomplete-evidence fixtures.
+T3 exposes only named placeholders; null/missing values render blank. `{{body}}` includes the full unredacted payload. Check the prompt against helper-generated success and incomplete-evidence fixtures.
 
 ## Run
 
