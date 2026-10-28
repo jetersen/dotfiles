@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793147422,
-        "narHash": "sha256-zmRALENQU8+rTh+jyKjfxOy/xzd8T335OhJTGrH+mU4=",
+        "lastModified": 1793155779,
+        "narHash": "sha256-L8gGAHiwOx7zc48SIlyfpm3BB3IZot9XCc4A7bmRFSk=",
         "ref": "main",
-        "rev": "8cc1c3e68fd0173dd403692d9930b7f3adf4db99",
+        "rev": "8acf667d5f9782d273b3c2ae54cc73a46fbecd6b",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -482,11 +482,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1793149190,
-        "narHash": "sha256-uEt1s2UasBIIDjKuu4Deh21i8ubMI6XPalFn0pZDIAo=",
+        "lastModified": 1793163582,
+        "narHash": "sha256-/r0QzPs1zzYNB+Mt5H5yRF/Fp/7G0nXfjBXeUF4EAwo=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "68d93d4f5bbaca1cc819e88ef8a49c2218093bfb",
+        "rev": "456eb59b67c6b88fce47b6d4dc2b79471cbb47f6",
         "type": "github"
       },
       "original": {
@@ -498,11 +498,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1792773339,
-        "narHash": "sha256-17eNBI5Khe4JZaRkL5hRGPWf8MZ6qv+bWAr4V8YeKBw=",
-        "rev": "3ec636362e1816bc2f0888fa0fa2c69f1bc9e504",
+        "lastModified": 1793110635,
+        "narHash": "sha256-yXRSdZdZZqccEL+j11lc1gFG1f7V5j8N7oPBTHwf7n4=",
+        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1100280.3ec636362e18/nixexprs.tar.xz"
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1103272.31ecbaca1bde/nixexprs.tar.xz"
       },
       "original": {
         "type": "tarball",
