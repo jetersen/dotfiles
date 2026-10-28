@@ -89,6 +89,13 @@
   ],
   "packageRules": [
     {
+      "description": "Stay on Freelens v1 until Karpenter, FluxCD and Gateway API extensions support the incompatible v2 API",
+      "matchPackageNames": [
+        "freelensapp/freelens"
+      ],
+      "allowedVersions": "<2.0.0"
+    },
+    {
       "matchPackageNames": [
         "pingdotgg/t3code"
       ],
