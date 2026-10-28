@@ -9,11 +9,11 @@
 }:
 let
   # Rebase the source patch and refresh the dependency hash with release updates.
-  version = "0.1.1";
+  version = "0.1.3";
   src = fetchurl {
     name = "t3code-${version}.tar.gz";
-    url = "https://codeload.github.com/pingdotgg/t3code/tar.gz/fe27e8e3dc12dcbb108e9a28fd9b8cb65f34ae92";
-    hash = "sha256-F4osH/y7/CYb5JCOf8PZpNjxMMIjHfm87FeklRjgzwo=";
+    url = "https://codeload.github.com/pingdotgg/t3code/tar.gz/d2c440312e5f39d59827ed466838a623516454d6";
+    hash = "sha256-lrOcSoNgffyLT5/S66QPdedttQbHdpCck1VZcGhRVFE=";
   };
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -37,7 +37,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       pnpmWorkspaces
       ;
     fetcherVersion = 4;
-    hash = "sha256-QyhQ85h/dkD2s7vkKiGTeiXhJzlCHNDSwsUI18d+nHE=";
+    hash = "sha256-pMDsUeCzEMlJClt+BSlap98b5oZn0drHMrD8n5wS4PQ=";
   };
   env = {
     ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
