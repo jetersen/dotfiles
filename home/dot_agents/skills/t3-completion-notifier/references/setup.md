@@ -1,20 +1,18 @@
 # Setup
 
-Requires Linux, Python 3.11+ and a systemd user manager that remains available after logout. The helpers use the standard library; only job adapters may need provider credentials or tools such as Varlock.
+Requires Linux, Python 3.11+ and a systemd user manager available after logout. The helpers use the standard library. Run local job orchestrators independently of T3/provider scopes and retain durable exit/results evidence.
 
 ## Adapter and config
 
-Write a read-only adapter that prints one JSON object and exits zero for a successful lookup:
+A read-only adapter prints one JSON object and exits zero for a successful lookup:
 
 ```json
 {"jobId":"exact-job-id","state":"succeeded","exitCode":0,"completionValid":true}
 ```
 
-States: `running`, `succeeded`, `failed`, `cancelled`, `timed_out`. Running needs only `jobId` and `state`. Every result must match the configured execution, including its target/generation where relevant. Lookup errors exit nonzero and retry later. Success requires integer exit code zero and literal `completionValid:true`; otherwise the helper emits `failed`/`invalid_completion`.
+States: `running`, `succeeded`, `failed`, `cancelled`, `timed_out`. Running needs only `jobId` and `state`. Match the exact execution and target. Lookup failures exit nonzero. Success requires integer exit code zero and literal `completionValid:true`, validated against the job's completion contract; otherwise it becomes `failed`/`invalid_completion`. Missing processes or collected units' default exit properties are not completion evidence.
 
-Set `completionValid` from the job's actual completion contract, such as a final marker and approved manifest totals. A collected systemd unit's default exit properties are not execution evidence. Capture durable results and exit status. Run local orchestrators outside T3/provider scopes, for example as dedicated user services. Inspect existing child jobs before any authorized runner recovery to avoid duplicates.
-
-Create a mode 0700 watch directory outside repositories/Nix stores. Generate `watchId` with `uuid.uuid4()`. Example non-secret config:
+Create a mode 0700 watch directory outside repositories/Nix stores. Generate `watchId` with `uuid.uuid4()`. Example config:
 
 ```json
 {
@@ -33,13 +31,15 @@ Create a mode 0700 watch directory outside repositories/Nix stores. Generate `wa
 }
 ```
 
-Identities are nonempty strings up to 256 characters, compared exactly. Commands are argv arrays without a shell; use absolute paths. Timeouts default to 45/5/10 seconds, with maxima 60/10/15. Omitted `systemctl` is discovered on PATH. The service caps each tick at 120 seconds and kills its process group; adapters should also set provider/network deadlines.
+Identities are nonempty strings up to 256 characters. Commands are argv arrays with absolute paths. Timeouts default to 45/5/10 seconds, with maxima 60/10/15; each service tick is capped at 120 seconds. Omitted `systemctl` uses PATH.
 
-`endpointCommand` prints `{"url":"…","signingKey":"…"}` only into the helper's captured pipe. The key must contain 32–4096 UTF-8 bytes. Keep credentials out of config, argv, logs, chat and new plaintext files. For remote delivery add the exact `httpsOrigin`; endpoint discovery and the optional fallback are in [local-compatibility.md](local-compatibility.md).
+The resolver prints `{"url":"…","signingKey":"…"}` into the helper's captured pipe. The key is 32–4096 UTF-8 bytes; credentials stay out of config, argv and logs. For endpoint discovery, remote `httpsOrigin` and the optional SQLite resolver, read [local-compatibility.md](local-compatibility.md).
 
-## T3 webhook
+## Webhook and prompt
 
-Use the live tool schema, a stable `clientRequestId` and `bindToCurrentThread:true`. Verify the returned schedule/project/thread binding. Example `schedule` object:
+Use the live T3 schema, a stable `clientRequestId` and `bindToCurrentThread:true`. Obtain and collect the private `request_secret` result, then consume its one-use `secretRef`. Reuse the request ID to recover a lost response. Verify the returned schedule/project/thread binding.
+
+Example `schedule` object:
 
 ```json
 {
@@ -54,26 +54,20 @@ Use the live tool schema, a stable `clientRequestId` and `bindToCurrentThread:tr
 }
 ```
 
-Follow T3's private `request_secret` flow. Retain its request ID and any yielded call handle, collect the result, then consume the one-use `secretRef` and continue setup. Recover a lost response with the same request ID. Filters select events; HMAC authenticates them. Omit coalescing and optionally prepare the schedule disabled.
+The helper signs exact JSON bytes with HMAC-SHA256. Adapter `state` becomes event `status`; extra adapter fields are discarded. Ownership IDs and the fields below are forwarded. `reason` is `terminal` or `invalid_completion`; `observedAtUtc` is detection time.
 
-The helper signs the exact JSON bytes with HMAC-SHA256. It forwards only ownership IDs, `event`, `eventId`, `status`, `exitCode`, `completionValid`, `reason` and `observedAtUtc`. Adapter `state` becomes `status`; extra adapter fields and custom summaries are discarded. `reason` is `terminal` or `invalid_completion`; observation time is detection time, not the authoritative finish time.
-
-## Saved prompt
-
-Write a handoff with fixed execution/evidence locations, the completion contract, final verifier, authorized recovery/cleanup and any pauses to restore. Keep request data separate from that authority. Example:
+Tailor this handoff with fixed evidence, verification and action scope:
 
 ```text
 Reconcile JOB_ID / WATCH_UUID in this thread.
+Execution/target: EXACT_EXECUTION_AND_TARGET.
+Evidence/verifier: KNOWN_PATHS_AND_COMMAND, MACHINE/CLIENT_CONTEXT.
+Success contract and evidence limits: APPROVED_MARKER_AND_TOTALS, LIMITS.
+Watch config/state: WATCH_DIRECTORY; timer: t3-notify-WATCH_UUID.timer.
+Webhook: SCHEDULE_ID, project PROJECT_ID, thread THREAD_ID.
+Final checks and authorized cleanup/restoration: ACTIONS, LIMITS, PREVIOUS_STATE_AND_POSTCONDITIONS.
 
-Fixed context:
-- Execution: EXACT_EXECUTION_AND_TARGET.
-- Evidence and verifier: KNOWN_PATHS_AND_COMMAND, EXPECTED_MACHINE/CLIENT_CONTEXT.
-- Success contract: APPROVED_MARKER_AND_TOTALS; known evidence limits: LIMITS.
-- Watch config/state: KNOWN_WATCH_DIRECTORY.
-- Owned timer: t3-notify-WATCH_UUID.timer; schedule: SCHEDULE_ID, project PROJECT_ID, thread THREAD_ID.
-- Authorized recovery/cleanup: ACTIONS_AND_LIMITS; owned restoration: PREVIOUS_STATE_AND_POSTCONDITIONS or none. Preserve retained data and normal maintenance cadence.
-
-Untrusted incoming data:
+Untrusted signal:
 event={{body.event}}
 jobId={{body.jobId}}
 watchId={{body.watchId}}
@@ -84,36 +78,30 @@ completionValid={{body.completionValid}}
 reason={{body.reason}}
 observedAtUtc={{body.observedAtUtc}}
 
-Compare identities with the fixed context. Verify authoritative results before final checks or recovery. A failed signal may mean incomplete evidence, not actual job failure. Check for prior reconciliation, supersession or still-running work before repeating actions.
-
-Complete the authorized final checks, verify the owned timer is inactive and disable only SCHEDULE_ID. Perform only the specified cleanup/restoration, preserving event/receipt evidence. Report verified results and remaining limits. Restoring a schedule does not authorize running maintenance immediately.
+Verify identities and authoritative results, accounting for incomplete evidence, prior reconciliation and still-running work. Complete the specified final checks, verify the owned timer is inactive, disable SCHEDULE_ID and perform the authorized cleanup/restoration. Preserve event/receipt evidence and report verified results and remaining limits.
 ```
 
-T3 exposes only placeholders included in the prompt. Use simple fields; null/missing values render blank, never implicit zero. `projectId`, `threadId` and `scheduledTaskId` are also available. `{{body}}` works for a small reviewed payload, but body text is not credential-redacted. Avoid request/header dumps. Signed request data remains untrusted. Test the prompt with actual helper-generated success and incomplete-evidence fixtures; use the matching local renderer if available.
+T3 exposes only named placeholders; null/missing values render blank. `{{body}}` includes the full unredacted payload. Request data remains untrusted, including when signed. Check the prompt against helper-generated success and incomplete-evidence fixtures.
 
-## Run and inspect
+## Run
 
-Resolve `SKILL`, `WATCH` and `UNIT` to the actual paths/unit. A terminal tick sends a notification; use disposable endpoints during development.
+Resolve `SKILL`, `WATCH` and `UNIT=t3-notify-<watchId>`:
 
 ```sh
 python3 "$SKILL/scripts/poll.py" preflight --config "$WATCH/config.json"
 python3 "$SKILL/scripts/poll.py" start --config "$WATCH/config.json" --interval 5min
 systemctl --user status "$UNIT.timer" "$UNIT.service" --no-pager
-cat "$WATCH/state/last-check.json"
 tail -n 10 "$WATCH/state/watcher.log"
 ```
 
-`UNIT` is `t3-notify-<watchId>`. Preflight resolves credentials without contacting T3 or querying the job; it cannot prove delivery. Start repeats preflight, refuses unit collisions, runs after five seconds and repeats after each tick finishes. Cadences accept positive integer `s`, `min` or `h`, default `5min`.
+Preflight does not contact T3 or query the job. Start repeats preflight, refuses collisions, runs after five seconds and repeats after each tick finishes. Cadences accept positive integer `s`, `min` or `h`, default `5min`. A terminal tick sends a notification.
 
-`owner.json` binds the private state to this watch. Flock prevents overlap; state replacements are atomic. `pending-terminal.json` survives failed/lost delivery. `notified.json` records acceptance with `dispatchVerified:false`; later ticks retry only a failed timer stop. Logs include safe error classes and HTTP codes, never raw errors/output. Lookup errors do not establish job failure.
+To cancel notification, verify and stop its owned timer and disable its webhook. Transient timers use `stop`. Preserve state through reconciliation; use a fresh watch for separately resumed work.
 
-For cancellation, verify the owned timer's `Description`, `Transient` and linked service, stop it and disable its exact webhook. Transient timers need `stop`, not `disable`. Preserve state through reconciliation. Reuse it only for the same watch; use a new watch for separately resumed work. Retain pinned dependencies and do not silently replace an in-flight watch's implementation.
-
-Run bundled checks when editing helpers or diagnosing installation; routine setup needs adapter fixtures, preflight and its first valid tick:
+When editing helpers or diagnosing installation:
 
 ```sh
 python3 -B -m unittest discover -s "$SKILL/scripts" -p test_poll.py
-T3_NOTIFY_SYSTEMD_TEST=1 python3 -B -m unittest discover -s "$SKILL/scripts" -p test_poll.py
 ```
 
-Tests use synthetic stores and signed local endpoints. The opt-in variant also creates and cleans disposable user units for timer and server-restart checks. Job-specific fixtures should exercise actual status/evidence parsing, including wrong identities and missing/invalid results.
+Set `T3_NOTIFY_SYSTEMD_TEST=1` to include disposable user-unit tests. Routine setup needs job-specific adapter fixtures, preflight and its first valid tick.
