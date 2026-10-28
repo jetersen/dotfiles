@@ -244,8 +244,8 @@ def resolve_credentials(c):
     raise EndpointCommandError() from None
   credentials = json.loads(raw)
   url = endpoint_url(c, credentials['url'])
-  key = credentials['signingKey']
-  if not isinstance(key, str) or not 32 <= len(key.encode()) <= 4096:
+  key = credentials.get('signingKey')
+  if 'signingKey' in credentials and (not isinstance(key, str) or not 32 <= len(key.encode()) <= 4096):
     raise ValueError('Signing key must contain 32 to 4096 UTF-8 bytes')
   return url, key
 
@@ -253,8 +253,9 @@ def resolve_credentials(c):
 def post(c, event):
   url, key = resolve_credentials(c)
   body = json.dumps(event, sort_keys=True).encode()
-  signature = SIGNATURE['prefix'] + hmac.new(key.encode(), body, hashlib.sha256).hexdigest()
-  headers = {'Content-Type': 'application/json', SIGNATURE['header']: signature}
+  headers = {'Content-Type': 'application/json'}
+  if key is not None:
+    headers[SIGNATURE['header']] = SIGNATURE['prefix'] + hmac.new(key.encode(), body, hashlib.sha256).hexdigest()
   request = urllib.request.Request(url, method='POST', data=body, headers=headers)
   opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
   with opener.open(request, timeout=c['httpTimeout']) as response:

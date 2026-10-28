@@ -1,11 +1,11 @@
 # Endpoint setup
 
-Resolve the hook path and signing key on the T3 environment hosting the thread, using its live API or the helper below. Choose the endpoint:
+Resolve the hook URL on the T3 environment hosting the thread, using its live API or the helper below. Choose the endpoint:
 
 - Local: literal `127.0.0.1` or `::1` HTTP with the discovered port.
 - Tailscale HTTPS: set `httpsOrigin` to the exact lowercase origin without a trailing slash, for example `https://selected-host.example.ts.net`.
 
-Reuse T3's Tailscale Serve endpoint, enabled through the desktop setting or CLI `--tailscale-serve`. Keep the app/server running. Both endpoints use the same webhook token and HMAC key.
+Reuse T3's Tailscale Serve endpoint, enabled through the desktop setting or CLI `--tailscale-serve`. Keep the app/server running. Both endpoints use the same webhook token.
 
 ## Supplied resolver
 

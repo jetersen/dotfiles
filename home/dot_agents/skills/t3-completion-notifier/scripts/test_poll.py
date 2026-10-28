@@ -75,18 +75,20 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
                            stop_timer=stop or (lambda _: self.stops.append(True)))
 
   def credentials(self, url, key=KEY):
-    self.url_file.write_text(json.dumps({'url': url, 'signingKey': key}))
+    self.url_file.write_text(json.dumps({'url': url, **({'signingKey': key} if key is not None else {})}))
 
-  def serve(self, responses, tls=False):
+  def serve(self, responses, tls=False, signing_key=KEY):
     records = []
     class Handler(BaseHTTPRequestHandler):
       def log_message(self, *args):
         pass
       def do_POST(self):
         body = self.rfile.read(int(self.headers['Content-Length']))
-        signature = 'sha256=' + hmac.new(KEY.encode(), body, hashlib.sha256).hexdigest()
         records.append((self.path, json.loads(body), body))
-        if not hmac.compare_digest(self.headers.get('x-t3-notify-signature', ''), signature):
+        signature = self.headers.get('x-t3-notify-signature')
+        valid = (signature is None if signing_key is None else
+                 hmac.compare_digest(signature or '', 'sha256=' + hmac.new(signing_key.encode(), body, hashlib.sha256).hexdigest()))
+        if self.path != '/fixture-secret-capability' or not valid:
           self.send_response(401)
           self.end_headers()
           return
@@ -120,9 +122,9 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     self.addCleanup(close)
     if tls:
       self.c['httpsOrigin'] = f'https://localhost:{server.server_port}'
-      self.credentials(self.c['httpsOrigin'] + '/fixture-secret-capability')
+      self.credentials(self.c['httpsOrigin'] + '/fixture-secret-capability', signing_key)
     else:
-      self.credentials(f'http://127.0.0.1:{server.server_port}/fixture-secret-capability')
+      self.credentials(f'http://127.0.0.1:{server.server_port}/fixture-secret-capability', signing_key)
     return records
 
   def test_active_is_quiet_and_checks_exact_identity(self):
@@ -265,7 +267,7 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
       with self.assertRaises(ValueError):
         poll.loopback_url(url)
 
-  def test_signatures_are_required_and_checked_over_actual_request_bytes(self):
+  def test_signed_hook_checks_hmac_over_actual_request_bytes(self):
     records = self.serve([(202, 'accepted')])
     url = json.loads(self.url_file.read_text())['url']
     self.credentials(url, 'wrong-synthetic-key-long-enough-for-test')
@@ -279,15 +281,43 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     self.assertNotIn(KEY, self.output.getvalue())
     self.assertNotIn(KEY, (self.state / 'notified.json').read_text())
 
-  def test_missing_or_weak_signing_key_never_sends(self):
+  def test_invalid_explicit_signing_key_never_sends(self):
     records = self.serve([(202, 'accepted')])
     url = json.loads(self.url_file.read_text())['url']
-    for credentials in [{'url': url}, {'url': url, 'signingKey': 'short'},
+    for credentials in [{'url': url, 'signingKey': None}, {'url': url, 'signingKey': 'short'},
                         {'url': url, 'signingKey': 42}]:
       self.url_file.write_text(json.dumps(credentials))
       with self.assertRaises((KeyError, ValueError)):
         self.tick(deliver=poll.post)
     self.assertEqual(records, [])
+
+  def test_url_token_only_delivery_rejects_wrong_token_and_retries_lost_ack(self):
+    records = self.serve([None, (202, 'duplicate')], signing_key=None)
+    url = json.loads(self.url_file.read_text())['url']
+    self.credentials(url.replace('fixture-secret-capability', 'wrong-token'), None)
+    with self.assertRaises(Exception):
+      self.tick(deliver=poll.post)
+    self.assertFalse((self.state / 'notified.json').exists())
+    self.assertEqual(self.stops, [])
+    self.credentials(url, None)
+    with self.assertRaises(Exception):
+      self.tick(deliver=poll.post)
+    pending = (self.state / 'pending-terminal.json').read_bytes()
+    self.assertEqual(self.tick(deliver=poll.post, fetch=lambda _: self.fail('Must reuse event')), 'notified')
+    self.assertEqual([r[2] for r in records], [records[0][2]] * 3)
+    self.assertEqual((self.state / 'pending-terminal.json').read_bytes(), pending)
+    self.assertEqual(json.loads((self.state / 'notified.json').read_text())['outcome'], 'duplicate')
+    self.assertEqual(self.stops, [True])
+    self.assertNotIn('fixture-secret-capability', self.output.getvalue())
+
+  def test_missing_key_on_signed_hook_is_rejected_by_server(self):
+    records = self.serve([(202, 'accepted')])
+    self.credentials(json.loads(self.url_file.read_text())['url'], None)
+    with self.assertRaises(Exception):
+      self.tick(deliver=poll.post)
+    self.assertEqual(len(records), 1)
+    self.assertFalse((self.state / 'notified.json').exists())
+    self.assertEqual(self.stops, [])
 
   def test_preflight_is_secret_safe_and_does_not_send(self):
     records = self.serve([(202, 'accepted')])
@@ -352,6 +382,23 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     self.assertEqual(records[0][1]['status'], 'succeeded')
     self.assertEqual(records[0][2], records[1][2])
     self.assertEqual(json.loads((self.state / 'notified.json').read_text())['outcome'], 'duplicate')
+
+  @unittest.skipUnless(shutil.which('openssl'), 'TLS fixture needs openssl')
+  def test_https_token_only_hook_verifies_tls_and_retries(self):
+    records = self.serve([(503, 'error'), (202, 'accepted')], tls=True, signing_key=None)
+    with self.assertRaises(Exception):
+      self.tick(deliver=poll.post)
+    self.assertEqual(records, [])
+    with patch.dict(os.environ, {'SSL_CERT_FILE': str(self.root / 'cert.pem'),
+                                 'NIX_SSL_CERT_FILE': str(self.root / 'cert.pem'),
+                                 'HTTPS_PROXY': 'http://127.0.0.1:1',
+                                 'https_proxy': 'http://127.0.0.1:1', 'NO_PROXY': '', 'no_proxy': ''}):
+      with self.assertRaises(Exception):
+        self.tick(deliver=poll.post)
+      self.assertEqual(self.tick(deliver=poll.post), 'notified')
+    self.assertEqual(len(records), 2)
+    self.assertEqual(records[0][2], records[1][2])
+    self.assertNotIn('fixture-secret-capability', self.output.getvalue())
 
   @unittest.skipUnless(shutil.which('openssl'), 'TLS fixture needs openssl')
   def test_https_does_not_skip_hostname_verification(self):
@@ -492,14 +539,14 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     with self.assertRaises(ValueError):
       local_endpoint.resolve(c)
 
-  def test_compat_requires_terminal_filter_signature_and_no_coalescing(self):
+  def test_compat_requires_terminal_filter_supported_signature_and_no_coalescing(self):
     c = self.database_config()
     path = c['t3Compatibility']['database']
     with closing(sqlite3.connect(path)) as db:
       original = json.loads(db.execute('SELECT schedule_json FROM scheduled_tasks WHERE task_id=?',
                                       ('fixture-task',)).fetchone()[0])
     variants = []
-    for signature in [None, {**poll.SIGNATURE, 'header': 'another-header'},
+    for signature in [{}, {**poll.SIGNATURE, 'header': 'another-header'},
                       {**poll.SIGNATURE, 'encoding': 'base64'}]:
       variants.append({**original, 'signature': signature})
     variants.append({**original, 'filters': [f for f in original['filters'] if f['path'] != 'body.event']})
@@ -509,6 +556,35 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
       with closing(sqlite3.connect(path)) as db, db:
         db.execute('UPDATE scheduled_tasks SET schedule_json=? WHERE task_id=?',
                    (json.dumps(schedule), 'fixture-task'))
+      with self.assertRaises(ValueError):
+        local_endpoint.resolve(c)
+
+  def test_compat_resolves_token_only_hook_without_a_signing_key(self):
+    c = self.database_config()
+    path = c['t3Compatibility']['database']
+    with closing(sqlite3.connect(path)) as db:
+      schedule = json.loads(db.execute('SELECT schedule_json FROM scheduled_tasks WHERE task_id=?',
+                                       ('fixture-task',)).fetchone()[0])
+    for explicit_null in [False, True]:
+      unsigned = {k: v for k, v in schedule.items() if k != 'signature'}
+      if explicit_null:
+        unsigned['signature'] = None
+      with closing(sqlite3.connect(path)) as db, db:
+        db.execute('UPDATE scheduled_tasks SET schedule_json=?,webhook_secret=NULL WHERE task_id=?',
+                   (json.dumps(unsigned), 'fixture-task'))
+      before = Path(path).read_bytes()
+      self.assertEqual(local_endpoint.resolve(c),
+                       {'url': 'http://127.0.0.1:12345/api/hooks/fixture-task/synthetic-secret-token'})
+      self.assertEqual(Path(path).read_bytes(), before)
+    c['httpsOrigin'] = 'https://host.example.ts.net'
+    self.assertEqual(local_endpoint.resolve(c),
+                     {'url': 'https://host.example.ts.net/api/hooks/fixture-task/synthetic-secret-token'})
+
+  def test_compat_never_downgrades_signed_hook_with_missing_or_invalid_key(self):
+    c = self.database_config()
+    for key in [None, '', 'short']:
+      with closing(sqlite3.connect(c['t3Compatibility']['database'])) as db, db:
+        db.execute('UPDATE scheduled_tasks SET webhook_secret=? WHERE task_id=?', (key, 'fixture-task'))
       with self.assertRaises(ValueError):
         local_endpoint.resolve(c)
 
@@ -737,7 +813,7 @@ server.serve_forever()
 
   @unittest.skipUnless(os.environ.get('T3_NOTIFY_SYSTEMD_TEST') == '1', 'explicit disposable systemd smoke')
   def test_real_timer_active_terminal_ack_stop(self):
-    records = self.serve([(503, 'error'), (202, 'accepted')])
+    records = self.serve([(503, 'error'), (202, 'accepted')], signing_key=None)
     self.c['adapterTimeout'] = 2
     self.c['endpointTimeout'] = 2
     self.config_path.write_text(json.dumps(self.c))

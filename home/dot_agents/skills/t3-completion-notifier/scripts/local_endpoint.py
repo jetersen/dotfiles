@@ -99,26 +99,31 @@ def resolve(c):
     raise ValueError('Schedule unavailable or binding mismatch')
   token, key, _, _, _, schedule_json = row
   schedule = json.loads(schedule_json)
+  signature = schedule.get('signature')
   filters = schedule.get('filters', [])
   dedupe = schedule.get('dedupe') or {}
   required_filters = [{'path': 'body.' + k, 'op': 'equals', 'value': c[k]}
                       for k in ('watchId', 'jobId')]
   required_filters.append({'path': 'body.event', 'op': 'equals', 'value': 'job_terminal'})
-  if (schedule.get('type') != 'webhook' or schedule.get('signature') != SIGNATURE or
+  if (schedule.get('type') != 'webhook' or (signature is not None and signature != SIGNATURE) or
       dedupe.get('replayKey') != '{{body.eventId}}' or
       any(dedupe.get(k) is not None for k in ('coalesceKey', 'coalesceWindowSeconds')) or
       any(f not in filters for f in required_filters)):
     raise ValueError('Webhook contract mismatch')
-  if (not isinstance(token, str) or not token or len(token) > 512 or
-      not isinstance(key, str) or not 32 <= len(key.encode()) <= 4096):
+  if not isinstance(token, str) or not token or len(token) > 512:
     raise ValueError('Missing or invalid credentials')
+  credentials = {}
+  if signature is not None:
+    if not isinstance(key, str) or not 32 <= len(key.encode()) <= 4096:
+      raise ValueError('Missing or invalid signing key')
+    credentials['signingKey'] = key
   if runtime_state(c) != (pid, identity):
     raise ValueError('Runtime changed during credential resolution')
   if 'runtimeUnit' in compat:
     verify_binding(pid, parsed, db)
   delivery_origin = c.get('httpsOrigin', origin)
   url = delivery_origin + '/api/hooks/' + urllib.parse.quote(c['scheduledTaskId'], safe='') + '/' + urllib.parse.quote(token, safe='')
-  return {'url': endpoint_url(c, url), 'signingKey': key}
+  return {'url': endpoint_url(c, url), **credentials}
 
 
 def main():

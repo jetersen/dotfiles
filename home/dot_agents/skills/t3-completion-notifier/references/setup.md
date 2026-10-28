@@ -28,18 +28,17 @@ Create a mode 0700 watch directory outside repositories/Nix stores. Generate `wa
 }
 ```
 
-Commands are argv arrays with absolute paths. The resolver prints `{"url":"…","signingKey":"…"}` into the helper's captured pipe; credentials stay out of config, argv and logs. See [endpoint.md](endpoint.md) for endpoint setup and the supplied resolver.
+Commands are argv arrays with absolute paths. The resolver prints `{"url":"…"}` into the helper's captured pipe; the URL contains the hook token, so keep it out of config, argv and logs. See [endpoint.md](endpoint.md) for endpoint setup and the supplied resolver.
 
 ## Webhook and prompt
 
-Use the live T3 schema, a stable `clientRequestId` and `bindToCurrentThread:true`. Obtain and collect the private `request_secret` result, then consume its one-use `secretRef`. Verify the returned schedule/project/thread binding. Do not configure coalescing.
+Use the live T3 schema, a stable `clientRequestId` and `bindToCurrentThread:true`. Omit `signature` to use T3's generated webhook URL token without a secret-card request. Verify the returned schedule/project/thread binding. Do not configure coalescing.
 
 Example `schedule` object:
 
 ```json
 {
   "type": "webhook",
-  "signature": {"header":"x-t3-notify-signature","encoding":"hex","prefix":"sha256=","secretRef":"returned-secret-reference"},
   "filters": [
     {"path":"body.jobId","op":"equals","value":"exact-job-id"},
     {"path":"body.watchId","op":"equals","value":"8c3605f1-b44e-49c9-942c-c6c35d7b479a"},
@@ -48,6 +47,8 @@ Example `schedule` object:
   "dedupe": {"replayKey":"{{body.eventId}}"}
 }
 ```
+
+For optional HMAC signing, collect a `request_secret` result and set `signature` with its `secretRef`, header `x-t3-notify-signature`, encoding `hex` and prefix `sha256=`. Include `signingKey` in the resolver output.
 
 Tailor the handoff to the job:
 
