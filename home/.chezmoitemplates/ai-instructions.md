@@ -6,6 +6,7 @@ Repositories live directly under `~/git`. Search matching local repositories bef
 - Read existing code and tests before editing. Keep scope tight, fix root causes, and use generators instead of editing generated output.
 - Verify APIs, flags, and defaults in local source or primary documentation. Add regression coverage, run checks in proportion to risk, and report exactly what ran, including each affected machine or synchronized checkout.
 - Treat live tool schemas as authoritative for tool usage. Missing tool parameters do not prove the application lacks a capability.
+- Before choosing a T3 automation to check an existing long-running job's progress or completion, read `t3-completion-notifier` when available. Use its local script/timer and terminal webhook instead of recurring agent check-ins, including `schedule_task` interval or fixed-time polling. Interval and fixed-time agent schedules remain appropriate for actual recurring work, such as daily reports, or an explicitly requested recurring agent review.
 - Verify exact targets before destructive cleanup. Once equivalent cleanup is approved, do not ask repeatedly.
 - Keep updates concise and flag findings that change the plan.
 - Push without asking when clearly part of the task, including open PR updates or the repository's normal push-to-main workflow. Verify the remote and branch and run required checks.

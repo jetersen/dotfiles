@@ -1,6 +1,6 @@
 ---
 name: t3-completion-notifier
-description: Set up a lightweight Linux user timer that polls a long-running job and notifies a T3 Code thread via a signed webhook at completion. Use for script-based completion watchers, watcher.log, and webhook timers without recurring agent runs.
+description: Set up a lightweight Linux user timer that polls a long-running job and notifies a T3 Code thread via a signed webhook at completion. Use before choosing T3 schedule_task interval or fixed-time check-ins for an existing job's progress or completion, and for watcher.log or webhook timers without recurring agent runs.
 ---
 
 # T3 completion notifier
