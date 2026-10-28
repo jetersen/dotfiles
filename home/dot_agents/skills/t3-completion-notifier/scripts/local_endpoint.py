@@ -1,7 +1,6 @@
 """Version-sensitive T3 credential resolver. Stdout is secret; capture via a pipe."""
 import argparse
 from contextlib import closing
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -84,21 +83,8 @@ def resolve(c):
   if parsed.path != '/' or origin.endswith('/'):
     raise ValueError('Bare loopback origin required')
   pid, identity = runtime_state(c)
-  # Inspect the exact bundle before pinning its hash, boot ID and start time.
-  with (Path('/proc') / str(pid) / 'exe').open('rb') as stream:
-    executable = os.fstat(stream.fileno())
-    digest = hashlib.file_digest(stream, 'sha256').hexdigest()
-  if digest != compat['runtimeSha256'] or runtime_identity(pid) != identity:
-    raise ValueError('Runtime changed; inspect compatibility again')
-  for artifact in compat.get('runtimeArtifacts', []):
-    path = Path(artifact['path'])
-    if not path.is_absolute():
-      raise ValueError('Absolute runtime artifact required')
-    with path.open('rb') as stream:
-      if hashlib.file_digest(stream, 'sha256').hexdigest() != artifact['sha256']:
-        raise ValueError('Loaded runtime artifact changed')
-  if runtime_identity(pid) != identity:
-    raise ValueError('Runtime changed while checking artifacts')
+  # Compatibility is checked against the selected row and delivery contract below.
+  # Legacy runtimeSha256/runtimeArtifacts fields are ignored, not upgrade gates.
   db = Path(compat['database'])
   if not db.is_absolute():
     raise ValueError('Absolute database required')
@@ -128,9 +114,6 @@ def resolve(c):
     raise ValueError('Missing or invalid credentials')
   if runtime_state(c) != (pid, identity):
     raise ValueError('Runtime changed during credential resolution')
-  current_exe = Path('/proc', str(pid), 'exe').stat()
-  if (current_exe.st_dev, current_exe.st_ino) != (executable.st_dev, executable.st_ino):
-    raise ValueError('Runtime executable changed')
   if 'runtimeUnit' in compat:
     verify_binding(pid, parsed, db)
   delivery_origin = c.get('httpsOrigin', origin)

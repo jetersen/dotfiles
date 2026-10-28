@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
@@ -26,6 +27,14 @@ ACKS = {'accepted', 'duplicate'}
 SIGNATURE = {'header': 'x-t3-notify-signature', 'encoding': 'hex', 'prefix': 'sha256='}
 # Stay inside T3's verified seven-day replay retention, including restart delays.
 MAX_PENDING_AGE = datetime.timedelta(days=6)
+
+
+class AdapterCommandError(RuntimeError):
+  pass
+
+
+class EndpointCommandError(RuntimeError):
+  pass
 
 
 def now():
@@ -88,7 +97,7 @@ def command(argv, timeout, limit=65536):
 def load_config(path):
   c = json.loads(Path(path).read_text())
   for key in ('jobId', 'scheduledTaskId', 'threadId', 'projectId'):
-    if not isinstance(c[key], str) or not re.fullmatch(r'[A-Za-z0-9_.:/-]{1,256}', c[key]):
+    if not isinstance(c[key], str) or not 1 <= len(c[key]) <= 256:
       raise ValueError('Invalid identity')
   if str(uuid.UUID(c['watchId'])) != c['watchId']:
     raise ValueError('Invalid watch ID')
@@ -181,7 +190,11 @@ def validate_event(c, event):
 
 
 def fetch(c):
-  return json.loads(command(c['adapterCommand'], c['adapterTimeout']))
+  try:
+    raw = command(c['adapterCommand'], c['adapterTimeout'])
+  except Exception:
+    raise AdapterCommandError() from None
+  return json.loads(raw)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -225,7 +238,11 @@ def endpoint_url(c, url):
 
 def resolve_credentials(c):
   # Resolver JSON contains credentials. Keep it in captured pipes and memory only.
-  credentials = json.loads(command(c['endpointCommand'], c['endpointTimeout'], 16384))
+  try:
+    raw = command(c['endpointCommand'], c['endpointTimeout'], 16384)
+  except Exception:
+    raise EndpointCommandError() from None
+  credentials = json.loads(raw)
   url = endpoint_url(c, credentials['url'])
   key = credentials['signingKey']
   if not isinstance(key, str) or not 32 <= len(key.encode()) <= 4096:
@@ -346,7 +363,10 @@ def main(argv=None):
       check_once(c)
   except Exception as error:
     # Exception text can include the webhook URL. No tracebacks or raw CLI output.
-    log('poll_failed_retry_next_tick', exceptionType=type(error).__name__)
+    fields = {'exceptionType': type(error).__name__}
+    if isinstance(error, urllib.error.HTTPError):
+      fields['httpStatus'] = error.code
+    log('poll_failed_retry_next_tick', **fields)
     return 1
   return 0
 

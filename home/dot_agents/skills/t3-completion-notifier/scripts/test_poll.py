@@ -134,6 +134,31 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     with self.assertRaises(ValueError):
       self.tick({'jobId': 'other', 'state': 'running'})
 
+  def test_readable_identities_are_preserved_and_compared_exactly(self):
+    self.c['jobId'] = 'Build #12 / Linux – æøå'
+    self.config_path.write_text(json.dumps(self.c))
+    self.c = poll.load_config(self.config_path)
+    self.assertEqual(self.tick(), 'notified')
+    self.assertEqual(self.sent[0]['jobId'], self.c['jobId'])
+    with self.assertRaises(ValueError):
+      poll.event_from_status(self.c, self.terminal(jobId='Build #12 / Linux'))
+
+  def test_command_diagnostics_identify_stage_without_secret_text(self):
+    with patch.object(poll, 'command', side_effect=RuntimeError(KEY)):
+      for call, expected in [(poll.fetch, poll.AdapterCommandError),
+                             (poll.resolve_credentials, poll.EndpointCommandError)]:
+        with self.assertRaises(expected) as error:
+          call(self.c)
+        self.assertNotIn(KEY, str(error.exception))
+    self.serve([(503, 'error')])
+    self.source.write_text(json.dumps({'jobId':self.c['jobId'], 'state':'failed'}))
+    self.config_path.write_text(json.dumps(self.c))
+    self.assertEqual(poll.main(['tick','--config',str(self.config_path)]), 1)
+    logged = json.loads(self.output.getvalue().splitlines()[-1])
+    self.assertEqual(logged['httpStatus'], 503)
+    self.assertNotIn(KEY, self.output.getvalue())
+    self.assertNotIn('fixture-secret-capability', self.output.getvalue())
+
   def test_success_delivers_once_then_only_stops(self):
     self.assertEqual(self.tick(), 'notified')
     def forbidden(*args):
@@ -440,10 +465,8 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
                  ('fixture-task', 'synthetic-secret-token', 1, 'fixture-project', 'fixture-thread', json.dumps(schedule), KEY))
       db.execute('INSERT INTO scheduled_tasks VALUES (?,?,?,?,?,?,?)',
                  ('unrelated', 'unrelated-secret', 1, 'other', 'other', '{}', 'unrelated-key'))
-    with open('/proc/self/exe', 'rb') as stream:
-      digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     return {**self.c, 't3Compatibility': {'origin': 'http://127.0.0.1:12345', 'database': str(path),
-                                         'runtimePid': os.getpid(), 'runtimeSha256': digest,
+                                         'runtimePid': os.getpid(),
                                          'runtimeIdentity': local_endpoint.runtime_identity(os.getpid())}}
 
   def test_compat_resolver_exact_binding_readonly_and_runtime(self):
@@ -456,9 +479,6 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     for field in ['scheduledTaskId', 'projectId', 'threadId', 'jobId', 'watchId']:
       with self.assertRaises(ValueError):
         local_endpoint.resolve({**c, field: 'absent'})
-    c['t3Compatibility']['runtimeSha256'] = '0' * 64
-    with self.assertRaises(ValueError):
-      local_endpoint.resolve(c)
 
   def test_compat_refuses_disabled_or_wrong_schedule(self):
     c = self.database_config()
@@ -507,15 +527,23 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     self.assertEqual(credentials['url'], 'https://host.example.ts.net/api/hooks/fixture-task/synthetic-secret-token')
     self.assertEqual(credentials['signingKey'], KEY)
 
-  def test_desktop_runtime_archive_is_verified_alongside_process(self):
+  def test_schedule_identity_is_encoded_as_a_path_segment(self):
     c = self.database_config()
-    archive = self.root / 'app.asar'
-    archive.write_bytes(b'synthetic loaded desktop application bundle')
-    c['t3Compatibility']['runtimeArtifacts'] = [{'path': str(archive),
-      'sha256': hashlib.sha256(archive.read_bytes()).hexdigest()}]
+    c['scheduledTaskId'] = 'fixture task/æ?'
+    with closing(sqlite3.connect(c['t3Compatibility']['database'])) as db, db:
+      db.execute('UPDATE scheduled_tasks SET task_id=? WHERE task_id=?',
+                 (c['scheduledTaskId'], 'fixture-task'))
+    self.assertEqual(local_endpoint.resolve(c)['url'],
+                     'http://127.0.0.1:12345/api/hooks/fixture%20task%2F%C3%A6%3F/synthetic-secret-token')
+
+  def test_legacy_runtime_fingerprints_do_not_block_compatible_store(self):
+    c = self.database_config()
+    c['t3Compatibility'].update(runtimeSha256='old-executable-hash',
+                                runtimeArtifacts=[{'path':'/missing/old/app.asar','sha256':'old-archive-hash'}])
     self.assertEqual(local_endpoint.resolve(c)['signingKey'], KEY)
-    archive.write_bytes(b'updated bundle')
-    with self.assertRaises(ValueError):
+    with closing(sqlite3.connect(c['t3Compatibility']['database'])) as db, db:
+      db.execute('ALTER TABLE scheduled_tasks RENAME COLUMN webhook_token TO incompatible_token')
+    with self.assertRaises(sqlite3.OperationalError):
       local_endpoint.resolve(c)
 
   def service_config(self):
@@ -536,7 +564,7 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     self.config_path.write_text(json.dumps(c))
     return c
 
-  def runtime_server(self, c, port=0, database=None, host='127.0.0.1'):
+  def runtime_server(self, c, port=0, database=None, host='127.0.0.1', executable=None):
     """A real child owns a synthetic SQLite file and loopback HTTP listener."""
     script = self.root / 'runtime.py'
     script.write_text('''import hashlib,hmac,json,sqlite3,sys
@@ -560,9 +588,12 @@ server=Server((sys.argv[2],int(sys.argv[3])),Handler)
 print(json.dumps({'port':server.server_port}),flush=True)
 server.serve_forever()
 ''')
-    process = subprocess.Popen([sys.executable, str(script), database or c['t3Compatibility']['database'],
+    environment = dict(os.environ)
+    if executable:
+      environment['PYTHONHOME'] = sys.base_prefix
+    process = subprocess.Popen([executable or sys.executable, str(script), database or c['t3Compatibility']['database'],
                                 host, str(port), str(self.root / 'received.json')],
-                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=environment)
     def close():
       if process.poll() is None:
         process.terminate()
@@ -578,7 +609,7 @@ server.serve_forever()
     self.config_path.write_text(json.dumps(c))
     return process, ready['port']
 
-  def test_service_restart_retries_pending_event_without_rebinding_config(self):
+  def test_compatible_binary_upgrade_retries_pending_event_without_rebinding_config(self):
     c = self.service_config()
     first, port = self.runtime_server(c)
     before = Path(c['t3Compatibility']['database']).read_bytes()
@@ -589,7 +620,14 @@ server.serve_forever()
       self.tick(deliver=poll.post)
     pending = (self.state / 'pending-terminal.json').read_bytes()
     config = self.config_path.read_bytes()
-    replacement, _ = self.runtime_server(c, port)
+    upgraded = self.root / 'upgraded-python'
+    shutil.copyfile('/proc/self/exe', upgraded)
+    with upgraded.open('ab') as stream:
+      stream.write(b'\ncompatible-fixture-upgrade\n')
+    upgraded.chmod(0o700)
+    self.assertNotEqual(hashlib.sha256(upgraded.read_bytes()).hexdigest(),
+                        hashlib.sha256(Path('/proc/self/exe').read_bytes()).hexdigest())
+    replacement, _ = self.runtime_server(c, port, executable=str(upgraded))
     self.assertNotEqual(first.pid, replacement.pid)
     self.assertEqual(self.config_path.read_bytes(), config)
     def no_lookup(_):
@@ -600,11 +638,11 @@ server.serve_forever()
     self.assertEqual(Path(c['t3Compatibility']['database']).read_bytes(), before)
     self.assertEqual(len(self.stops), 1)
 
-  def test_service_runtime_rejects_wrong_listener_database_or_binary(self):
+  def test_service_runtime_rejects_wrong_listener_database_or_selector(self):
     c = self.service_config()
     process, port = self.runtime_server(c)
     self.assertEqual(local_endpoint.resolve(c)['signingKey'], KEY)
-    for change in [{'runtimeSha256': '0' * 64}, {'origin': f'http://127.0.0.1:{port % 65535 + 1}'},
+    for change in [{'origin': f'http://127.0.0.1:{port % 65535 + 1}'},
                    {'runtimePid': process.pid}, {'runtimeUnit': '../fixture-t3.service'}]:
       with self.assertRaises(ValueError):
         local_endpoint.resolve({**c, 't3Compatibility': {**c['t3Compatibility'], **change}})

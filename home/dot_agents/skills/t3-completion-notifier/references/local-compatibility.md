@@ -39,7 +39,7 @@ Search matching source under `~/git` first, then verify it against the **running
 - Positive admission is status 202 with `x-t3-hook-outcome: accepted|duplicate`, replay dedupe lasts seven days, and asynchronous dispatch may still fail after acceptance.
 - The identified process owns the discovered listener/database. Any selected network route reaches that exact environment.
 
-For T3 managed by an existing systemd user service, use its exact discovered `runtimeUnit` and pin the inspected executable's SHA-256. At each credential-resolution attempt, the helper obtains the active unit's current `MainPID`, requires the same user and inspected executable/bundle, and verifies that process owns both the configured loopback listener and SQLite file. It checks process identity, executable identity and ownership again before returning credentials. Temporary downtime fails that tick; later ticks discover a replacement process running the same inspected code. No config rewrite or new event is needed after an ordinary restart. A changed executable or declared artifact still requires compatibility inspection before updating its pin.
+For T3 managed by an existing systemd user service, use its exact discovered `runtimeUnit`. At each credential-resolution attempt, the helper obtains the active unit's current `MainPID`, requires the same user, and verifies that process owns both the configured loopback listener and SQLite file. It checks process identity and ownership again before returning credentials. Temporary downtime fails that tick; later ticks discover the replacement process. No config rewrite or new event is needed after an ordinary restart. Normal upgrades are allowed while the selected database fields, task binding, signature/filter/dedupe settings and HTTP acknowledgement remain compatible. An actual contract mismatch fails the tick and needs diagnosis; a changed executable or desktop archive alone does not block delivery.
 
 Example for a standalone server managed by a user service (discover all values):
 
@@ -49,28 +49,26 @@ Example for a standalone server managed by a user service (discover all values):
   "t3Compatibility": {
     "origin": "http://127.0.0.1:12345",
     "database": "/absolute/discovered/app.sqlite",
-    "runtimeUnit": "discovered-t3.service",
-    "runtimeSha256": "sha256-of-inspected-running-server-executable"
+    "runtimeUnit": "discovered-t3.service"
   }
 }
 ```
 
-The unit's main process must be the server that owns the listener/database. Do not select a desktop launcher or wrapper whose child owns them. Discover the absolute `systemctl` path as in setup.md. The ownership check requires readable Linux `/proc` metadata for that process. If an unchanged server restarts during a check, the helper rejects that attempt and retries later with the same pending event. Active status-only ticks do not resolve credentials. This mode checks local listener ownership; verify any remote HTTPS proxy still reaches that exact environment separately.
+The unit's main process must be the server that owns the listener/database. Do not select a desktop launcher or wrapper whose child owns them. Discover the absolute `systemctl` path as in setup.md. The ownership check requires readable Linux `/proc` metadata for that process. If the server restarts during a check, the helper rejects that attempt and retries later with the same pending event. Active status-only ticks do not resolve credentials. This mode checks local listener ownership; verify any remote HTTPS proxy still reaches that exact environment separately.
 
 For an unmanaged server or the regular desktop app, replace `runtimeUnit` with explicit `runtimePid` and `runtimeIdentity` instead:
 
 ```json
 {
   "runtimePid": 1234,
-  "runtimeIdentity": {"bootId": "discovered-boot-id", "startTicks": 123456},
-  "runtimeArtifacts": [{"path":"/absolute/loaded/resources/app.asar","sha256":"sha256-of-inspected-loaded-archive"}]
+  "runtimeIdentity": {"bootId": "discovered-boot-id", "startTicks": 123456}
 }
 ```
 
-These fields belong inside `t3Compatibility`. `runtime_identity(pid)` reads boot ID and process start ticks from Linux `/proc`; capture only that non-secret identity, never credential resolver output. This fixed-PID mode deliberately requires manual rediscovery after restart/PID reuse and does not independently revalidate listener/database ownership. For a regular Electron app, include its exact loaded `resources/app.asar` in `runtimeArtifacts`; an executable hash alone does not cover embedded server code. Discover the loaded archive from the process/installation, not a newer launcher on PATH. Omit artifacts only for a self-contained inspected executable. The same artifact pins also apply in service mode when needed.
+These fields belong inside `t3Compatibility`. `runtime_identity(pid)` reads boot ID and process start ticks from Linux `/proc`; capture only that non-secret identity, never credential resolver output. This fixed-PID mode deliberately requires manual rediscovery after restart/PID reuse and does not independently revalidate listener/database ownership. Legacy `runtimeSha256` and `runtimeArtifacts` fields are ignored by this helper; they can be removed from new configurations.
 
-During manual recovery, verify the same inspected code and exact listener/database binding, then refresh only `runtimePid` and `runtimeIdentity`. Preserve the watch ID, schedule, pending event and acceptance receipt. An accepted event must not be rearmed by deleting its receipt; reconcile it and use a new watch for separately resumed work.
+During manual recovery, verify the exact listener/database binding and the selected webhook contract, then refresh only `runtimePid` and `runtimeIdentity`. Preserve the watch ID, schedule, pending event and acceptance receipt. An accepted event must not be rearmed by deleting its receipt; reconcile it and use a new watch for separately resumed work.
 
 Set `endpointCommand` to `["/absolute/python3", "/absolute/skill/scripts/local_endpoint.py", "--config", "/absolute/watch/config.json"]`. The resolver requires the expected project/thread, enabled webhook, exact job/watch/terminal-event filters, `{{body.eventId}}` replay key, no coalescing, and the fixed signature descriptor in setup.md. Unsigned schedules fail closed. For a remote sender, the resolver must still run on the T3 host through an already authorized mechanism, or use native API discovery plus its own local key storage. It cannot read a remote SQLite store simply because the listener is reachable over Tailscale or HTTPS.
 
-Validate with synthetic databases and disposable local HTTP/HTTPS endpoints first. If a real app contract test is necessary, create a new disposable schedule bound to an intentionally disposable thread. A nonmatching filter can prove rejection without dispatch; use the correct signature even for that probe. A full dispatch test needs authorization for that test run. Disable the disposable schedule afterward. Never revive an old one-use webhook to test compatibility.
+Validate with synthetic databases and disposable local HTTP/HTTPS endpoints first. If a real app contract test is necessary, use a new disposable schedule and a test thread within the requested validation scope. A nonmatching filter can prove rejection without dispatch; use the correct signature even for that probe. A full dispatch test creates an agent turn, so keep it within the existing authorization; no additional confirmation is needed when that test is already authorized. Disable the disposable schedule afterward. Never revive an old one-use webhook to test compatibility.
