@@ -62,6 +62,18 @@ let
   assertions = [
     {
       assertion =
+        rocket.services.prometheus.exporters.node.enable
+        && builtins.elem "drm" rocket.services.prometheus.exporters.node.enabledCollectors
+        && rocket.services.prometheus.exporters.process.enable
+        && !rocket.services.prometheus.exporters.node.openFirewall
+        && !rocket.services.prometheus.exporters.process.openFirewall
+        && rocket.services.prometheus.exporters.process.user == "root"
+        && builtins.elem "-gather-smaps=true" rocket.services.prometheus.exporters.process.extraFlags
+        && !framework.services.prometheus.exporters.process.enable;
+      message = "Rocket: collect host GPU and proportional process memory without opening exporters globally or enabling them on Framework";
+    }
+    {
+      assertion =
         rocket.systemd.services."user@1000".serviceConfig.OOMScoreAdjust == -1000
         && !rocket.systemd.services."user@1000".restartIfChanged
         && lib.hasInfix "DefaultOOMScoreAdjust=200" rocket.systemd.user.extraConfig

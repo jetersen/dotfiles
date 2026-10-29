@@ -139,6 +139,11 @@ remain killable under T3's agent policy; ordinary user services retain their
 normal OOM score. SSH, Tailscale, networking, and DNS have protected memory to
 preserve remote recovery during memory pressure.
 
+Host and process metrics can be enabled with the host's `metrics.nix` module.
+Keep exporter listeners restricted to the scraper. Process groups omit PIDs and
+arguments; proportional memory apportions shared pages, while GPU metrics are
+per-device totals rather than process ownership.
+
 The T3 renderer is rebuilt with `nixos/patches/t3code/shared-browser-runtime.patch`
 so new tabs on connected environments share the server browser with automation.
 Existing desktop tabs keep their separate login state and cannot be automated

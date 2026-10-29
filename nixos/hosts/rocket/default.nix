@@ -18,6 +18,7 @@
     ./services.nix
     ./runner.nix
     ./user-services.nix
+    ./metrics.nix
   ];
   # Back up managed collisions, and retire legacy files that HM does not own.
   home-manager.backupFileExtension = "pre-nixos";
