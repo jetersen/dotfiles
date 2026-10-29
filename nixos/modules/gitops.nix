@@ -42,7 +42,6 @@ in
     };
 
     systemd.user.services.comin-desktop = {
-      after = [ "dms.service" ];
       partOf = [ "graphical-session.target" ];
       unitConfig.StartLimitIntervalSec = 0;
       serviceConfig = {
