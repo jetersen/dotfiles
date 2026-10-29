@@ -75,6 +75,8 @@ For a single remote command, use `ssh -t HOST unlock-keyring`, then run
 `gh auth status`. Avoid `gnome-keyring-daemon --unlock`, which can start a second
 daemon. NixOS supplies the helper's Python and D-Bus dependencies; other Linux
 installations need Python 3 and `dbus-python`.
+T3's background GitHub token lookup fails promptly while the login keyring is
+locked. Unlock it once after automatic login to enable GitHub access in T3.
 
 Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select
 monitor and workspace preferences. DMS-generated bindings and display settings

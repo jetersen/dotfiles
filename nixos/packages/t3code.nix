@@ -15,13 +15,17 @@
   callPackage,
   asar,
   python3,
+  writeShellScriptBin,
 }:
 let
   manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).t3code;
   version = lib.removePrefix "v" manifest.version;
+  backgroundGh = writeShellScriptBin "gh" ''
+    exec ${python3.withPackages (ps: [ ps.dbus-python ])}/bin/python3 ${./t3-gh.py} ${gh}/bin/gh "$@"
+  '';
   runtimePackages = [
     git
-    gh
+    backgroundGh
     fish
     codex
     claude-code

@@ -62,6 +62,30 @@ let
   assertions = [
     {
       assertion =
+        lib.all
+          (
+            name:
+            let
+              service = rocket.systemd.services.${name};
+            in
+            service.unitConfig.StartLimitIntervalSec == 0
+            && service.serviceConfig.RestartSec == 5
+            && service.serviceConfig.Restart == "always"
+          )
+          [
+            "prometheus-node-exporter"
+            "prometheus-process-exporter"
+          ];
+      message = "Rocket: LAN-bound exporters must survive delayed network availability";
+    }
+    {
+      assertion =
+        lib.hasInfix "timeout 120" runner.serviceConfig.ExecStartPre
+        && runner.serviceConfig.TimeoutStartSec == 420;
+      message = "Rocket: wait for cache DNS before starting the NFS-backed runner";
+    }
+    {
+      assertion =
         rocket.services.prometheus.exporters.node.enable
         && builtins.elem "drm" rocket.services.prometheus.exporters.node.enabledCollectors
         && rocket.services.prometheus.exporters.process.enable

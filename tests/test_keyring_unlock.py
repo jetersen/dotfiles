@@ -21,6 +21,9 @@ loader = SourceFileLoader('keyring_unlock', str(SOURCE))
 spec = importlib.util.spec_from_loader(loader.name, loader)
 helper = importlib.util.module_from_spec(spec)
 loader.exec_module(helper)
+guard_spec = importlib.util.spec_from_file_location('t3_gh', ROOT / 'nixos/packages/t3-gh.py')
+guard = importlib.util.module_from_spec(guard_spec)
+guard_spec.loader.exec_module(guard)
 
 
 @unittest.skipUnless(shutil.which('gnome-keyring-daemon') and shutil.which('dbus-daemon'),
@@ -121,6 +124,27 @@ class KeyringUnlockTests(unittest.TestCase):
     self.unlock()
     self.unlock().assert_not_called()
     self.assertFalse(self.locked())
+
+  def test_background_token_read_rejects_locked_keyring_without_prompt(self):
+    with self.assertRaisesRegex(RuntimeError, 'run unlock-keyring'):
+      guard.check_keyring(self.bus)
+    self.assertTrue(self.locked())
+    self.unlock()
+    guard.check_keyring(self.bus)
+
+  def test_background_guard_preserves_environment_tokens_and_other_commands(self):
+    for arguments, environment in [
+        (['auth', 'token'], {'GH_TOKEN': 'fixture-token'}),
+        (['pr', 'list'], {}),
+    ]:
+      with self.subTest(arguments=arguments, environment=environment):
+        with patch.dict(os.environ, environment, clear=True), \
+             patch.object(guard.sys, 'argv', ['guard', '/real/gh', *arguments]), \
+             patch.object(guard.dbus.bus, 'BusConnection') as connect, \
+             patch.object(guard.os, 'execv') as execute:
+          guard.main()
+          connect.assert_not_called()
+          execute.assert_called_once_with('/real/gh', ['/real/gh', *arguments])
 
   def test_replaced_control_socket_cannot_redirect_unlock(self):
     control = self.control_directory / 'control'

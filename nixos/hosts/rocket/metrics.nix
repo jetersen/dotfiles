@@ -48,4 +48,14 @@
   systemd.services.prometheus-process-exporter.serviceConfig.CapabilityBoundingSet = lib.mkForce [
     "CAP_SYS_PTRACE"
   ];
+  # LAN addresses can arrive well after login. Retry without slowing desktop boot
+  # or exhausting systemd's start limit while the Ethernet link negotiates.
+  imports = [
+    {
+      systemd.services = lib.genAttrs [ "prometheus-node-exporter" "prometheus-process-exporter" ] (_: {
+        unitConfig.StartLimitIntervalSec = 0;
+        serviceConfig.RestartSec = 5;
+      });
+    }
+  ];
 }
