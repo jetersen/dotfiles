@@ -16,8 +16,8 @@
   },
   "varlock": {
     "repo": "dmno-dev/varlock",
-    "version": "varlock@1.23.0",
-    "sha256": "a40d86ceddde2f032cd8bdc594feca74f60754d01615c1a11031c9f4ca97e8ed"
+    "version": "varlock@1.24.0",
+    "sha256": "254ed7df6959852296919d885494f851cdeab98c544c584316f42125c56a0519"
   },
   "proton-ge": {
     "repo": "GloriousEggroll/proton-ge-custom",
