@@ -11,6 +11,21 @@
     "fs.inotify.max_queued_events" = 262144;
   };
 
+  # Keep the remote recovery path resident when desktop workloads exhaust memory.
+  # Protection must also be allocated at the parent slice.
+  systemd.slices.system.sliceConfig.MemoryMin = "1G";
+  imports = [
+    {
+      systemd.services = lib.genAttrs [ "sshd" "tailscaled" "NetworkManager" "systemd-resolved" ] (name: {
+        serviceConfig = {
+          MemoryMin = if name == "tailscaled" then "512M" else "128M";
+          OOMScoreAdjust = -1000;
+          ManagedOOMPreference = "omit";
+        };
+      });
+    }
+  ];
+
   # The existing Forgejo Compose deployment needs privileged DinD and named volumes.
   # Restore only the managed runner volumes/registration into a fresh Docker data root.
   # Keep the old CachyOS Docker/containerd directories intact as recovery sources.

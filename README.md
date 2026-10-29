@@ -134,6 +134,11 @@ remains available; the firewall admits remote access to this port only through
 `tailscale0`. Keep the desktop's separate local server disabled.
 The server runs natively with patched Nix library paths so agent commands inherit
 the host environment. An older client must not open newer databases.
+Rocket protects the T3 server from kernel OOM killing and systemd-oomd. Agents
+remain killable under T3's agent policy; ordinary user services retain their
+normal OOM score. SSH, Tailscale, networking, and DNS have protected memory to
+preserve remote recovery during memory pressure.
+
 The T3 renderer is rebuilt with `nixos/patches/t3code/shared-browser-runtime.patch`
 so new tabs on connected environments share the server browser with automation.
 Existing desktop tabs keep their separate login state and cannot be automated

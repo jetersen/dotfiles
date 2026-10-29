@@ -62,6 +62,39 @@ let
   assertions = [
     {
       assertion =
+        rocket.systemd.services."user@1000".serviceConfig.OOMScoreAdjust == -1000
+        && !rocket.systemd.services."user@1000".restartIfChanged
+        && lib.hasInfix "DefaultOOMScoreAdjust=200" rocket.systemd.user.extraConfig
+        && rocket.home-manager.users.joseph.systemd.user.services.t3code.Service.OOMScoreAdjust == -1000
+        &&
+          rocket.home-manager.users.joseph.systemd.user.services.t3code.Service.ManagedOOMPreference == "omit"
+        && rocket.home-manager.users.joseph.systemd.user.services.t3code.Service.OOMPolicy == "continue";
+      message = "Rocket: protect the T3 server without making ordinary user services immune or restarting the desktop manager";
+    }
+    {
+      assertion =
+        rocket.systemd.slices.system.sliceConfig.MemoryMin == "1G"
+        &&
+          lib.all
+            (
+              name:
+              let
+                service = rocket.systemd.services.${name}.serviceConfig;
+              in
+              service.OOMScoreAdjust == -1000
+              && service.ManagedOOMPreference == "omit"
+              && service.MemoryMin == (if name == "tailscaled" then "512M" else "128M")
+            )
+            [
+              "sshd"
+              "tailscaled"
+              "NetworkManager"
+              "systemd-resolved"
+            ];
+      message = "Rocket: reserve memory throughout the remote-access hierarchy and protect its services from OOM selection";
+    }
+    {
+      assertion =
         lib.hasInfix " serve --no-browser --tailscale-serve --host 0.0.0.0 --port 3773" (
           builtins.head rocket.home-manager.users.joseph.systemd.user.services.t3code.Service.ExecStart
         )
