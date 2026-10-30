@@ -19,7 +19,7 @@ let
     niri = { };
   };
   externalOutput = x: {
-    mode = "2560x1440@59.951";
+    mode = "2560x1440@99.946";
     position = {
       inherit x;
       y = 0;
