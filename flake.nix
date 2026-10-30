@@ -54,7 +54,7 @@
       flake = false;
     };
     dms-openvpn3 = {
-      url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=cc46cd65657b824f19c2b3a919990d10d890f8aa&shallow=1";
+      url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=b54cab26e7aa3ce427c3b63c20a95e07a3d867a6&shallow=1";
       flake = false;
     };
     dms-storage-monitor = {

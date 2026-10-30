@@ -207,16 +207,16 @@
     "dms-openvpn3": {
       "flake": false,
       "locked": {
-        "lastModified": 1792581960,
-        "narHash": "sha256-+3V+MbShit/meCJvnG0sOnmrCHzXDrgG0yTl6KA4kRE=",
+        "lastModified": 1793368586,
+        "narHash": "sha256-b4acTam+jf3SnSVbJA/cJVKXb9bVAKy4nuATVIvYlfY=",
         "ref": "refs/heads/main",
-        "rev": "cc46cd65657b824f19c2b3a919990d10d890f8aa",
+        "rev": "b54cab26e7aa3ce427c3b63c20a95e07a3d867a6",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-openvpn3.git"
       },
       "original": {
-        "rev": "cc46cd65657b824f19c2b3a919990d10d890f8aa",
+        "rev": "b54cab26e7aa3ce427c3b63c20a95e07a3d867a6",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/jetersen/dms-openvpn3.git"
