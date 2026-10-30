@@ -146,11 +146,9 @@ Keep exporter listeners restricted to the scraper. Process groups omit PIDs and
 arguments; proportional memory apportions shared pages, while GPU metrics are
 per-device totals rather than process ownership.
 
-The T3 renderer is rebuilt with `nixos/patches/t3code/shared-browser-runtime.patch`
-so new tabs on connected environments share the server browser with automation.
-Existing desktop tabs keep their separate login state and cannot be automated
-remotely. Rebase this patch and refresh the source and dependency pins in
-`nixos/packages/t3code-web.nix` when updating T3; packaging rejects mismatched versions.
+T3 uses the upstream renderer from each release. For agent automation on a connected
+environment, choose "Open in [environment]'s browser" from the browser tab's menu.
+Desktop tabs have separate login state and cannot be automated remotely.
 
 ## Work access and DNS
 

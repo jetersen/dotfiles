@@ -145,7 +145,7 @@
       }
     },
     {
-      "description": "Merge Nix dependency updates after the Framework build passes",
+      "description": "Merge Nix dependency updates after the NixOS build passes",
       "matchFileNames": [
         "flake.nix",
         "nixos/**"
