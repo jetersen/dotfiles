@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793233634,
-        "narHash": "sha256-NQ5Cebb2puvnaInCkfqmt/rnKH7k67A57t23zskmoLg=",
+        "lastModified": 1793322729,
+        "narHash": "sha256-Rvty/VofCioT4FRd0p2cf2zAxHFZWxzI5aIqA8V3xSI=",
         "ref": "main",
-        "rev": "818da5aea6497268a94a664ef7c4d28df23d4f5c",
+        "rev": "769cf381aa94ae3845c860051401352d8e9655f7",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -452,10 +452,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793054847,
-        "narHash": "sha256-mhud3nRH8RoP0h9MydfkJ8mISpj+QE/S//wOt9bNgC0=",
+        "lastModified": 1793236063,
+        "narHash": "sha256-jGFe4xdrCw6xpgH2zgKwslACyt/NGuPwGILPEMFxmcQ=",
         "ref": "master",
-        "rev": "8ba09466dc929acf5c8bb3e0cc40f472a7df3630",
+        "rev": "b6754c901c21478fd8450d62101e712b2a4f0d75",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/NixOS/nixos-hardware.git"
@@ -482,11 +482,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1793235655,
-        "narHash": "sha256-rBEzJHvKzi9hKO3FWwKihz2E3XghejSjCUJT83XcJss=",
+        "lastModified": 1793321213,
+        "narHash": "sha256-9prVYrQ7dsYDl06nnhFrj/ipuDj81NZDrdsARr/h5pU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "8d06f2311f14ed7707198e2ba3087a2acb5e2ca7",
+        "rev": "f6d42feff498502671b1558924d9850fdf32eaf4",
         "type": "github"
       },
       "original": {
@@ -787,10 +787,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793144002,
-        "narHash": "sha256-YDtNVswt0oYB7LNEzZWmFmo57MME8EVS9VxAdqWm/Co=",
+        "lastModified": 1793309674,
+        "narHash": "sha256-d1Tvbgn//HQ3f1PDh/iIMEpvuUu9Lc4lJqiwGl18cY8=",
         "ref": "main",
-        "rev": "4434539379bc839480edb8b919de9b67f70cb520",
+        "rev": "2656d974602749ca5594b133e3022a241ab5d4e0",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/0xc000022070/zen-browser-flake.git"
