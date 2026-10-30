@@ -126,6 +126,16 @@ version and x86_64 Linux checksum. Codex and Zed use the pinned master package s
 For manual updates, run `nixos/packages/update-claude-code.sh [VERSION]` or
 `nixos/packages/update-t3code.sh VERSION`, then push for CI deployment.
 Credentials and sessions remain local.
+
+Agent skills live under `home/dot_agents/skills/`, shared by Codex and Claude
+through Home Manager on NixOS and chezmoi elsewhere. The `full-send`, `full-stop`,
+`sol-loop`, `file-pr`, `babysit-pr`, and `leaving-pr-comments` skills are vendored
+unchanged from [Theo's tstack](https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af/skills)
+at revision `1085050f3baed1ac724caa4a8166145fb2ac88af`, with their MIT license.
+`full-send` takes work through merge; `full-stop` leaves the PR ready without
+merging; `sol-loop` runs bounded Sol reviews. Their dependencies are included.
+Shared PR writing preferences live in `home/.chezmoitemplates/ai-instructions.md`.
+
 Both hosts let `joseph` manage Tailscale Serve. For direct tailnet access on
 Framework, enable Network access in T3's connection settings and use its Tailscale
 IP endpoint; the desktop app must remain running. Tailscale HTTPS optionally

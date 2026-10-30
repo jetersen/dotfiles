@@ -15,7 +15,7 @@ Repositories live directly under `~/git`. Search matching local repositories bef
 ## Documentation
 
 - Update documentation when the task changes documented behavior or the user asks. Keep it concise and focused on durable setup, usage, and design information.
-- Keep session history, progress, dated validation results, and live operational reports out of READMEs and other repository documentation. Report results in the conversation or a requested PR description.
+- Keep session history, progress, dated validation results, and live operational reports out of READMEs and other repository documentation. Report routine validation results in the conversation.
 - Keep `AGENTS.md` focused on reusable instructions, not task summaries. Add rules for recurring constraints rather than recording each session's findings.
 
 ## Writing style
@@ -27,5 +27,11 @@ Apply these rules to all user-facing prose without narrating routine style check
 - Avoid em dashes, excessive headings, boldface, and forced lists.
 - Prefer active voice and concrete claims.
 - Vary sentence length and preserve a natural human voice.
+
+## Pull request descriptions
+
+- Explain the problem and resulting behavior in plain language. Keep implementation details only when they help review the change.
+- Omit routine validation sections, command lists, and local checks that CI also runs. Use the repository's CI results for those checks.
+- Include proof when it helps demonstrate the change: screenshots or video for UI behavior, a reproduction, or relevant artifacts from the change or CI. Avoid adding a proof section merely to restate passing checks.
 
 @AI_WORK_INSTRUCTIONS@

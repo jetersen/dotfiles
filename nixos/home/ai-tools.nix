@@ -67,6 +67,12 @@ in
           gh-stack = pkgsUnstable.gh-stack.src + "/skills/gh-stack";
           t3-remote-thread = ../../home/dot_agents/skills/t3-remote-thread;
           t3-completion-notifier = ../../home/dot_agents/skills/t3-completion-notifier;
+          full-send = ../../home/dot_agents/skills/full-send;
+          full-stop = ../../home/dot_agents/skills/full-stop;
+          sol-loop = ../../home/dot_agents/skills/sol-loop;
+          file-pr = ../../home/dot_agents/skills/file-pr;
+          babysit-pr = ../../home/dot_agents/skills/babysit-pr;
+          leaving-pr-comments = ../../home/dot_agents/skills/leaving-pr-comments;
         }
       );
 }
