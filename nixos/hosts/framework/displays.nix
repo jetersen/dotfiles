@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  osConfig,
   dmsSource,
   ...
 }:
@@ -50,6 +51,13 @@ let
       }
     ]
   );
+  panelPolicy = pkgs.runCommand "framework-panel-policy" { } ''
+    cp -r ${./panel-policy} "$out"
+    chmod -R u+w "$out"
+    substituteInPlace "$out/FrameworkPanel.qml" \
+      --replace-fail '@NIRI@' '${lib.getExe osConfig.programs.niri.package}'
+    ${pkgs.nodejs}/bin/node ${../../../tests/test_framework_panel.mjs} "$out/FrameworkPanel.qml"
+  '';
   configureDisplays = pkgs.writeShellApplication {
     name = "configure-framework-displays";
     runtimeInputs = [
@@ -66,6 +74,7 @@ let
   };
 in
 {
+  xdg.configFile."DankMaterialShell/plugins/frameworkPanel".source = panelPolicy;
   home.activation.configureDockDisplays = lib.hm.dag.entryAfter [ "configureDms" ] ''
     run ${lib.getExe configureDisplays} ${profiles}
   '';

@@ -90,8 +90,9 @@ Framework's display idle timer turns screens off after 15
 minutes unless DMS Keep Awake is enabled.
 Framework's DMS profiles match the work monitors by serial number, across USB-C
 ports. The work dock uses both Dell monitors at 2560×1440 and 100 Hz with the
-laptop panel disabled; undocking restores the panel at 150% scale. Other display
-layouts remain local.
+laptop panel disabled while unlocked. A Framework-only DMS daemon enables the
+panel while locked; the login greeter also keeps it enabled. Undocking restores
+the panel at 150% scale. Other display layouts remain local.
 
 Fish, Bash, Zsh, and PowerShell use Starship and Worktrunk's `wt` shell integration.
 Clone helpers enter the newly cloned checkout without writing sidecar files.

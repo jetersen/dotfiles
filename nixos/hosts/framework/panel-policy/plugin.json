@@ -1,0 +1,9 @@
+{
+  "id": "frameworkPanel",
+  "name": "Framework panel",
+  "description": "Keep the panel available while locked and disable it at the work dock while unlocked.",
+  "version": "1.0.0",
+  "type": "daemon",
+  "component": "./FrameworkPanel.qml",
+  "permissions": ["process"]
+}

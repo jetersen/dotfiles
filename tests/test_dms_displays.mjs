@@ -45,6 +45,7 @@ try {
   run();
   assert.deepEqual(JSON.parse(read('monitors.json')), { version: 1, configurations: profiles });
   assert.deepEqual(JSON.parse(read('settings.json')), { displayNameMode: 'model', displayProfileAutoSelect: true });
+  assert.deepEqual(JSON.parse(read('plugin_settings.json')), { frameworkPanel: { enabled: true } });
   const local = { id: 'local-layout', name: 'Other desk', outputs: { 'HDMI-A-1': { scale: 2 } } };
   const old = { ...profiles[0], name: 'Outdated managed profile' };
   writeFileSync(join(config, 'monitors.json'), JSON.stringify({ version: 1, extra: 'keep', configurations: [local, old] }));
@@ -52,9 +53,12 @@ try {
   run();
   assert.deepEqual(JSON.parse(read('monitors.json')), { version: 1, extra: 'keep', configurations: [...profiles, local] });
   assert.equal(JSON.parse(read('settings.json')).wallpaperPath, '/local/wallpaper');
-  const before = ['monitors.json', 'settings.json'].map(read);
+  writeFileSync(join(config, 'plugin_settings.json'), JSON.stringify({ localPlugin: { enabled: false }, frameworkPanel: { enabled: false, extra: 'keep' } }));
   run();
-  assert.deepEqual(['monitors.json', 'settings.json'].map(read), before);
+  assert.deepEqual(JSON.parse(read('plugin_settings.json')), { localPlugin: { enabled: false }, frameworkPanel: { enabled: true, extra: 'keep' } });
+  const before = ['monitors.json', 'settings.json', 'plugin_settings.json'].map(read);
+  run();
+  assert.deepEqual(['monitors.json', 'settings.json', 'plugin_settings.json'].map(read), before);
 } finally {
   rmSync(directory, { recursive: true, force: true });
 }

@@ -77,9 +77,6 @@
     dotfiles.niri.extraConfig = ''
       spawn-at-startup "slack" "--ozone-platform=wayland"
     '';
-    xdg.configFile."niri/config.kdl".text = lib.mkBefore ''
-      output "eDP-1" { scale 1.5; }
-    '';
   };
   users.users.joseph.hashedPasswordFile = config.sops.secrets.joseph-password.path;
   users.mutableUsers = false;

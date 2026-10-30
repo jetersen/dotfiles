@@ -23,3 +23,10 @@ if [[ -s "$settings" ]]; then current="$settings"; fi
 jq '.displayNameMode = "model" | .displayProfileAutoSelect = true' \
   "$current" <<< '{}' > "$temporary"
 if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
+
+# The Framework-only daemon follows the shell's lock and live output state.
+plugins="$config_dir/plugin_settings.json"
+current=/dev/stdin
+if [[ -s "$plugins" ]]; then current="$plugins"; fi
+jq '.frameworkPanel.enabled = true' "$current" <<< '{}' > "$temporary"
+if ! cmp -s "$temporary" "$plugins"; then mv "$temporary" "$plugins"; fi
