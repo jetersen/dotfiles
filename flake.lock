@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793322729,
-        "narHash": "sha256-Rvty/VofCioT4FRd0p2cf2zAxHFZWxzI5aIqA8V3xSI=",
+        "lastModified": 1793327419,
+        "narHash": "sha256-aDviPWRjcrD7oIMyM9yfkGT+fGyMGZsQ4mTW2COnsKg=",
         "ref": "main",
-        "rev": "769cf381aa94ae3845c860051401352d8e9655f7",
+        "rev": "69998022e041be41c14c98a6912f67f203dd65d9",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -482,11 +482,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1793325810,
-        "narHash": "sha256-xuWNa0SPRifuqJN95FRL/ZuFmwjpR6Wa/msz6VJAbAU=",
+        "lastModified": 1793327835,
+        "narHash": "sha256-By8pg0Xv6t1qcbYCHmTRmEFyJ2IIZZD1Bq0QEFT1Zyg=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "b28079e722dc136eea33ef713a205bd484889b36",
+        "rev": "c37524bd7049265d746762b1ce31184919e19491",
         "type": "github"
       },
       "original": {
