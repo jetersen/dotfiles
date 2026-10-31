@@ -17,6 +17,15 @@ spec.loader.exec_module(dns)
 
 
 class ReconcilerTests(unittest.TestCase):
+  def test_packaged_widget_uses_a_store_specific_component_url(self):
+    plugin = Path(PLUGIN)
+    manifest = json.loads((plugin / 'plugin.json').read_text())
+    store_hash = plugin.name.split('-', 1)[0]
+    self.assertEqual(manifest['component'], './OpenVpn3Widget-' + store_hash + '.qml')
+    widget = plugin / manifest['component']
+    self.assertEqual(widget.read_text(), (plugin / 'OpenVpn3Widget.qml').read_text())
+    self.assertIn('import "file:' + str(plugin) + '"', widget.read_text())
+
   def test_packaged_widget_recovers_service_failure_and_retries_dns(self):
     # Execute the packaged QML's refresh and snapshot callbacks with a failed
     # initial D-Bus snapshot, then a successful fallback refresh and overwrite.

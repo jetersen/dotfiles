@@ -16,17 +16,6 @@ let
     chmod -R u+w "$out"
     substituteInPlace "$out/OpenVpn3Service.qml" "$out/StartupCheck.qml" \
       --replace-fail '"python3"' '"${python}/bin/python3"'
-    # Dependencies are supplied by Nix. A transient D-Bus activation failure
-    # must not prevent loading the widget that retries service discovery.
-    ${python}/bin/python3 - "$out/plugin.json" <<'PYTHON'
-    import json
-    import pathlib
-    import sys
-    path = pathlib.Path(sys.argv[1])
-    manifest = json.loads(path.read_text())
-    del manifest["startupCheck"]
-    path.write_text(json.dumps(manifest) + "\n")
-    PYTHON
     # Reuse the existing 60-second refresh for CLI sessions, late DNS metadata
     # and OpenVPN overwrites, including after a transient sync failure.
     substituteInPlace "$out/OpenVpn3Service.qml" \
@@ -37,6 +26,24 @@ let
       --replace-fail 'import "."' "import \"file:$out\""
     substituteInPlace "$out/helper/split_dns.py" \
       --replace-fail '"resolvectl"' '"${pkgs.systemd}/bin/resolvectl"'
+    # Dependencies are supplied by Nix. A transient D-Bus activation failure
+    # must not prevent loading the widget that retries service discovery.
+    ${python}/bin/python3 - "$out/plugin.json" <<'PYTHON'
+    import json
+    import pathlib
+    import sys
+    import shutil
+    path = pathlib.Path(sys.argv[1])
+    manifest = json.loads(path.read_text())
+    del manifest["startupCheck"]
+    # The stable Home Manager symlink and normalized Nix mtimes can retain
+    # compiled widget bytecode even across shell restarts. Change its URL for
+    # each package output, including changes to its imports or substitutions.
+    widget_name = "OpenVpn3Widget-" + path.parent.name.split("-", 1)[0] + ".qml"
+    shutil.copyfile(path.parent / "OpenVpn3Widget.qml", path.parent / widget_name)
+    manifest["component"] = "./" + widget_name
+    path.write_text(json.dumps(manifest) + "\n")
+    PYTHON
   '';
 
   dnsCheck = pkgs.runCommand "openvpn-dns-regression" { } ''
