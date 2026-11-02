@@ -68,7 +68,7 @@ completionValid={{body.completionValid}}
 reason={{body.reason}}
 observedAtUtc={{body.observedAtUtc}}
 
-Verify identities and authoritative job results. Complete the authorized final actions and verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate. Preserve event/receipt evidence. Report results with a clickable absolute-path link to STATE_DIRECTORY/watcher.log.
+Verify identities and authoritative job results. Complete the authorized final actions and verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate. Preserve event/receipt evidence and report results.
 ```
 
 ## Run

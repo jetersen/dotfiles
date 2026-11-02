@@ -12,6 +12,6 @@ Use a systemd user timer for short status checks and a T3 webhook to wake this t
 3. Enable the webhook, start the timer and verify its first tick. Remove any agent check-ins this watch replaces.
 4. Report the host, cadence, state/log path and schedule ID, then end the agent turn.
 
-Always include a clickable `watcher.log` link using its absolute path in setup, status and completion/error reports.
+Include a clickable absolute-path link to `watcher.log` in the first message after setup and whenever switching to a new log file.
 
 Transient timers do not survive reboot. Keep the watch's state, config and helper/interpreter dependencies stable until reconciliation; Nix store references in transient units are not GC roots.
