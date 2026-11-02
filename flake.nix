@@ -62,7 +62,7 @@
       flake = false;
     };
     skill-finder = {
-      url = "git+https://github.com/vercel-labs/skills.git?rev=dda30582047dcc5d5c37609cba5f4d11dd5954c0&shallow=1";
+      url = "git+https://github.com/vercel-labs/skills.git?rev=51b9062b3fc51dc04c89ab92dbeb65681fa0cb25&shallow=1";
       flake = false;
     };
     lambda-tools-source = {
