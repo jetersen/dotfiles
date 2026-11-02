@@ -215,7 +215,7 @@ Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
 ## Automatic deployment
 
 Forgejo is primary; its native push mirror updates GitHub for existing chezmoi
-installations. All NixOS hosts follow `main` through Comin. Lightweight Python
+installations. All NixOS hosts follow `main` through an on-demand systemd upgrade service. Lightweight Python
 checks run on Kubernetes before full Nix builds run on either Docker pool with
 sandboxing and a persistent store volume. CI builds both systems
 and development shells, uploads eligible paths to Attic, checks that `main` still
@@ -248,7 +248,7 @@ or select one with `nix build .#checks.x86_64-linux.dns-routing`:
 - `module-contracts` checks selected evaluated service and credential properties.
 - `boot-profile` checks both hosts' bootloader wiring and the Lanzaboote hook's
   profile discovery, requested default and booted-system protection options.
-- `native-comin`, `native-lanzaboote` and `native-pc2mqtt` reuse the tested packages
+- `native-lanzaboote` and `native-pc2mqtt` reuse the tested packages
   built for the systems. Lanzaboote tests cover profile identity, retention,
   rollback defaults, signing and malformed generations.
 
@@ -270,35 +270,34 @@ rebuild them.
 
 Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
 only its own state and discovery records, and read its own command topics.
-A non-retained `PRESS` on
-`<host>/button/update/command` queues a Comin fetch in pc2mqtt. Idle Comin fetches
-through its local gRPC socket; busy, stopped, or suspended Comin leaves the request
-pending. Comin events wake the single update worker without readiness polling. MQTT
-commands stay queued until the fetched generation is active or Comin has staged
-a boot-only deployment. If an older generation is running, pc2mqtt resubmits the
-selected deployment while preserving suspension and reboot-only inhibitors.
-Broker reconnects also request an update; retained command replays are ignored.
-Home Assistant discovers Deployment, Deployed revision, and Reboot required entities
-on each pc2mqtt device. Deployment
-attributes include the booted revision; state changes come from Comin events.
-Cache reads use each host's
-`nix-cache-netrc` SOPS secret. No decryption or Secure Boot private keys are supplied
-to CI.
+A non-retained `PRESS` on `<host>/button/update/command` starts
+`nixos-upgrade.service`. NixOS's standard updater refreshes the remote `main`
+flake, respects its lockfile, prefers cached outputs, and runs `nixos-rebuild switch`.
+It never reboots automatically. The job runs independently of pc2mqtt, survives
+service changes during activation, and coalesces concurrent starts. There is no
+persistent Comin process or gRPC connection.
 
-Hosts also check on boot, resume, NetworkManager events, and Comin socket changes
-through a systemd path watch. A stopped or manually suspended Comin stays paused. To request a check, run
-`sudo systemctl start comin-fetch.service`, which queues the same pc2mqtt request
-without a retry timer. After a settled evaluation/build failure, pc2mqtt restarts
-the active Comin daemon before fetching again. Stop automatic changes
-with `sudo systemctl stop comin`. Reverting the running generation alone does not
-stop Comin from deploying `main` again. Weekly GC removes unrooted store paths;
-retained Comin generations remain protected.
+Hosts check at boot, daily, on resume, NetworkManager events, and MQTT connections.
+To request a check, run `sudo systemctl start nixos-upgrade.service`, or use
+`pc2mqtt --request-update` through the agent. Runtime update commands are not kept
+pending until deployment completes. To disable automatic and requested upgrades,
+mask the upgrade service and timer. Reverting the running generation alone does
+not stop the next upgrade from following `main` again.
 
-Comin manages deployment generations in `system-profiles/comin`; manual
-`nixos-rebuild` operations use the standard `system` profile. Both bootloaders
-read both histories. Existing standard generations remain available for rollback;
-Comin's retention policy manages its own profile. Use `comin deployment list`
-to inspect Comin history.
+The upgrade unit records its completed outcome using
+`pc2mqtt --report-update-result`. The last result survives MQTT/agent downtime in
+`/var/lib/pc2mqtt/update-result.json`. Home Assistant's Deployment sensor receives
+`state`, `result`, `exit_status`, and `completed_at` on `<host>/deployment/state`.
+Use `state: failed` for a phone notification and `completed_at` to deduplicate
+replayed retained results. Detailed logs remain in
+`journalctl -u nixos-upgrade.service`. Startup failures are reported as well.
+The former Comin revision and reboot-required discovery entities are removed.
+
+Cache reads use each host's `nix-cache-netrc` SOPS secret. No decryption or Secure
+Boot private keys are supplied to CI. New deployments use the standard `system`
+profile. Existing Comin profiles and boot entries remain available for rollback;
+the migration does not delete them. An inert compatibility service lets a Comin
+activation finish before its changed-unit handling retires the old daemon.
 
 Framework uses Lanzaboote v1.2.0 with profile support backported from
 [PR #673](https://github.com/nix-community/lanzaboote/pull/673), pinned at
@@ -312,18 +311,6 @@ signing keys stay on Framework. Rocket uses NixOS's normal systemd-boot builder.
 The opt-in `lanzaboote-system-profiles-vm`,
 `lanzaboote-system-profiles-boot-counting-vm` and `lanzaboote-protected-system-vm`
 packages run isolated UEFI boot and rollback tests; these require KVM access.
-
-Comin is pinned to the Forgejo fork's `dotfiles-v0.14` branch, which carries the
-deployment, rewritten-main and reboot-notification fixes with native Go tests.
-Keep dotfiles `main` linear. Both hosts opt into rewritten-main support through
-`COMIN_ALLOW_REWRITTEN_MAIN=1`: updates follow the configured `main` tip even after
-an amend, rebase, or force push. Testing branches still have to descend from main,
-and suspension and deployment inhibitors still apply. pc2mqtt reports branch
-selection errors as failures and retains the queued request for a later retry.
-
-Both desktops show a notification when an update requires a reboot. The session
-listener also checks at login, avoids duplicate notices for the same deployment,
-and reconnects when Comin restarts. Routine deployment progress stays silent.
 
 ## Chezmoi installation
 

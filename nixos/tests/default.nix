@@ -20,7 +20,6 @@ in
   # These exact packages already run their native suites during system builds.
   # Referencing them here also makes a standalone flake check execute the tests,
   # with Nix sharing/substituting the same outputs rather than running them twice.
-  native-comin = configurations.framework.config.services.comin.package;
   native-lanzaboote = configurations.framework.config.boot.lanzaboote.package;
   native-pc2mqtt = inputs.self.packages.x86_64-linux.pc2mqtt;
   native-music-assistant-frontend = inputs.self.packages.x86_64-linux.music-assistant-frontend;

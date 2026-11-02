@@ -28,6 +28,8 @@
       LoadCredential = "config.json:${config.sops.secrets.pc2mqtt-config.path}";
       Restart = "always";
       RestartSec = 5;
+      StateDirectory = "pc2mqtt";
+      StateDirectoryMode = "0700";
       RuntimeDirectory = "pc2mqtt";
       RuntimeDirectoryMode = "0700";
       UMask = "0077";

@@ -12,15 +12,15 @@ Installation instructions are in `README.md`.
 - Forgejo is primary; its native push mirror updates GitHub. Push to `origin` on
   Forgejo. All NixOS hosts deploy from `main`; CI caches the system before notifying
   each host. Do not introduce per-host deployment branches.
-- Keep `main` linear; do not create merge commits. Both hosts explicitly allow
-  rewritten `main` history through the pinned Comin fork.
+- Keep `main` linear; do not create merge commits. Both hosts follow
+  the current `main` revision, including authorized rewritten history.
 - Preserve Renovate's author and committer as `renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>`.
   Use Forgejo's `fast-forward-only` merge style and let Renovate rebase outdated
   branches. Keep `automergeStrategy: "auto"`; Renovate 44.132.2 uses strict fast-forward
   for `"fast-forward"` when allowed, with a rebase fallback. Keep the strict repository default.
-- Prefer the normal CI/Attic/Comin deployment path: push authorized changes to
-  `origin/main`, wait for CI to cache the target revision, then let Comin deploy.
-  If a manual check is needed, start `comin-fetch.service` on the target host.
+- Prefer the normal CI/Attic/systemd deployment path: push authorized changes to
+  `origin/main`, wait for CI to cache the target revision, then let the on-demand NixOS upgrade service deploy.
+  If a manual check is needed, start `nixos-upgrade.service` on the target host.
   Use local `nixos-rebuild` only as a fallback when that path is unavailable or
   for explicitly requested local testing or recovery. Explain why before using it.
 - Edit chezmoi source files under `home/` and NixOS configuration under `nixos/`.

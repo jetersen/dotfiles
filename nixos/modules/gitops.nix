@@ -1,107 +1,88 @@
 {
   config,
   inputs,
-  lib,
   pkgs,
   ...
 }:
 let
   pc2mqtt = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pc2mqtt;
-  startFetch = "${pkgs.systemd}/bin/systemctl --no-block start comin-fetch.service";
+  startUpgrade = "${pkgs.systemd}/bin/systemctl --no-block start nixos-upgrade.service";
 in
 {
-  config = {
-    sops.secrets.nix-cache-netrc = {
-      owner = "joseph";
-      mode = "0600";
-    };
+  sops.secrets.nix-cache-netrc = {
+    owner = "joseph";
+    mode = "0600";
+  };
 
-    nix.settings = {
-      substituters = [ "https://nix-cache.jetersen.dev/workstations" ];
-      trusted-public-keys = [ "workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=" ];
-      netrc-file = config.sops.secrets.nix-cache-netrc.path;
-      # A lifecycle check can precede CI's upload. Retry new cache paths immediately.
-      narinfo-cache-negative-ttl = 0;
-    };
+  nix.settings = {
+    substituters = [ "https://nix-cache.jetersen.dev/workstations" ];
+    trusted-public-keys = [ "workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=" ];
+    netrc-file = config.sops.secrets.nix-cache-netrc.path;
+    narinfo-cache-negative-ttl = 0;
+  };
 
-    services.comin = {
-      enable = true;
-      package = inputs.comin.packages.${pkgs.stdenv.hostPlatform.system}.comin;
-      desktop.enable = true;
-      remotes = [
-        {
-          name = "forgejo";
-          url = "https://forgejo.jetersen.dev/jetersen/dotfiles.git";
-          branches.main.name = "main";
-          branches.testing.name = "";
-          # CI and local lifecycle events request fetches through the control socket.
-          poller.period = 0;
-        }
-      ];
-      exporter.listen_address = "127.0.0.1";
-    };
+  system.autoUpgrade = {
+    enable = true;
+    flake = "git+https://forgejo.jetersen.dev/jetersen/dotfiles.git?ref=main#${config.networking.hostName}";
+    upgrade = false;
+    flags = [ "--no-write-lock-file" ];
+    operation = "switch";
+    allowReboot = false;
+    dates = "daily";
+    persistent = true;
+  };
 
-    systemd.user.services.comin-desktop = {
-      partOf = [ "graphical-session.target" ];
-      unitConfig.StartLimitIntervalSec = 0;
-      serviceConfig = {
-        ExecStart = lib.mkForce ''${lib.getExe config.services.comin.package} desktop --title "System update" --reboot-only'';
-        Restart = "on-failure";
-        RestartSec = 5;
-      };
-    };
-
-    # Socket creation/replacement wakes pending requests without reconnect polling.
-    systemd.paths.comin-fetch = {
-      description = "Watch for Comin control socket changes";
-      wantedBy = [ "multi-user.target" ];
-      pathConfig = {
-        PathChanged = "/var/lib/comin/grpc.sock";
-        Unit = "comin-fetch.service";
-      };
-    };
-
-    systemd.services.comin-fetch = {
-      description = "Check for a published NixOS deployment";
-      wants = [ "network-online.target" ];
-      after = [
-        "network-online.target"
-        "pc2mqtt.service"
-      ];
-      unitConfig.ConditionPathIsSocket = "/run/pc2mqtt/update.sock";
-      unitConfig.StartLimitIntervalSec = 0;
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${pc2mqtt}/bin/pc2mqtt --request-update";
-        NoNewPrivileges = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-      };
-    };
-
-    networking.networkmanager.dispatcherScripts = [
-      {
-        source = pkgs.writeShellScript "comin-network-fetch" ''
-          case "$2" in
-            up|vpn-up|vpn-down|dhcp4-change|dhcp6-change|connectivity-change)
-              ${startFetch}
-              ;;
-          esac
-        '';
-      }
-    ];
-    powerManagement.resumeCommands = startFetch;
-
-    # Prefer CI outputs while allowing large packages excluded from Attic.
-    systemd.services.comin.environment = {
-      COMIN_ALLOW_REWRITTEN_MAIN = "1";
-      NIX_CONFIG = ''
-        always-allow-substitutes = true
-        max-jobs = 1
-        cores = 4
-        fallback = false
-      '';
+  systemd.services.nixos-upgrade = {
+    wantedBy = [ "multi-user.target" ];
+    environment.NIX_CONFIG = ''
+      always-allow-substitutes = true
+      max-jobs = 1
+      cores = 4
+      fallback = false
+    '';
+    serviceConfig = {
+      StateDirectory = "pc2mqtt";
+      StateDirectoryMode = "0700";
+      TimeoutStartSec = "6h";
+      # Let an existing Comin deployment finish before this updater takes over.
+      ExecCondition = "${pkgs.bash}/bin/bash -c '! ${pkgs.systemd}/bin/systemctl --quiet is-active comin.service'";
+      ExecStopPost = "${pc2mqtt}/bin/pc2mqtt --report-update-result";
     };
   };
+
+  # An inert compatibility unit lets Comin finish the activation which retires
+  # it. Its existing changed-unit handling then exits without being restarted.
+  systemd.services.comin = {
+    restartIfChanged = false;
+    unitConfig.X-StopOnRemoval = false;
+    unitConfig.OnSuccess = "nixos-upgrade.service";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.coreutils}/bin/true";
+      Restart = "no";
+    };
+  };
+
+  # Stop the old session listener too; it otherwise reconnects to the retired API.
+  systemd.services.retire-comin-desktop = {
+    wantedBy = [ "multi-user.target" ];
+    unitConfig.ConditionPathExists = "/run/user/${toString config.users.users.joseph.uid}/bus";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "-${pkgs.systemd}/bin/systemctl --user --machine=joseph@.host --no-block stop comin-desktop.service";
+    };
+  };
+
+  networking.networkmanager.dispatcherScripts = [
+    {
+      source = pkgs.writeShellScript "nixos-network-upgrade" ''
+        case "$2" in
+          up|vpn-up|vpn-down|dhcp4-change|dhcp6-change|connectivity-change)
+            ${startUpgrade}
+            ;;
+        esac
+      '';
+    }
+  ];
+  powerManagement.resumeCommands = startUpgrade;
 }

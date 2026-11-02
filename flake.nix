@@ -13,12 +13,6 @@
       url = "file+https://github.com/microsoft/aspire/releases/download/v13.6.2/aspire-cli-linux-x64-13.6.2.tar.gz";
       flake = false;
     };
-    comin = {
-      url = "git+https://forgejo.jetersen.dev/jetersen/comin.git?ref=dotfiles-v0.14&shallow=1";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.treefmt-nix.url = "github:numtide/treefmt-nix";
-      inputs.treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -331,7 +325,6 @@
               inputs.self.nixosModules.common
               inputs.self.nixosModules.desktop
               home-manager.nixosModules.home-manager
-              inputs.comin.nixosModules.comin
               ./nixos/profiles/workstation.nix
             ];
             programs.command-not-found.enable = false;

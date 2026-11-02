@@ -3,11 +3,10 @@
   craneLib,
   fetchFromGitea,
   cacert,
-  protobuf,
   source ? null,
 }:
 let
-  revision = "05b243e130a16a203ab6bc66801e37c9668ce581";
+  revision = "21254ab2783c75198dfeb005fedf78359056ed34";
   shortRevision = builtins.substring 0 7 revision;
   # Keep the revision pinned; source can be overridden for isolated local builds.
   upstreamSource =
@@ -19,12 +18,12 @@ let
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-VUErZRyCgRptSv4XdNXVMjZDvBdCa6T3gC53hyz4OII=";
+        hash = "sha256-ovd9sLAcrRpyNkyVt43P7FWqapgJUwLrFVxs1coDN4Y=";
       };
   src = lib.cleanSourceWith {
     src = upstreamSource;
     name = "pc2mqtt-source";
-    filter = path: type: craneLib.filterCargoSources path type || lib.hasSuffix ".proto" path;
+    filter = path: type: craneLib.filterCargoSources path type;
   };
   commonArgs = {
     inherit src;
@@ -32,8 +31,6 @@ let
     # Keep dependency artifact identity independent of the pinned source revision.
     version = (builtins.fromTOML (builtins.readFile (src + "/Cargo.toml"))).package.version;
 
-    nativeBuildInputs = [ protobuf ];
-    PROTOC = "${protobuf}/bin/protoc";
     postPatch = ''
       # Build for the Nix platform rather than the upstream workstation's musl target.
       rm -f .cargo/config.toml
@@ -42,7 +39,7 @@ let
     SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
   };
   # Crane stubs our Rust sources and build script, retaining dependency manifests
-  # and release settings. Rust/protocol edits therefore reuse compiled dependencies.
+  # and release settings. Rust source edits therefore reuse compiled dependencies.
   cargoArtifacts = craneLib.buildDepsOnly (
     commonArgs
     // {
@@ -81,6 +78,11 @@ craneLib.buildPackage (
     installCheckPhase = ''
       runHook preInstallCheck
       test "$("$out/bin/pc2mqtt" --version)" = "pc2mqtt ${shortRevision}"
+      SERVICE_RESULT=exit-code EXIT_STATUS=1 \
+        PC2MQTT_UPDATE_RESULT="$TMPDIR/update-result.json" \
+        PC2MQTT_UPDATE_SOCKET="$TMPDIR/no-agent.sock" \
+        "$out/bin/pc2mqtt" --report-update-result
+      grep -q '"state":"failed"' "$TMPDIR/update-result.json"
       runHook postInstallCheck
     '';
 

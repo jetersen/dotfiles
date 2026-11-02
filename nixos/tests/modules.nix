@@ -35,10 +35,20 @@ let
         bundleLoader = c.programs.nix-ld.enable;
         bundleIcu = builtins.elem configurations.${host}.pkgs.icu c.programs.nix-ld.libraries;
       };
-      comin = {
-        checks = c.services.comin.package.doCheck;
-        main = (builtins.head c.services.comin.remotes).branches.main.name;
-        rewrittenMain = c.systemd.services.comin.environment.COMIN_ALLOW_REWRITTEN_MAIN;
+      upgrade = {
+        enabled = c.system.autoUpgrade.enable;
+        flake = c.system.autoUpgrade.flake;
+        autoReboot = c.system.autoUpgrade.allowReboot;
+        upgradeInputs = c.system.autoUpgrade.upgrade;
+        persistent = c.system.autoUpgrade.persistent;
+        restartIfChanged = c.systemd.services.nixos-upgrade.restartIfChanged;
+        stopOnRemoval = c.systemd.services.nixos-upgrade.unitConfig.X-StopOnRemoval;
+        post = c.systemd.services.nixos-upgrade.serviceConfig.ExecStopPost;
+        resultDirectory = c.systemd.services.nixos-upgrade.serviceConfig.StateDirectory;
+        retiredComin = c.systemd.services.comin.serviceConfig;
+        cominWanted = c.systemd.services.comin.wantedBy;
+        handover = c.systemd.services.comin.unitConfig.OnSuccess;
+        retireDesktop = c.systemd.services.retire-comin-desktop.serviceConfig.ExecStart;
       };
       mqtt = {
         credential = c.systemd.services.pc2mqtt.serviceConfig.LoadCredential;
@@ -231,12 +241,22 @@ let
             message = "${host}: joseph must be able to manage Tailscale Serve";
           }
           {
-            assertion = c.comin.checks;
-            message = "${host}: Comin native regression tests must stay enabled";
-          }
-          {
-            assertion = c.comin.main == "main" && c.comin.rewrittenMain == "1";
-            message = "${host}: preserve the shared main deployment policy";
+            assertion =
+              c.upgrade.enabled
+              && !c.upgrade.autoReboot
+              && !c.upgrade.upgradeInputs
+              && c.upgrade.persistent
+              && !c.upgrade.restartIfChanged
+              && !c.upgrade.stopOnRemoval
+              && c.upgrade.flake == "git+https://forgejo.jetersen.dev/jetersen/dotfiles.git?ref=main#${host}"
+              && lib.hasSuffix "pc2mqtt --report-update-result" c.upgrade.post
+              && c.upgrade.resultDirectory == "pc2mqtt"
+              && c.upgrade.retiredComin.Type == "oneshot"
+              && c.upgrade.retiredComin.Restart == "no"
+              && c.upgrade.cominWanted == [ ]
+              && c.upgrade.handover == "nixos-upgrade.service"
+              && lib.hasInfix "--user --machine=joseph@.host --no-block stop comin-desktop.service" c.upgrade.retireDesktop;
+            message = "${host}: use a persistent, non-rebooting oneshot updater with durable MQTT results and no Comin daemon";
           }
           {
             assertion =
