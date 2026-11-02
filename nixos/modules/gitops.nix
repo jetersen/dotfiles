@@ -9,6 +9,22 @@ let
   startUpgrade = "${pkgs.systemd}/bin/systemctl --no-block start nixos-upgrade.service";
 in
 {
+  # A running Comin evaluates this attribute in the target flake before it can
+  # deploy the configuration that retires it. Preserve the old nullable default.
+  imports = [
+    (
+      { lib, ... }:
+      {
+        options.services.comin.machineId = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          internal = true;
+          description = "Machine identity compatibility for retiring Comin installations.";
+        };
+      }
+    )
+  ];
+
   sops.secrets.nix-cache-netrc = {
     owner = "joseph";
     mode = "0600";

@@ -49,6 +49,7 @@ let
         cominWanted = c.systemd.services.comin.wantedBy;
         handover = c.systemd.services.comin.unitConfig.OnSuccess;
         retireDesktop = c.systemd.services.retire-comin-desktop.serviceConfig.ExecStart;
+        compatMachineId = c.services.comin.machineId;
       };
       mqtt = {
         credential = c.systemd.services.pc2mqtt.serviceConfig.LoadCredential;
@@ -255,6 +256,7 @@ let
               && c.upgrade.retiredComin.Restart == "no"
               && c.upgrade.cominWanted == [ ]
               && c.upgrade.handover == "nixos-upgrade.service"
+              && c.upgrade.compatMachineId == null
               && lib.hasInfix "--user --machine=joseph@.host --no-block stop comin-desktop.service" c.upgrade.retireDesktop;
             message = "${host}: use a persistent, non-rebooting oneshot updater with durable MQTT results and no Comin daemon";
           }
