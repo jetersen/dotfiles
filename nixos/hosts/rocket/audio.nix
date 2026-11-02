@@ -32,7 +32,28 @@ let
   };
 in
 {
-  systemd.services.pc2mqtt.environment.PC2MQTT_AUDIO_COMMAND = lib.getExe audioAdapter;
+  systemd.services.pc2mqtt = {
+    environment.PC2MQTT_AUDIO_COMMAND = lib.getExe audioAdapter;
+    serviceConfig = {
+      # Hide homes and runtime directories while exposing only the audio socket.
+      ProtectHome = lib.mkForce "tmpfs";
+      BindReadOnlyPaths = [ "-/run/user/${toString user.uid}/pipewire-0" ];
+    };
+  };
+  # A socket bind pins its inode; refresh it after login or a PipeWire restart.
+  systemd.paths.pc2mqtt-audio-session = {
+    wantedBy = [ "multi-user.target" ];
+    pathConfig = {
+      PathChanged = "/run/user/${toString user.uid}/pipewire-0";
+      Unit = "pc2mqtt-audio-session.service";
+    };
+  };
+  systemd.services.pc2mqtt-audio-session = {
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.systemd}/bin/systemctl try-restart pc2mqtt.service";
+    };
+  };
 
   # Keep the working per-user ACP profiles and WirePlumber rules together.
   home-manager.users.joseph.xdg.configFile = {
