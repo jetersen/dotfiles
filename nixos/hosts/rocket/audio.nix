@@ -1,5 +1,39 @@
-{ pkgs, ... }:
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  user = config.users.users.joseph;
+  audioControl = pkgs.writeShellApplication {
+    name = "pc2mqtt-wpctl";
+    runtimeInputs = [
+      pkgs.wireplumber
+      pkgs.gawk
+    ];
+    text = builtins.readFile ../../modules/pc2mqtt-audio.sh;
+  };
+  audioAdapter = pkgs.writeShellApplication {
+    name = "pc2mqtt-audio";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.util-linux
+    ];
+    text = ''
+      if [[ $(id -u) == 0 ]]; then
+        exec timeout --kill-after=1s 3s runuser -u ${lib.escapeShellArg user.name} -- \
+          env XDG_RUNTIME_DIR=/run/user/${toString user.uid} ${lib.getExe audioControl} "$@"
+      fi
+      [[ $(id -u) == ${toString user.uid} ]]
+      exec timeout --kill-after=1s 3s env XDG_RUNTIME_DIR=/run/user/${toString user.uid} \
+        ${lib.getExe audioControl} "$@"
+    '';
+  };
+in
+{
+  systemd.services.pc2mqtt.environment.PC2MQTT_AUDIO_COMMAND = lib.getExe audioAdapter;
+
   # Keep the working per-user ACP profiles and WirePlumber rules together.
   home-manager.users.joseph.xdg.configFile = {
     "wireplumber/wireplumber.conf.d/disable.conf".source =
