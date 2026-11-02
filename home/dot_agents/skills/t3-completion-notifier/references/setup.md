@@ -55,7 +55,7 @@ Tailor the handoff to the job:
 ```text
 Reconcile JOB_ID / WATCH_UUID: EXECUTION_AND_TARGET on HOST.
 Evidence and success criterion: PATHS_OR_VERIFIER, REQUIRED_RESULTS.
-Watch config/state: WATCH_DIRECTORY; webhook: SCHEDULE_ID.
+Watch config: CONFIG_PATH; state: STATE_DIRECTORY; webhook: SCHEDULE_ID.
 Authorized final actions (optional): CHECKS_AND_CLEANUP.
 
 Completion signal:
@@ -68,7 +68,7 @@ completionValid={{body.completionValid}}
 reason={{body.reason}}
 observedAtUtc={{body.observedAtUtc}}
 
-Verify identities and authoritative job results. Complete the authorized final actions, verify t3-notify-WATCH_UUID.timer is inactive and disable SCHEDULE_ID. Preserve event/receipt evidence and report verified results.
+Verify identities and authoritative job results. Complete the authorized final actions and verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate and report why it remains. Preserve event/receipt evidence. Report results with a clickable absolute-path link to STATE_DIRECTORY/watcher.log.
 ```
 
 ## Run
