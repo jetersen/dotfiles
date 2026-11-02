@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793578629,
-        "narHash": "sha256-aeM2LhsJfTuxifkZQ74xDzCm8c0HdLVBvDph7uWJraA=",
+        "lastModified": 1793597365,
+        "narHash": "sha256-HmB7+qQr42sOLy26X895oYog0b81Dmh0Iztjsv0g4Go=",
         "ref": "main",
-        "rev": "88b45dfe00752f81cbaf17c7ff68618d1ecf12a0",
+        "rev": "a8dff1cee6a428a0e5eff5dbdf7bf258f6cc32d0",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -469,11 +469,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1793410479,
-        "narHash": "sha256-/qr8f3vHjWsV4coaRfOe8HDdtslsv9MMMGlOSngZ2bQ=",
-        "rev": "fa1373130d5a21c040a47c5dbe1913d59ed91808",
+        "lastModified": 1793526781,
+        "narHash": "sha256-GVeZeBj2vr6j0bZwjpRDc2OSQEq23xXmcjkYSqZ5ycM=",
+        "rev": "9bb52223f4f6a0cc606fd0852d8784f896c137d5",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.13297.fa1373130d5a/nixexprs.tar.xz"
+        "url": "https://releases.nixos.org/nixos/26.05/nixos-26.05.13375.9bb52223f4f6/nixexprs.tar.xz"
       },
       "original": {
         "type": "tarball",
@@ -482,11 +482,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1793578427,
-        "narHash": "sha256-l7eWYicJYPkCsH9XOBTU74nbaLbpxx2RkkR7lM4+AuQ=",
+        "lastModified": 1793599812,
+        "narHash": "sha256-Xr4w43MFFB4Y+HwBpMtNSlaMmRqgFMYzTzhTiCZsNaY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "79c73e9978f1519e83acbf95b396087a4d2cfb5b",
+        "rev": "26cb179eedc112961a5e17ec1401c44c7c8e1888",
         "type": "github"
       },
       "original": {
