@@ -34,6 +34,7 @@ in
 {
   systemd.services.pc2mqtt = {
     environment.PC2MQTT_AUDIO_COMMAND = lib.getExe audioAdapter;
+    environment.PC2MQTT_AUDIO_SOCKET = "/run/user/${toString user.uid}/pipewire-0";
     serviceConfig = {
       # Hide homes and runtime directories while exposing only the audio socket.
       ProtectHome = lib.mkForce "tmpfs";
