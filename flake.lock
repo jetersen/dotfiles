@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793597365,
-        "narHash": "sha256-HmB7+qQr42sOLy26X895oYog0b81Dmh0Iztjsv0g4Go=",
+        "lastModified": 1793600705,
+        "narHash": "sha256-bNGVCey0PWSpt6Ww7hmkZYlM8kL5HVl+DGPrOmHye84=",
         "ref": "main",
-        "rev": "a8dff1cee6a428a0e5eff5dbdf7bf258f6cc32d0",
+        "rev": "ae2c92730f335db41c02dffb22fdfc83793e231d",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
