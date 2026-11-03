@@ -188,7 +188,7 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
   def test_malformed_and_unknown_results_do_not_notify(self):
     for status in [[], {}, {'jobId': 'other', 'state': 'succeeded'}, self.terminal(state='unknown')]:
       with self.assertRaises(ValueError):
-        self.tick(status=status, fetch=lambda _, s=status: s)
+        poll.event_from_status(self.c, status)
     self.source.write_text('not JSON')
     with self.assertRaises(RuntimeError):
       poll.fetch(self.c)
@@ -200,6 +200,60 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
     poll.check_once(self.c, stop_timer=lambda _: None)
     self.assertEqual(records[0][1]['status'], 'failed')
     self.assertNotIn('total', records[0][1])
+
+  def test_transient_observation_failure_resets_after_valid_tick(self):
+    def unavailable(_):
+      raise RuntimeError('secret diagnostic')
+    for attempt in range(2):
+      with self.assertRaises(RuntimeError):
+        self.tick(fetch=unavailable)
+    self.assertEqual(self.sent, [])
+    self.assertEqual(self.tick({'jobId': self.c['jobId'], 'state': 'running'}), 'running')
+    with self.assertRaises(RuntimeError):
+      self.tick(fetch=unavailable)
+    self.assertEqual(json.loads((self.state / 'observation-failures.json').read_text())['consecutiveFailures'], 1)
+    self.assertEqual(self.tick(), 'notified')
+    self.assertEqual(self.sent[0]['event'], 'job_terminal')
+    self.assertNotIn('secret diagnostic', self.output.getvalue())
+
+  def test_observation_failure_survives_processes_and_retries_same_alert(self):
+    records = self.serve([None, (202, 'duplicate')], signing_key=None)
+    self.adapter.write_text('raise ValueError("secret-adapter-error")\n')
+    ctl = self.root / 'systemctl'
+    ctl.write_text('#!' + sys.executable + '\nprint("LoadState=not-found")\n')
+    ctl.chmod(0o700)
+    self.c['systemctl'] = str(ctl)
+    self.config_path.write_text(json.dumps(self.c))
+    outputs = []
+    for expected in [1, 1, 1, 0, 0]:
+      result = subprocess.run([sys.executable, '-B', str(HERE / 'poll.py'), 'tick',
+                               '--config', str(self.config_path)], capture_output=True, text=True, timeout=5)
+      self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+      outputs.append(result.stdout + result.stderr)
+    self.assertEqual(len(records), 2)
+    self.assertEqual(records[0][2], records[1][2])
+    event = records[0][1]
+    self.assertEqual((event['event'], event['status'], event['exitCode'], event['completionValid']),
+                     ('observation_failed', 'unknown', None, False))
+    self.assertEqual(event['consecutiveFailures'], 3)
+    self.assertEqual(event['exceptionType'], 'AdapterCommandError')
+    self.assertNotIn('secret-adapter-error', ''.join(outputs) + json.dumps(event))
+    self.assertNotIn('fixture-secret-capability', ''.join(outputs))
+
+  def test_persistent_invalid_observations_alert_without_asserting_job_failure(self):
+    for attempt in range(2):
+      with self.assertRaises(ValueError):
+        self.tick(fetch=lambda _: {'jobId': 'wrong-job', 'state': 'succeeded'})
+    self.assertEqual(self.tick(fetch=lambda _: {'jobId': 'wrong-job', 'state': 'succeeded'}), 'notified')
+    self.assertEqual(self.sent[0]['event'], 'observation_failed')
+    self.assertEqual(self.sent[0]['status'], 'unknown')
+    self.assertEqual(self.sent[0]['jobId'], self.c['jobId'])
+
+  def test_observation_failure_limit_must_be_positive_integer(self):
+    for limit in [0, -1, True, 1.5, 101]:
+      self.config_path.write_text(json.dumps({**self.c, 'observationFailureLimit': limit}))
+      with self.assertRaises(ValueError):
+        poll.load_config(self.config_path)
 
   def test_pending_survives_http_failure_and_resumes_without_lookup(self):
     records = self.serve([(503, 'error'), (202, 'accepted')])
@@ -504,7 +558,7 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
                 'dedupe': {'replayKey': '{{body.eventId}}'},
                 'filters': [{'path': 'body.' + k, 'op': 'equals', 'value': self.c[k]}
                             for k in ('jobId', 'watchId')] +
-                           [{'path': 'body.event', 'op': 'equals', 'value': 'job_terminal'}]}
+                           [{'path': 'body.event', 'op': 'in', 'value': list(poll.EVENTS)}]}
     with closing(sqlite3.connect(path)) as db, db:
       db.execute('CREATE TABLE scheduled_tasks (task_id TEXT, webhook_token TEXT, enabled INTEGER, '
                  'project_id TEXT, thread_id TEXT, schedule_json TEXT, webhook_secret TEXT)')
@@ -550,6 +604,8 @@ print(json.dumps({**raw, 'completionValid': raw.get('total') == 17}))
                       {**poll.SIGNATURE, 'encoding': 'base64'}]:
       variants.append({**original, 'signature': signature})
     variants.append({**original, 'filters': [f for f in original['filters'] if f['path'] != 'body.event']})
+    variants.append({**original, 'filters': [f for f in original['filters'] if f['path'] != 'body.event'] +
+                     [{'path': 'body.event', 'op': 'equals', 'value': 'job_terminal'}]})
     for extra in [{'coalesceKey': '{{body.watchId}}'}, {'coalesceWindowSeconds': 120}]:
       variants.append({**original, 'dedupe': {**original['dedupe'], **extra}})
     for schedule in variants:

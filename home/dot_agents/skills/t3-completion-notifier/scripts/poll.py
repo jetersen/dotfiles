@@ -25,6 +25,7 @@ import uuid
 STATES = {'running', 'succeeded', 'failed', 'cancelled', 'timed_out'}
 ACKS = {'accepted', 'duplicate'}
 SIGNATURE = {'header': 'x-t3-notify-signature', 'encoding': 'hex', 'prefix': 'sha256='}
+EVENTS = ['job_terminal', 'observation_failed']
 # Stay inside T3's verified seven-day replay retention, including restart delays.
 MAX_PENDING_AGE = datetime.timedelta(days=6)
 
@@ -120,6 +121,9 @@ def load_config(path):
     raise ValueError('Remote HTTP is unsupported; use httpsOrigin')
   if 'httpsOrigin' in c:
     https_origin(c['httpsOrigin'])
+  c.setdefault('observationFailureLimit', 3)
+  if type(c['observationFailureLimit']) is not int or not 1 <= c['observationFailureLimit'] <= 100:
+    raise ValueError('Invalid observation failure limit')
   return c
 
 
@@ -158,6 +162,13 @@ def locked(c):
     yield root
 
 
+def make_event(c, kind, state, code, valid, reason, **details):
+  event = {**owner(c), 'event': kind, 'status': state,
+           'exitCode': code, 'completionValid': valid, 'reason': reason, 'observedAtUtc': now(), **details}
+  event['eventId'] = hashlib.sha256(json.dumps(event, sort_keys=True).encode()).hexdigest()
+  return event
+
+
 def event_from_status(c, status):
   if not isinstance(status, dict) or status.get('jobId') != c['jobId']:
     raise ValueError('Wrong job')
@@ -173,10 +184,7 @@ def event_from_status(c, status):
   if state == 'succeeded' and (not valid or code != 0):
     state, reason = 'failed', 'invalid_completion'
   # Explicit allowlist: no raw stdout, provider errors, URLs or arbitrary summaries.
-  event = {**owner(c), 'event': 'job_terminal', 'status': state,
-           'exitCode': code, 'completionValid': valid, 'reason': reason, 'observedAtUtc': now()}
-  event['eventId'] = hashlib.sha256(json.dumps(event, sort_keys=True).encode()).hexdigest()
-  return event
+  return make_event(c, 'job_terminal', state, code, valid, reason)
 
 
 def validate_event(c, event):
@@ -184,8 +192,11 @@ def validate_event(c, event):
     raise ValueError('Wrong pending identity')
   copy = dict(event)
   event_id = copy.pop('eventId', None)
+  terminal = event.get('event') == 'job_terminal' and event.get('status') in STATES - {'running'}
+  observation = (event.get('event') == 'observation_failed' and event.get('status') == 'unknown' and
+                 event.get('exitCode') is None and event.get('completionValid') is False)
   if (event_id != hashlib.sha256(json.dumps(copy, sort_keys=True).encode()).hexdigest() or
-      event.get('event') != 'job_terminal' or event.get('status') not in STATES - {'running'}):
+      not (terminal or observation)):
     raise ValueError('Invalid pending event')
 
 
@@ -300,12 +311,25 @@ def check_once(c, fetch_status=fetch, deliver=post, stop_timer=stop):
       event = json.loads(pending.read_text())
       validate_event(c, event)
     else:
-      status = fetch_status(c)
-      event = event_from_status(c, status)
-      atomic(root / 'last-check.json', {'atUtc': now(), 'jobId': c['jobId'], 'state': status['state']})
-      if event is None:
-        log('job_running')
-        return 'running'
+      failures = root / 'observation-failures.json'
+      try:
+        status = fetch_status(c)
+        event = event_from_status(c, status)
+      except Exception as error:
+        previous = json.loads(failures.read_text()) if failures.exists() else {}
+        count = previous.get('consecutiveFailures', 0) + 1
+        atomic(failures, {'consecutiveFailures': count, 'exceptionType': type(error).__name__, 'atUtc': now()})
+        log('observation_failed', consecutiveFailures=count, exceptionType=type(error).__name__)
+        if count < c['observationFailureLimit']:
+          raise
+        event = make_event(c, 'observation_failed', 'unknown', None, False, 'observation_failed',
+                           consecutiveFailures=count, exceptionType=type(error).__name__)
+      else:
+        failures.unlink(missing_ok=True)
+        atomic(root / 'last-check.json', {'atUtc': now(), 'jobId': c['jobId'], 'state': status['state']})
+        if event is None:
+          log('job_running')
+          return 'running'
       atomic(pending, event)
       log('terminal_detected', status=event['status'])
     observed = datetime.datetime.fromisoformat(event['observedAtUtc'])

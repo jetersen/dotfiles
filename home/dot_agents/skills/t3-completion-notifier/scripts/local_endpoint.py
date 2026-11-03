@@ -11,7 +11,7 @@ import sqlite3
 import sys
 import urllib.parse
 
-from poll import command, endpoint_url, loopback_url, SIGNATURE
+from poll import command, endpoint_url, loopback_url, SIGNATURE, EVENTS
 
 
 def runtime_identity(pid):
@@ -104,7 +104,7 @@ def resolve(c):
   dedupe = schedule.get('dedupe') or {}
   required_filters = [{'path': 'body.' + k, 'op': 'equals', 'value': c[k]}
                       for k in ('watchId', 'jobId')]
-  required_filters.append({'path': 'body.event', 'op': 'equals', 'value': 'job_terminal'})
+  required_filters.append({'path': 'body.event', 'op': 'in', 'value': EVENTS})
   if (schedule.get('type') != 'webhook' or (signature is not None and signature != SIGNATURE) or
       dedupe.get('replayKey') != '{{body.eventId}}' or
       any(dedupe.get(k) is not None for k in ('coalesceKey', 'coalesceWindowSeconds')) or

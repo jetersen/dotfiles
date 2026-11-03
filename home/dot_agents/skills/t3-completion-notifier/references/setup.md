@@ -30,6 +30,27 @@ Create a mode 0700 watch directory outside repositories/Nix stores. Generate `wa
 
 Commands are argv arrays with absolute paths. The resolver prints `{"url":"…"}` into the helper's captured pipe; the URL contains the hook token, so keep it out of config, argv and logs. See [endpoint.md](endpoint.md) for endpoint setup and the supplied resolver.
 
+For new local jobs, `scripts/job.py` saves execution identity, exit code and validated results atomically, independently of systemd unit retention. Add these fields:
+
+```json
+{
+  "jobUnit": "selected-job.service",
+  "jobRecord": "/absolute/watch/job.json",
+  "jobCommand": ["/absolute/job", "task-arguments"],
+  "resultCommand": ["/absolute/python3", "/absolute/watch/verify-results.py"]
+}
+```
+
+The job-specific result verifier prints `{"completionValid":true}` only after checking this execution's inputs and expected results. Set `adapterCommand` to `["/absolute/python3", "/absolute/skill/scripts/job.py", "status", "--config", "/absolute/watch/config.json"]`. Launch the wrapper as the independent job, with an appropriate runtime limit:
+
+```sh
+systemd-run --user --unit="$JOB_UNIT" --property=Type=exec --property=RuntimeMaxSec=1h \
+  --property="StandardOutput=append:$WATCH/job.log" --property=StandardError=inherit \
+  /absolute/python3 "$SKILL/scripts/job.py" run --config "$WATCH/config.json"
+```
+
+Use the same service name as `jobUnit`. Existing jobs need their own durable result adapter. Three consecutive observation errors trigger `observation_failed` with job status `unknown`; a valid tick resets the count. Configure `observationFailureLimit` to change that threshold.
+
 ## Webhook and prompt
 
 Use the live T3 schema, a stable `clientRequestId` and `bindToCurrentThread:true`. Omit `signature` to use T3's generated webhook URL token without a secret-card request. Verify the returned schedule/project/thread binding. Do not configure coalescing.
@@ -42,7 +63,7 @@ Example `schedule` object:
   "filters": [
     {"path":"body.jobId","op":"equals","value":"exact-job-id"},
     {"path":"body.watchId","op":"equals","value":"8c3605f1-b44e-49c9-942c-c6c35d7b479a"},
-    {"path":"body.event","op":"equals","value":"job_terminal"}
+    {"path":"body.event","op":"in","value":["job_terminal","observation_failed"]}
   ],
   "dedupe": {"replayKey":"{{body.eventId}}"}
 }
@@ -59,6 +80,7 @@ Watch config: CONFIG_PATH; state: STATE_DIRECTORY; webhook: SCHEDULE_ID.
 Authorized final actions (optional): CHECKS_AND_CLEANUP.
 
 Completion signal:
+event={{body.event}}
 jobId={{body.jobId}}
 watchId={{body.watchId}}
 eventId={{body.eventId}}
@@ -68,7 +90,7 @@ completionValid={{body.completionValid}}
 reason={{body.reason}}
 observedAtUtc={{body.observedAtUtc}}
 
-Verify identities and authoritative job results. Complete the authorized final actions and verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate. Preserve event/receipt evidence and report results.
+For observation_failed, investigate the watcher; the job's outcome is unknown and it may still be running. Otherwise verify identities and authoritative job results and complete the authorized final actions. Verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate. Preserve event/receipt evidence and report results.
 ```
 
 ## Run

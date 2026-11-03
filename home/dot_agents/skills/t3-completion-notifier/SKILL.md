@@ -7,8 +7,8 @@ description: Poll a long-running job with a Linux user timer and wake a T3 threa
 
 Use a systemd user timer for short status checks and a T3 webhook to wake this thread at completion. The job and its orchestrator must survive the T3/provider session ending; the notifier only observes them.
 
-1. Define the exact execution identity and authoritative success/failure evidence. Missing results or a disappeared process do not establish success.
-2. Follow [setup.md](references/setup.md) for the adapter, config, webhook and timer. Validate the adapter with active, successful, failed, wrong-identity and incomplete-evidence fixtures.
+1. Define the exact execution identity and durable success/failure evidence that survives unit collection. Missing results or a disappeared process do not establish success.
+2. Follow [setup.md](references/setup.md) for the adapter, config, webhook and timer. Validate active, collected successful/failed, wrong-identity and incomplete-evidence cases.
 3. Enable the webhook, start the timer and verify its first tick. Remove any agent check-ins this watch replaces.
 4. Report the host, cadence, state/log path and schedule ID, then end the agent turn.
 
