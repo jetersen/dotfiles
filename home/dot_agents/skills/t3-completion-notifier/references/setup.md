@@ -79,7 +79,7 @@ Evidence and success criterion: PATHS_OR_VERIFIER, REQUIRED_RESULTS.
 Watch config: CONFIG_PATH; state: STATE_DIRECTORY; webhook: SCHEDULE_ID.
 Authorized final actions (optional): CHECKS_AND_CLEANUP.
 
-Completion signal:
+Internal completion signal:
 event={{body.event}}
 jobId={{body.jobId}}
 watchId={{body.watchId}}
@@ -90,7 +90,7 @@ completionValid={{body.completionValid}}
 reason={{body.reason}}
 observedAtUtc={{body.observedAtUtc}}
 
-For observation_failed, investigate the watcher; the job's outcome is unknown and it may still be running. Otherwise verify identities and authoritative job results and complete the authorized final actions. Verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate. Preserve event/receipt evidence and report results.
+For observation_failed, investigate the watcher; the job's outcome is unknown and it may still be running. Otherwise verify identities and authoritative job results and complete the authorized final actions. Verify t3-notify-WATCH_UUID.timer is inactive. Once the webhook's work is verified complete and no follow-up remains, delete SCHEDULE_ID with delete_scheduled_task. Retain it if the job or webhook handling failed, needs investigation or another round; reuse it where appropriate. Preserve event/receipt evidence and report results directly, without generic webhook trust warnings.
 ```
 
 ## Run
