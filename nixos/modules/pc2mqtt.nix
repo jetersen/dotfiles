@@ -14,14 +14,19 @@
   systemd.services.pc2mqtt = {
     description = "Home Assistant MQTT power control";
     wantedBy = [ "multi-user.target" ];
-    wants = [ "network-online.target" ];
-    after = [ "network-online.target" ];
+    wants = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
+    after = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
     path = [
       pkgs.systemd
     ];
     environment = {
       PC2MQTT_CONFIG = "%d/config.json";
-      SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
     };
     serviceConfig = {
       ExecStart = "${inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pc2mqtt}/bin/pc2mqtt";

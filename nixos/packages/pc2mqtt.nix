@@ -2,11 +2,10 @@
   lib,
   craneLib,
   fetchFromGitea,
-  cacert,
   source ? null,
 }:
 let
-  revision = "e1b9027af32b0c3c1e492dba0586cd164e39382d";
+  revision = "67b549e3e645ed707ed985e853e659992f1c108c";
   shortRevision = builtins.substring 0 7 revision;
   # Keep the revision pinned; source can be overridden for isolated local builds.
   upstreamSource =
@@ -18,7 +17,7 @@ let
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-6KJMNPAfqIu819i4dLGKX2Om4cOA+kFYzMPdGplBnYQ=";
+        hash = "sha256-eEBWkuxVVPRG8a5KOgXjtReOZS4uT7QGPwVirKk4hTk=";
       };
   src = lib.cleanSourceWith {
     src = upstreamSource;
@@ -35,8 +34,6 @@ let
       # Build for the Nix platform rather than the upstream workstation's musl target.
       rm -f .cargo/config.toml
     '';
-    # Secure transport tests use the same trusted roots as the deployed service.
-    SSL_CERT_FILE = "${cacert}/etc/ssl/certs/ca-bundle.crt";
   };
   # Crane stubs our Rust sources and build script, retaining dependency manifests
   # and release settings. Rust source edits therefore reuse compiled dependencies.
