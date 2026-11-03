@@ -21,6 +21,7 @@ let
       pkgs.util-linux
     ];
     text = ''
+      # Preserve the agent's process group so cancellation reaches every helper.
       if [[ $(id -u) == 0 ]]; then
         exec timeout --foreground --kill-after=0.25s 1.5s setpriv --reuid=${toString user.uid} --regid=${
           toString config.users.groups.${user.group}.gid

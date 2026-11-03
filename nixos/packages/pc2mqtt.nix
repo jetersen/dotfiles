@@ -6,7 +6,7 @@
   source ? null,
 }:
 let
-  revision = "c05bbe50e4569b4abc9f882cf5b7e209636be9ff";
+  revision = "e1b9027af32b0c3c1e492dba0586cd164e39382d";
   shortRevision = builtins.substring 0 7 revision;
   # Keep the revision pinned; source can be overridden for isolated local builds.
   upstreamSource =
@@ -18,7 +18,7 @@ let
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-9zkK1XrsNV+v4i+/gkkeSwCI75e6JTm64eR4qIplfGg=";
+        hash = "sha256-6KJMNPAfqIu819i4dLGKX2Om4cOA+kFYzMPdGplBnYQ=";
       };
   src = lib.cleanSourceWith {
     src = upstreamSource;
