@@ -22,11 +22,13 @@ let
     ];
     text = ''
       if [[ $(id -u) == 0 ]]; then
-        exec timeout --kill-after=1s 3s runuser -u ${lib.escapeShellArg user.name} -- \
+        exec timeout --foreground --kill-after=0.25s 1.5s setpriv --reuid=${toString user.uid} --regid=${
+          toString config.users.groups.${user.group}.gid
+        } --init-groups -- \
           env XDG_RUNTIME_DIR=/run/user/${toString user.uid} ${lib.getExe audioControl} "$@"
       fi
       [[ $(id -u) == ${toString user.uid} ]]
-      exec timeout --kill-after=1s 3s env XDG_RUNTIME_DIR=/run/user/${toString user.uid} \
+      exec timeout --foreground --kill-after=0.25s 1.5s env XDG_RUNTIME_DIR=/run/user/${toString user.uid} \
         ${lib.getExe audioControl} "$@"
     '';
   };
