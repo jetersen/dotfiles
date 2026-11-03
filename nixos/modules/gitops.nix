@@ -65,16 +65,6 @@ in
     };
   };
 
-  # Queue the long upgrade without making boot/activation wait for it. The
-  # upgrade itself may activate a configuration which starts multi-user.target.
-  systemd.services.nixos-upgrade-at-boot = {
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = startUpgrade;
-    };
-  };
-
   # An inert compatibility unit lets Comin finish the activation which retires
   # it. Its existing changed-unit handling then exits without being restarted.
   systemd.services.comin = {
