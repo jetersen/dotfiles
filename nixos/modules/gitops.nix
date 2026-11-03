@@ -49,7 +49,6 @@ in
   };
 
   systemd.services.nixos-upgrade = {
-    wantedBy = [ "multi-user.target" ];
     environment.NIX_CONFIG = ''
       always-allow-substitutes = true
       max-jobs = 1
@@ -63,6 +62,16 @@ in
       # Let an existing Comin deployment finish before this updater takes over.
       ExecCondition = "${pkgs.bash}/bin/bash -c '! ${pkgs.systemd}/bin/systemctl --quiet is-active comin.service'";
       ExecStopPost = "${pc2mqtt}/bin/pc2mqtt --report-update-result";
+    };
+  };
+
+  # Queue the long upgrade without making boot/activation wait for it. The
+  # upgrade itself may activate a configuration which starts multi-user.target.
+  systemd.services.nixos-upgrade-at-boot = {
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = startUpgrade;
     };
   };
 
