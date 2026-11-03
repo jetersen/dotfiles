@@ -13,7 +13,9 @@ import json, os, sys
 from pathlib import Path
 p=Path(os.environ["AUDIO_FIXTURE"])
 s=json.loads(p.read_text()); args=sys.argv[1:]; s["calls"].append(args)
-if args[0]=="inspect": print("id 42, type PipeWire:Interface:Node")
+if args[0]=="inspect":
+ changed=s.get("switch_default",False) and sum(c[0]=="inspect" for c in s["calls"])>1
+ print("id %d, type PipeWire:Interface:Node" % (43 if changed else 42))
 elif args[0]=="get-volume": print("Volume: %.2f%s" % (s["volume"], " [MUTED]" if s["muted"] else ""))
 elif args[0]=="set-mute": s["muted"]=args[-1]!="0"
 elif args[0]=="set-volume":
@@ -27,7 +29,7 @@ p.write_text(json.dumps(s))
 
 
 class AudioTests(unittest.TestCase):
-    def run_adapter(self, operation, volume, muted=True, value="50"):
+    def run_adapter(self, operation, volume, muted=True, value="50", switch_default=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             helper = root / "wpctl"
@@ -35,7 +37,7 @@ class AudioTests(unittest.TestCase):
             helper.chmod(0o700)
             state = root / "state.json"
             state.write_text(
-                json.dumps({"volume": volume, "muted": muted, "calls": []})
+                json.dumps({"volume": volume, "muted": muted, "calls": [], "switch_default": switch_default})
             )
             result = subprocess.run(
                 [
@@ -98,6 +100,12 @@ class AudioTests(unittest.TestCase):
             result, state = self.run_adapter(operation, 0.7, value=value)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(state["calls"], [])
+
+    def test_default_speaker_swap_cannot_confirm_a_successful_cap(self):
+        result, state = self.run_adapter("limit-unmute", 0.8, switch_default=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, "")
+        self.assertNotIn("get-volume", [call[0] for call in state["calls"]])
 
 
 if __name__ == "__main__":

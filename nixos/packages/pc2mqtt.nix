@@ -3,12 +3,10 @@
   craneLib,
   fetchFromGitea,
   cacert,
-  pkg-config,
-  pipewire,
   source ? null,
 }:
 let
-  revision = "5398f0455727c9cb532abc97ea51cd3c8f899670";
+  revision = "c05bbe50e4569b4abc9f882cf5b7e209636be9ff";
   shortRevision = builtins.substring 0 7 revision;
   # Keep the revision pinned; source can be overridden for isolated local builds.
   upstreamSource =
@@ -20,19 +18,16 @@ let
         owner = "jetersen";
         repo = "pc2mqtt";
         rev = revision;
-        hash = "sha256-HffjKDX6nwBcSUNFHulmACpvDc19SbnhTf5z9ICO8PQ=";
+        hash = "sha256-9zkK1XrsNV+v4i+/gkkeSwCI75e6JTm64eR4qIplfGg=";
       };
   src = lib.cleanSourceWith {
     src = upstreamSource;
     name = "pc2mqtt-source";
-    filter = path: type: craneLib.filterCargoSources path type || lib.hasSuffix ".c" path;
+    filter = path: type: craneLib.filterCargoSources path type;
   };
   commonArgs = {
     inherit src;
     pname = "pc2mqtt";
-    cargoExtraArgs = "--features pipewire";
-    nativeBuildInputs = [ pkg-config ];
-    buildInputs = [ pipewire ];
     # Keep dependency artifact identity independent of the pinned source revision.
     version = (builtins.fromTOML (builtins.readFile (src + "/Cargo.toml"))).package.version;
 

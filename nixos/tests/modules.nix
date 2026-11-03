@@ -171,11 +171,11 @@ let
           socket = "/run/user/${toString rocket.users.users.joseph.uid}/pipewire-0";
           service = rocket.systemd.services.pc2mqtt;
         in
-        service.environment.PC2MQTT_AUDIO_SOCKET == socket
+        !(service.environment ? PC2MQTT_AUDIO_SOCKET)
         && service.serviceConfig.ProtectHome == "tmpfs"
         && service.serviceConfig.BindReadOnlyPaths == [ "-${socket}" ]
         && rocket.systemd.paths.pc2mqtt-audio-session.pathConfig.PathChanged == socket;
-      message = "Rocket: native audio events must share the narrowly bound PipeWire socket and session restart watcher";
+      message = "Rocket: request-only audio must retain the narrow PipeWire socket bind and session restart watcher";
     }
     {
       assertion = configurations.framework.pkgs.dnsdist.drvPath == pkgsUnstable.dnsdist.drvPath;
