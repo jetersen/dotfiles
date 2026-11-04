@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793684303,
-        "narHash": "sha256-DopceflVWaBw/qpIUdttD/VOyH9eKUeZU1oOXK+GfkA=",
+        "lastModified": 1793744568,
+        "narHash": "sha256-IgJ3uOiKVsUqFR8CaAweuavpJnawfKrI7CdbUws6lKU=",
         "ref": "main",
-        "rev": "b0bd522534d602be663948915084f4fb9e214de1",
+        "rev": "031c1bc0745e242c8020d7f7c81b08e3fd1ab3da",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -442,11 +442,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1793686600,
-        "narHash": "sha256-ekLXeBz7mHkTphTfsxtDnVnoOfrndSF0QbTRyajc5fc=",
+        "lastModified": 1793751538,
+        "narHash": "sha256-dZIS1FAnbMz3fslxJ9X5zBJIaaTRHLZjm6BaA/Qtn6I=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c80cf16425c13412ac42562f8af4835d1311f248",
+        "rev": "007c4cb843c5338a9c76cfb91f34a3462c30acd8",
         "type": "github"
       },
       "original": {
@@ -726,10 +726,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1793642042,
-        "narHash": "sha256-0z7OZFzumJlefJ+8zycS9G+8oB/ImtIP0yYzhjmhVjM=",
+        "lastModified": 1793710409,
+        "narHash": "sha256-NapxfokR49AvYX5ldtkjrdtH5pWxEj9BXU0Gw+rYX+E=",
         "ref": "main",
-        "rev": "81a04071a4bac9e7391fbaa0d7d6572e8a1ba481",
+        "rev": "d87bba54c0ddc367b2801ef5c66eed8b8e0ac072",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/0xc000022070/zen-browser-flake.git"
