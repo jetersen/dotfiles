@@ -132,7 +132,7 @@
       };
     };
     dux-files = {
-      url = "git+https://github.com/duxlabs-dev/dux-files.git?ref=refs/tags/v2.0.0&shallow=1";
+      url = "git+https://github.com/duxlabs-dev/dux-files.git?ref=refs/tags/v2.1.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dank-qml-common.follows = "dms/dank-qml-common";
     };

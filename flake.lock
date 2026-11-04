@@ -275,16 +275,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1792524213,
-        "narHash": "sha256-AucOD9s3dmDbHm5X7H+NunCXG7c3nKfoDVN/uDvKknY=",
-        "ref": "refs/tags/v2.0.0",
-        "rev": "62f2d0983177b7853f435f2417d551fbf348c1fa",
+        "lastModified": 1793756072,
+        "narHash": "sha256-+RtIWi9SPkKqqphnAc0vMw3fAR4v9BjtB8el1V8OkfQ=",
+        "ref": "refs/tags/v2.1.0",
+        "rev": "bb784ed9b3d90b262ba64661a38c1b0f6fb72365",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/duxlabs-dev/dux-files.git"
       },
       "original": {
-        "ref": "refs/tags/v2.0.0",
+        "ref": "refs/tags/v2.1.0",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/duxlabs-dev/dux-files.git"
