@@ -7,6 +7,18 @@ let
   configurations = inputs.self.nixosConfigurations;
 in
 {
+  files-ui-dependency =
+    let
+      files = inputs.dux-files;
+      releaseLock = builtins.fromJSON (builtins.readFile "${files}/flake.lock");
+    in
+    assert pkgs.lib.assertMsg (
+      files.inputs.dank-qml-common.rev == releaseLock.nodes.dank-qml-common.locked.rev
+    ) "Files must use the shared UI revision tested by its release";
+    pkgs.runCommand "files-ui-dependency" { } ''
+      test -f ${files.inputs.dank-qml-common}/DCommon/Common/FontSource.qml
+      touch "$out"
+    '';
   boot-profile = import ./boot-profile.nix { inherit pkgs configurations; };
   t3-browser-libraries = import ./browser.nix { inherit pkgs configurations; };
   desktop-activation = import ./desktop.nix { inherit pkgs inputs configurations; };

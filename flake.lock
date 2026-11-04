@@ -134,6 +134,24 @@
         "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
       }
     },
+    "dank-qml-common_3": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793739121,
+        "narHash": "sha256-tuZawVduVTBkUo2e5SrmA5tGEVEHZiIPqbOUwA007H4=",
+        "ref": "refs/heads/master",
+        "rev": "69971fe7203deaca031d04c434b3fcc016a2fb9e",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+      },
+      "original": {
+        "rev": "69971fe7203deaca031d04c434b3fcc016a2fb9e",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -266,10 +284,7 @@
     },
     "dux-files": {
       "inputs": {
-        "dank-qml-common": [
-          "dms",
-          "dank-qml-common"
-        ],
+        "dank-qml-common": "dank-qml-common_3",
         "nixpkgs": [
           "nixpkgs"
         ]
