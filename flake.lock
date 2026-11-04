@@ -83,16 +83,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1792524212,
-        "narHash": "sha256-uSaCS7bdByk/8mPSlsxxsK830vw1gErdwQ7olG8hCY4=",
-        "ref": "refs/tags/v2.0.0",
-        "rev": "0044526f90b584916548f0a17dbf31764a6db530",
+        "lastModified": 1793756073,
+        "narHash": "sha256-cIiNRKUfDG5BzX4wIIEvbm2i+M17CL0prIpu5yEHWAk=",
+        "ref": "refs/tags/v2.1.0",
+        "rev": "cc00abddac794244aa97783f412b927aa4f5c730",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/duxlabs-dev/dux-greeter.git"
       },
       "original": {
-        "ref": "refs/tags/v2.0.0",
+        "ref": "refs/tags/v2.1.0",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/duxlabs-dev/dux-greeter.git"
