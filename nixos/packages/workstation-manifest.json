@@ -26,8 +26,8 @@
   },
   "t3code": {
     "repo": "pingdotgg/t3code",
-    "version": "v0.1.6",
-    "cliSha256": "7cf31da90dee41f524dd5b679ebb6d404637ca5d9dc6fd8bc019511d57bb77e6",
-    "desktopSha256": "09e2507208c779309b396be846aea1d945144bd780606899c2f481c96ddf34d0"
+    "version": "v0.1.7",
+    "cliSha256": "c089892bf7922e2e73c6f44a5d1ea125c99f70e378c18361cbbed2fba1920e6c",
+    "desktopSha256": "faaee4094dca1276057840a1a45a6b2d00d7418afbf5735f75a7503b774e63d1"
   }
 }
