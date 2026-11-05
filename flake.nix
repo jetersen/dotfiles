@@ -21,7 +21,7 @@
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    crane.url = "git+https://github.com/ipetkov/crane.git?rev=788369ed71ed9d84ef72cb056e4d920050d5b32c&shallow=1";
+    crane.url = "git+https://github.com/ipetkov/crane.git?rev=79fd63528501446749c09f08cad486a58c7d173e&shallow=1";
     disko = {
       url = "git+https://github.com/nix-community/disko.git?ref=master&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
