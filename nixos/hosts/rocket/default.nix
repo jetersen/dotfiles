@@ -48,7 +48,7 @@
     configurationLimit = 5;
   };
   boot.loader.efi.canTouchEfiVariables = true;
-  # Hide the menu; hold Space at startup to select NixOS or CachyOS.
+  # Hide the menu; hold Space at startup to select an older NixOS generation.
   boot.loader.timeout = 0;
   # Desktop startup does not require an established network connection.
   systemd.services.NetworkManager-wait-online.enable = false;

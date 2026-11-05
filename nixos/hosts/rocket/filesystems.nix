@@ -13,8 +13,7 @@ let
   };
 in
 {
-  # Create only these new subvolumes during the reviewed live-USB installation.
-  # Keep CachyOS's @ and @/.snapshots intact for recovery.
+  # Existing NixOS subvolumes and shared data; never recreate or format them.
   fileSystems."/" = systemSubvolume "@nixos";
   fileSystems."/nix" = systemSubvolume "@nixos-nix";
   fileSystems."/.snapshots" = systemSubvolume "@nixos-snapshots";

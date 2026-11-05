@@ -28,7 +28,6 @@
 
   # The existing Forgejo Compose deployment needs privileged DinD and named volumes.
   # Restore only the managed runner volumes/registration into a fresh Docker data root.
-  # Keep the old CachyOS Docker/containerd directories intact as recovery sources.
   virtualisation.docker = {
     enable = true;
     rootless.enable = lib.mkForce false;
@@ -67,7 +66,7 @@
   };
 
   # Retain the current cleanup policy; do not create periodic or boot snapshots.
-  # The host mounts a new @nixos-snapshots at /.snapshots, separate from CachyOS snapshots.
+  # Root snapshots live in the separate @nixos-snapshots subvolume.
   services.snapper = {
     snapshotRootOnBoot = false;
     configs.root = {

@@ -21,8 +21,8 @@ images, game libraries, and other local state remain outside the Nix store.
 
 ## Installation and updates
 
-See [Rocket installation](docs/rocket-install.md) for the CachyOS handover,
-backup, preserved disk layout, and recovery. Do not use Disko on Rocket.
+See [Rocket storage and recovery](docs/rocket-recovery.md) for disk identities,
+mounts, and NixOS recovery. Do not use Disko on Rocket.
 
 Framework uses Disko. Generate `nixos/hosts/framework/hardware-configuration.nix`
 on the target with `nixos-generate-config --show-hardware-config --no-filesystems`.
