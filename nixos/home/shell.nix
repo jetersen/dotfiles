@@ -74,6 +74,7 @@ in
     enable = true;
     shellAliases = aliases;
     interactiveShellInit = ''
+      set -g fish_greeting
       set -gx CDPATH $HOME/git
       source ${./shell/fish.fish}
       ${lib.getExe pkgs.worktrunk} config shell init fish | source

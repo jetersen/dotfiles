@@ -1,3 +1,4 @@
+set -g fish_greeting
 set -x BROWSER "zen-browser"
 if not set -q PROMPT_DEFAULT_USER
   if set -q SUDO_USER
