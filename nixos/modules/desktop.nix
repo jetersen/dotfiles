@@ -16,6 +16,14 @@
     package = lib.mkOverride 900 (pkgs.callPackage ../packages/dms.nix {
       dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
     });
+    # DMS 2.1 uses ScriptModel.comparisonMode. Build newer Quickshell against
+    # the same Qt libraries as the rest of the desktop.
+    quickshell.package = pkgs.quickshell.overrideAttrs (_: {
+      inherit (inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.quickshell)
+        src
+        version
+        ;
+    });
     enableCalendarEvents = false;
     enableAudioWavelength = false;
   };

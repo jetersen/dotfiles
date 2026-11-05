@@ -115,7 +115,7 @@
       url = "git+https://github.com/duxlabs-dev/dux-shell.git?ref=refs/tags/v2.1.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dank-qml-common = {
-        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42&shallow=1";
+        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=be3e16ca62866a749b34cfefe1aaed81cfe21e94&shallow=1";
         flake = false;
       };
       inputs.flake-compat = {
@@ -127,7 +127,7 @@
       url = "git+https://github.com/duxlabs-dev/dux-greeter.git?ref=refs/tags/v2.1.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.dank-qml-common = {
-        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=ebf5e6c002da1bdaa4aaa2f319fea7b8507abc42&shallow=1";
+        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=be3e16ca62866a749b34cfefe1aaed81cfe21e94&shallow=1";
         flake = false;
       };
     };

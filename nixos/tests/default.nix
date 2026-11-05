@@ -5,20 +5,32 @@
 }:
 let
   configurations = inputs.self.nixosConfigurations;
-in
-{
-  files-ui-dependency =
+  sharedUiDependency = name: source:
     let
-      files = inputs.dux-files;
-      releaseLock = builtins.fromJSON (builtins.readFile "${files}/flake.lock");
+      releaseLock = builtins.fromJSON (builtins.readFile "${source}/flake.lock");
     in
     assert pkgs.lib.assertMsg (
-      files.inputs.dank-qml-common.rev == releaseLock.nodes.dank-qml-common.locked.rev
-    ) "Files must use the shared UI revision tested by its release";
-    pkgs.runCommand "files-ui-dependency" { } ''
-      test -f ${files.inputs.dank-qml-common}/DCommon/Common/FontSource.qml
+      source.inputs.dank-qml-common.rev == releaseLock.nodes.dank-qml-common.locked.rev
+    ) "${name} must use the shared UI revision tested by its release";
+    pkgs.runCommand "${name}-ui-dependency" { } ''
+      test -f ${source.inputs.dank-qml-common}/DCommon/Common/FontSource.qml
       touch "$out"
     '';
+in
+{
+  dms-ui-dependency = sharedUiDependency "dms" inputs.dms;
+  greeter-ui-dependency = sharedUiDependency "greeter" inputs.dank-greeter;
+  files-ui-dependency = sharedUiDependency "files" inputs.dux-files;
+  quickshell-api = pkgs.runCommand "quickshell-api" { } ''
+    mkdir -m 700 "$TMPDIR/runtime"
+    export XDG_RUNTIME_DIR="$TMPDIR/runtime"
+    export QT_QPA_PLATFORM=offscreen
+    quickshell=${pkgs.lib.getExe configurations.rocket.config.programs.dms-shell.quickshell.package}
+    trap '"$quickshell" kill -p ${./quickshell-api.qml} >/dev/null 2>&1 || true' EXIT
+    ${pkgs.coreutils}/bin/timeout 15 \
+      "$quickshell" -d -p ${./quickshell-api.qml}
+    touch "$out"
+  '';
   boot-profile = import ./boot-profile.nix { inherit pkgs configurations; };
   t3-browser-libraries = import ./browser.nix { inherit pkgs configurations; };
   desktop-activation = import ./desktop.nix { inherit pkgs inputs configurations; };
