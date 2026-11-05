@@ -5,6 +5,7 @@
   fetchurl,
   appimageTools,
   autoPatchelfHook,
+  musl,
   symlinkJoin,
   makeWrapper,
   git,
@@ -53,7 +54,8 @@ let
       autoPatchelfHook
       makeWrapper
     ];
-    buildInputs = [ stdenv.cc.cc.lib ];
+    # Upstream bundles both glibc and musl native modules.
+    buildInputs = [ stdenv.cc.cc.lib musl ];
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/lib/t3" "$out/bin"
