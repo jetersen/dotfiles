@@ -63,7 +63,11 @@ let
       if [[ -s "$config_dir/gtk-3.0/dank-colors.css" && -s "$config_dir/gtk-4.0/dank-colors.css" ]]; then
         export XDG_DATA_DIRS="${pkgs.adw-gtk3}/share:''${XDG_DATA_DIRS:-/run/current-system/sw/share}"
         ${pkgs.bash}/bin/bash ${dmsSource}/quickshell/scripts/gtk.sh "$config_dir" apply false
-        ${pkgs.bash}/bin/bash ${dmsSource}/quickshell/scripts/gtk.sh "$config_dir" patch false
+        # DMS returns 3 when the generated colors are already current.
+        ${pkgs.bash}/bin/bash ${dmsSource}/quickshell/scripts/gtk.sh "$config_dir" patch false || {
+          status=$?
+          if [[ "$status" != 3 ]]; then exit "$status"; fi
+        }
       fi
 
       # Seed writable bindings from DMS's own factory template once.

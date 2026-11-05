@@ -19,7 +19,9 @@
   ];
 
   programs.dms-shell.package = pkgs.callPackage ../../packages/dms-screen-idle.nix {
-    dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    dms = pkgs.callPackage ../../packages/dms.nix {
+      dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    };
   };
 
   networking.hostName = "framework";

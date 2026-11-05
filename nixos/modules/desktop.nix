@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -11,6 +12,10 @@
   };
   programs.dms-shell = {
     enable = true;
+    # Override the upstream module's mkDefault while allowing host packages.
+    package = lib.mkOverride 900 (pkgs.callPackage ../packages/dms.nix {
+      dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    });
     enableCalendarEvents = false;
     enableAudioWavelength = false;
   };

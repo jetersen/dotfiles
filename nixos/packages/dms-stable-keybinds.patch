@@ -1,0 +1,28 @@
+--- a/internal/keybinds/providers/niri.go
++++ b/internal/keybinds/providers/niri.go
+@@ -747,4 +747 @@
+-	if node.Properties.Exist() {
+-		sb.WriteString(" ")
+-		sb.WriteString(strings.TrimLeft(node.Properties.String(), " "))
+-	}
++	writeNiriProperties(sb, node.Properties)
+@@ -784,4 +781 @@
+-	if actionNode.Properties.Exist() {
+-		sb.WriteString(" ")
+-		sb.WriteString(strings.TrimLeft(actionNode.Properties.String(), " "))
+-	}
++	writeNiriProperties(sb, actionNode.Properties)
+@@ -841,0 +836,13 @@
++
++// Stable ordering avoids rewriting unchanged keybinds during activation.
++func writeNiriProperties(sb *strings.Builder, properties document.Properties) {
++	keys := make([]string, 0, properties.Len())
++	for key := range properties.Unordered() {
++		keys = append(keys, key)
++	}
++	sort.Strings(keys)
++	for _, key := range keys {
++		property := document.Properties{key: properties.Unordered()[key]}
++		sb.WriteString(property.String())
++	}
++}

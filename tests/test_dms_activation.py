@@ -60,6 +60,22 @@ class DmsActivationTests(unittest.TestCase):
       self.activate(root)
       self.assertEqual(binds.read_bytes(), before)
 
+  def test_keybind_property_order_is_stable(self):
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      binds = root / 'config/niri/dms/binds.kdl'
+      binds.parent.mkdir(parents=True)
+      binds.write_text('binds {\n Mod+F11 repeat=false allow-when-locked=true '
+                       'hotkey-overlay-title="Keep me" { spawn "keep-me"; }\n}\n')
+      self.activate(root)
+      before = binds.read_bytes()
+      self.assertIn(b'repeat=false', before)
+      self.assertIn(b'allow-when-locked=true', before)
+      self.assertIn(b'hotkey-overlay-title="Keep me"', before)
+      for _ in range(5):
+        self.activate(root)
+        self.assertEqual(binds.read_bytes(), before)
+
   def test_legacy_screenshots_migrate_and_preserve_custom_binds(self):
     with tempfile.TemporaryDirectory() as directory:
       root = Path(directory)
