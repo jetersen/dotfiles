@@ -6,6 +6,18 @@
   ...
 }:
 {
+  # DMS 2.1 uses ScriptModel.comparisonMode. Keep every desktop component on
+  # this Quickshell version, built against the desktop's Qt libraries.
+  nixpkgs.overlays = [
+    (_final: prev: {
+      quickshell = prev.quickshell.overrideAttrs (_: {
+        inherit (inputs.nixpkgs-unstable.legacyPackages.${prev.stdenv.hostPlatform.system}.quickshell)
+          src
+          version
+          ;
+      });
+    })
+  ];
   programs.niri = {
     enable = true;
     useNautilus = false;
@@ -15,14 +27,6 @@
     # Override the upstream module's mkDefault while allowing host packages.
     package = lib.mkOverride 900 (pkgs.callPackage ../packages/dms.nix {
       dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
-    });
-    # DMS 2.1 uses ScriptModel.comparisonMode. Build newer Quickshell against
-    # the same Qt libraries as the rest of the desktop.
-    quickshell.package = pkgs.quickshell.overrideAttrs (_: {
-      inherit (inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.quickshell)
-        src
-        version
-        ;
     });
     enableCalendarEvents = false;
     enableAudioWavelength = false;

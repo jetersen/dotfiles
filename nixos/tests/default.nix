@@ -26,6 +26,10 @@ in
     export XDG_RUNTIME_DIR="$TMPDIR/runtime"
     export QT_QPA_PLATFORM=offscreen
     quickshell=${pkgs.lib.getExe configurations.rocket.config.programs.dms-shell.quickshell.package}
+    # Exercise the executable DMS finds on PATH, including package collisions.
+    for profile in ${configurations.rocket.config.system.path} ${configurations.framework.config.system.path}; do
+      test "$(readlink -f "$profile/bin/quickshell")" = "$(readlink -f "$quickshell")"
+    done
     trap '"$quickshell" kill -p ${./quickshell-api.qml} >/dev/null 2>&1 || true' EXIT
     ${pkgs.coreutils}/bin/timeout 15 \
       "$quickshell" -d -p ${./quickshell-api.qml}
