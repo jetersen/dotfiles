@@ -563,16 +563,16 @@
     "pulumi-packages": {
       "flake": false,
       "locked": {
-        "lastModified": 1793943394,
-        "narHash": "sha256-iSqHpwPdhZI87Gj+g+dw/XCCTIJxeNUOjJNI93dVVhY=",
+        "lastModified": 1793948273,
+        "narHash": "sha256-b0ef1yvPWtIVJPtOtqAhstMRziAUWnCGmBZ2yv8BxSU=",
         "ref": "refs/heads/main",
-        "rev": "19978c6385315a4f9911154c205cebac9e0ba005",
+        "rev": "8eb1dcff2e88492990dafb7868ad534deccaa0ae",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/unmango/pulumipkgs.git"
       },
       "original": {
-        "rev": "19978c6385315a4f9911154c205cebac9e0ba005",
+        "rev": "8eb1dcff2e88492990dafb7868ad534deccaa0ae",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/unmango/pulumipkgs.git"
