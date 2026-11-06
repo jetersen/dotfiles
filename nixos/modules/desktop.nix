@@ -104,6 +104,11 @@
   ];
 
   environment.systemPackages = with pkgs; [
+    (hunspell.withDicts (dicts: [
+      dicts.da_DK
+      dicts.en_GB-ise
+      dicts.en_US
+    ]))
     alacritty
     xwayland-satellite
     kdePackages.dolphin
