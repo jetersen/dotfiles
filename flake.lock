@@ -676,16 +676,16 @@
     "skill-finder": {
       "flake": false,
       "locked": {
-        "lastModified": 1793871261,
-        "narHash": "sha256-IknOGjSczICbpqxWRoH5YYffg8VT5YCT5EdXUGuLssU=",
+        "lastModified": 1793930766,
+        "narHash": "sha256-TDLIerf2DHWDuFfWnzBp5fEEQj3B9jtW4IIrpRXwoHg=",
         "ref": "refs/heads/main",
-        "rev": "cabe07254cddf16a3a650253f0ba03d543d8a86e",
+        "rev": "d3701c11b1101251af14c9d148f026e1a47ebe17",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/vercel-labs/skills.git"
       },
       "original": {
-        "rev": "cabe07254cddf16a3a650253f0ba03d543d8a86e",
+        "rev": "d3701c11b1101251af14c9d148f026e1a47ebe17",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/vercel-labs/skills.git"
