@@ -6,6 +6,23 @@
   pkgsUnstable,
   ...
 }:
+let
+  # Other source-code types inherit text/plain; list structured data explicitly.
+  textMimeTypes = [
+    "text/plain"
+    "text/markdown"
+    "text/csv"
+    "text/tab-separated-values"
+    "text/x-log"
+    "text/x-ini"
+    "application/json"
+    "application/yaml"
+    "application/toml"
+    "application/xml"
+    "application/x-shellscript"
+    "application/x-zerosize"
+  ];
+in
 {
   home.packages = with pkgs; [
     tiny-rdm
@@ -69,8 +86,19 @@
         };
   };
 
-  xdg.mimeApps.defaultApplications = {
-    "text/plain" = [ "dev.zed.Zed.desktop" ];
-    "application/json" = [ "dev.zed.Zed.desktop" ];
+  xdg.mimeApps = {
+    defaultApplications = lib.genAttrs textMimeTypes (_: [ "dev.zed.Zed.desktop" ]);
+    associations.added =
+      lib.genAttrs (
+        textMimeTypes
+        ++ [
+          "text/html"
+          "application/x-x509-ca-cert"
+        ]
+      ) (_: [ "dev.zed.Zed.desktop" ])
+      // lib.genAttrs [ "text/plain" "text/markdown" ] (_: [
+        "dev.zed.Zed.desktop"
+        "dev.duxlabs.shell.notepad.desktop"
+      ]);
   };
 }

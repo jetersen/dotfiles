@@ -28,6 +28,17 @@ let
         portal = c.xdg.portal.config.niri."org.freedesktop.impl.portal.FileChooser";
         archives = home.xdg.mimeApps.defaultApplications."application/zip";
         qtPortal = c.environment.variables.QT_QPA_PLATFORMTHEME;
+        appPath = c.systemd.user.services.dfiles.environment.PATH;
+        legacyApps = builtins.filter (
+          name:
+          builtins.elem name [
+            "dolphin"
+            "ark"
+          ]
+        ) (map lib.getName c.environment.systemPackages);
+        textDefaults = home.xdg.mimeApps.defaultApplications;
+        textHandlers = home.xdg.mimeApps.associations.added;
+        notepadHidden = home.xdg.desktopEntries."dev.duxlabs.shell.notepad".noDisplay;
       };
       aspire = {
         installed = builtins.any (p: (p.pname or "") == "aspire-cli") home.home.packages;
@@ -226,6 +237,23 @@ let
               && c.fileManager.archives == [ "dev.duxlabs.files.desktop" ]
               && c.fileManager.qtPortal == "xdgdesktopportal";
             message = "${host}: Dux Files must handle folders, archives, reveal requests and portal file dialogs";
+          }
+          {
+            assertion =
+              lib.hasInfix "/etc/profiles/per-user/%u/bin" c.fileManager.appPath
+              && lib.hasInfix "/run/current-system/sw/bin" c.fileManager.appPath
+              && c.fileManager.legacyApps == [ ]
+              && !c.fileManager.notepadHidden
+              && builtins.all (mime: c.fileManager.textDefaults.${mime} == [ "dev.zed.Zed.desktop" ]) [
+                "text/plain"
+                "text/markdown"
+                "application/json"
+                "application/yaml"
+                "application/toml"
+              ]
+              && builtins.elem "dev.zed.Zed.desktop" c.fileManager.textHandlers."application/x-x509-ca-cert"
+              && builtins.elem "dev.duxlabs.shell.notepad.desktop" c.fileManager.textHandlers."text/markdown";
+            message = "${host}: Dux Files must find installed apps and offer Zed and DMS Notepad without Dolphin or Ark";
           }
           {
             assertion =

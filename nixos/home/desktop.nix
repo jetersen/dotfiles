@@ -33,6 +33,23 @@
     Name=org.freedesktop.FileManager1
     Exec=${lib.getExe osConfig.programs.dux-files.package} run --hidden --dbus-activated
   '';
+  # Dux hides non-default NoDisplay handlers from its Open With suggestions.
+  xdg.desktopEntries."dev.duxlabs.shell.notepad" = {
+    name = "DMS Notepad";
+    genericName = "Text Editor";
+    comment = "Quick notes and text files in Dux Shell";
+    exec = "${lib.getExe osConfig.programs.dms-shell.package} ipc call notepad openFile %f";
+    icon = "dev.duxlabs.shell";
+    categories = [
+      "Utility"
+      "TextEditor"
+    ];
+    mimeType = [
+      "text/plain"
+      "text/markdown"
+    ];
+    noDisplay = false;
+  };
   xdg.mimeApps = {
     enable = true;
     defaultApplications =

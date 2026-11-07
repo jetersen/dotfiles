@@ -25,9 +25,11 @@
   programs.dms-shell = {
     enable = true;
     # Override the upstream module's mkDefault while allowing host packages.
-    package = lib.mkOverride 900 (pkgs.callPackage ../packages/dms.nix {
-      dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
-    });
+    package = lib.mkOverride 900 (
+      pkgs.callPackage ../packages/dms.nix {
+        dms = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      }
+    );
     enableCalendarEvents = false;
     enableAudioWavelength = false;
   };
@@ -40,6 +42,11 @@
       desktop = "niri";
     };
   };
+  # Desktop entries use TryExec and Exec names from the user's installed apps.
+  systemd.user.services.dfiles.path = [
+    "/etc/profiles/per-user/%u"
+    "/run/current-system/sw"
+  ];
   services.gvfs.enable = true;
   xdg.portal = {
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
@@ -111,8 +118,6 @@
     ]))
     alacritty
     xwayland-satellite
-    kdePackages.dolphin
-    kdePackages.ark
     kdePackages.kio-extras
     kdePackages.gwenview
     kdePackages.ffmpegthumbs
