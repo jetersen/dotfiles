@@ -35,6 +35,11 @@ window-rule {
 window-rule {
   match app-id=r#"^dev\.duxlabs\.files$"# title=r#"^(Open|Save|Select|Upload|Export|Import|Choose)"#
   open-floating true
+  // Adapt to laptop displays without filling an ultrawide monitor.
+  default-column-width { proportion 0.7; }
+  default-window-height { proportion 0.7; }
+  max-width 1600
+  max-height 1000
 }
 
 // Let the shell draw the wallpaper behind windows.
