@@ -15,6 +15,7 @@
     ./filesystems.nix
     ./desktop.nix
     ./audio.nix
+    ./dictation.nix
     ./services.nix
     ./runner.nix
     ./user-services.nix

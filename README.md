@@ -162,6 +162,19 @@ T3 uses the upstream renderer from each release. For agent automation on a conne
 environment, choose "Open in [environment]'s browser" from the browser tab's menu.
 Desktop tabs have separate login state and cannot be automated remotely.
 
+### Rocket dictation
+
+Press `Super+Shift+D` in Niri to start microphone recording, then press it again
+to finish. Whisper large-v3-turbo transcribes locally using the discrete AMD GPU
+through Vulkan and copies the text to the clipboard. Press `Ctrl+V` in T3 Code
+or another app to paste it. The model detects the spoken language automatically.
+Recording uses the default PipeWire microphone and stops after five minutes.
+Audio and transcript files are temporary and removed when the session ends.
+
+Run `dictate` to toggle from a terminal, or
+`systemctl --user stop dictation` to cancel. Diagnose failures with
+`journalctl --user -u dictation`.
+
 ## Work access and DNS
 
 The work profile provides OpenVPN 3, its DMS plugin, Storage Monitor, cloud

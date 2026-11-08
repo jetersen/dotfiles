@@ -10,6 +10,8 @@ let
       [
         "home/dot_agents/skills/t3-completion-notifier/scripts"
         "home/dot_agents/skills/t3-remote-thread/scripts"
+        "tests/test_dictation.py"
+        "nixos/hosts/rocket/dictation.py"
         "tests/test_ci_graph.py"
         "nixos/ci/build-graph.py"
         "nixos/ci/build-systems.sh"
