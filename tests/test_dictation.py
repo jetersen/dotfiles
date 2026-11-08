@@ -26,7 +26,6 @@ class DictationTests(unittest.TestCase):
         recorder = Mock(returncode=recorder_code)
         recorder.poll.return_value = None
         handlers = {}
-        copied = []
         typed = []
         notices = []
 
@@ -51,14 +50,12 @@ class DictationTests(unittest.TestCase):
         recorder.wait.side_effect = wait_recorder
 
         def run(command, **kwargs):
+            # Every path, including typing failures, must leave clipboard history alone.
+            self.assertNotIn(Path(command[0]).name, ["wl-copy", "wl-paste", "systemd-run"])
             if command[0] == "whisper-cli":
                 if failure:
                     raise subprocess.CalledProcessError(1, command)
                 Path(command[-1] + ".txt").write_text(text)
-            elif command[0] == "systemd-run":
-                self.assertIn("--service-type=forking", command)
-                self.assertIn("/test/bin/wl-copy", command)
-                copied.append(command[-1])
             elif command[0] == "wtype":
                 if typing_failure:
                     raise subprocess.CalledProcessError(1, command)
@@ -71,7 +68,6 @@ class DictationTests(unittest.TestCase):
             with patch.dict(os.environ, XDG_RUNTIME_DIR=runtime), \
                  patch.object(dictation.sys, "argv", ["dictation.py", "model"]), \
                  patch.object(dictation, "paused_media", side_effect=nullcontext), \
-                 patch.object(dictation.shutil, "which", return_value="/test/bin/wl-copy"), \
                  patch.object(dictation.signal, "signal", side_effect=handlers.__setitem__), \
                  patch.object(dictation.subprocess, "Popen", side_effect=start_recorder), \
                  patch.object(dictation.subprocess, "run", side_effect=run):
@@ -83,19 +79,17 @@ class DictationTests(unittest.TestCase):
             self.assertEqual(list(Path(runtime).iterdir()), [])
         if typing_failure:
             self.assertEqual(typed, [])
-            self.assertIn("Copied transcript. Automatic typing failed; press Ctrl+V to paste.", notices)
-        else:
-            self.assertEqual(typed, copied)
-        return copied, recorder
+            self.assertIn("Automatic typing failed. Focus a text field and dictate again.", notices)
+        return typed, recorder
 
-    def test_transcript_copied_and_private_files_removed(self):
-        copied, _ = self.run_session("  hello world\n")
-        self.assertEqual(copied, ["hello world"])
+    def test_transcript_typed_and_private_files_removed(self):
+        typed, _ = self.run_session("  hello world\n")
+        self.assertEqual(typed, ["hello world"])
 
-    def test_empty_transcript_preserves_clipboard(self):
+    def test_empty_transcript_inserts_nothing(self):
         self.assertEqual(self.run_session(" \n")[0], [])
 
-    def test_failed_transcription_preserves_clipboard_and_removes_audio(self):
+    def test_failed_transcription_inserts_nothing_and_removes_audio(self):
         self.assertEqual(self.run_session(failure=True)[0], [])
 
     def test_recording_limit_finishes_with_sigint(self):
@@ -103,22 +97,22 @@ class DictationTests(unittest.TestCase):
         recorder.send_signal.assert_called_once_with(signal.SIGINT)
 
     def test_requested_stop_accepts_recorder_sigint(self):
-        copied, recorder = self.run_session(recorder_code=-signal.SIGINT, finish=True)
-        self.assertEqual(copied, ["hello"])
+        typed, recorder = self.run_session(recorder_code=-signal.SIGINT, finish=True)
+        self.assertEqual(typed, ["hello"])
         recorder.send_signal.assert_called_once_with(signal.SIGINT)
 
-    def test_unexpected_recorder_failure_preserves_clipboard(self):
+    def test_unexpected_recorder_failure_inserts_nothing(self):
         self.assertEqual(self.run_session(recorder_code=1, recording_failure=True)[0], [])
 
     def test_requested_stop_still_rejects_invalid_audio(self):
         self.assertEqual(self.run_session(recorder_code=-signal.SIGINT, finish=True,
                                          invalid_audio=True, recording_failure=True)[0], [])
 
-    def test_silence_only_recording_preserves_clipboard(self):
+    def test_silence_only_recording_inserts_nothing(self):
         self.assertEqual(self.run_session(empty_audio=True)[0], [])
 
-    def test_typing_failure_keeps_clipboard_fallback(self):
-        self.assertEqual(self.run_session(typing_failure=True)[0], ["hello"])
+    def test_typing_failure_has_no_clipboard_fallback(self):
+        self.assertEqual(self.run_session(typing_failure=True)[0], [])
 
     def test_cancel_exits_cleanly(self):
         with self.assertRaises(SystemExit) as result:

@@ -1,10 +1,9 @@
-"""Record local microphone audio, transcribe on Vulkan, and copy the result."""
+"""Record local microphone audio, transcribe on Vulkan, and type the result."""
 
 from contextlib import contextmanager
 import os
 from pathlib import Path
 import signal
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -24,19 +23,6 @@ def transcribe(model, recording, output):
         stdout=subprocess.DEVNULL,
     )
     return Path(str(output) + ".txt").read_text().strip()
-
-
-def copy_transcript(text):
-    clipboard = shutil.which("wl-copy")
-    if clipboard is None:
-        raise RuntimeError("wl-copy is unavailable")
-    # Wayland clipboard data lives in wl-copy. Run it in a separate service so
-    # dictation's cgroup cleanup cannot kill it after this process exits.
-    subprocess.run([
-        "systemd-run", "--user", "--quiet", "--collect",
-        "--description=Dictation clipboard", "--service-type=forking",
-        "--", clipboard, "--type", "text/plain", "--", text,
-    ], check=True)
 
 
 def media_command(*arguments):
@@ -119,21 +105,20 @@ def main():
                         raise RuntimeError("Microphone recording has an unexpected format")
                     print(f"Captured {audio.getnframes() / audio.getframerate():.2f}s after silence filtering", flush=True)
                     if audio.getnframes() == 0:
-                        notify("No speech detected. Clipboard unchanged.")
+                        notify("No speech detected.")
                         return
             except (wave.Error, EOFError) as error:
                 raise RuntimeError("Microphone recording is not a valid WAV") from error
             notify("Transcribing on the GPU…")
             text = transcribe(sys.argv[1], recording, Path(directory) / "transcript")
             if text:
-                copy_transcript(text)
                 try:
                     subprocess.run(["wtype", "--", text], check=True)
                     notify("Transcript inserted.")
                 except (OSError, subprocess.SubprocessError):
-                    notify("Copied transcript. Automatic typing failed; press Ctrl+V to paste.")
+                    notify("Automatic typing failed. Focus a text field and dictate again.")
             else:
-                notify("No speech detected. Clipboard unchanged.")
+                notify("No speech detected.")
         finally:
             if recorder.poll() is None:
                 recorder.terminate()

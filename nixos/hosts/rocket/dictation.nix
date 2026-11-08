@@ -46,8 +46,6 @@ in
               pkgs.sox
               pkgs.playerctl
               pkgs.libnotify
-              pkgs.systemd
-              pkgs.wl-clipboard
               pkgs.wtype
             ]
           }"

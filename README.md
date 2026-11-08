@@ -168,8 +168,8 @@ Press `Super+T` in Niri to start microphone recording. Speak when the Listening
 notification appears. Recording preserves quiet beginnings and finishes
 automatically after 3.5 seconds of silence, or press the shortcut again to finish
 sooner. Whisper large-v3-turbo transcribes locally using the discrete AMD GPU
-through Vulkan, copies the text to the clipboard, and types it into the focused
-app with `wtype`. If typing fails, press `Ctrl+V` to paste the clipboard copy.
+through Vulkan and types the text directly into the focused app with `wtype`.
+If typing fails, focus a text field and dictate again.
 The model detects the spoken language automatically. Active MPRIS players,
 including Zen and Music Assistant, pause during dictation and resume afterwards.
 Players that were already paused stay paused.
