@@ -28,7 +28,7 @@ in
     home.packages = [ dictate ];
     dotfiles.niri.extraConfig = ''
       binds {
-        Mod+Shift+D repeat=false hotkey-overlay-title="Start / finish dictation" { spawn "${lib.getExe dictate}"; }
+        Mod+T repeat=false hotkey-overlay-title="Start / finish dictation" { spawn "${lib.getExe dictate}"; }
       }
     '';
     systemd.user.services.dictation = {
@@ -43,13 +43,18 @@ in
           "PATH=${
             lib.makeBinPath [
               whisper
-              pkgs.pipewire
+              pkgs.sox
+              pkgs.playerctl
               pkgs.libnotify
+              pkgs.systemd
               pkgs.wl-clipboard
+              pkgs.wtype
             ]
           }"
           # Expose only Rocket's discrete Radeon, excluding the integrated GPU.
           "DRI_PRIME=pci-0000_03_00_0!"
+          # Use PipeWire's PulseAudio server, matching the default desktop mic.
+          "AUDIODRIVER=pulseaudio"
         ];
         UMask = "0077";
         RuntimeMaxSec = 600;

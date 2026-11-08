@@ -31,6 +31,7 @@ pkgs.runCommand "tooling-unit-checks"
       (pkgs.python3.withPackages (p: [ p.websocket-client ]))
       pkgs.openssl
       pkgs.bash
+      pkgs.sox
       pkgs.jq
     ];
   }
