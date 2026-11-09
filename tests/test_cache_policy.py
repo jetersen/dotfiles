@@ -122,6 +122,11 @@ class ProtocolTests(unittest.TestCase):
     with patch.object(client, "request", side_effect=[narinfo(), None]):
       self.assertIsNone(client.probe(CODEX))
 
+  def test_references_field_may_be_omitted_for_a_leaf(self):
+    client = policy.Cache(policy.PRIVATE)
+    with patch.object(client, "request", side_effect=[narinfo().replace(b"References: \n", b""), b""]):
+      self.assertEqual(client.probe(CODEX), set())
+
   def test_mismatched_path_and_unsafe_references_are_rejected(self):
     client = policy.Cache(policy.PRIVATE)
     for body in (narinfo(path=SYSTEM), narinfo().replace(b"References: ", b"References: ../secret")):

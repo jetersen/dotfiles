@@ -73,7 +73,7 @@ class Cache:
       fields[key] = value
     if fields.get("StorePath") != path or not fields.get("NarHash") or not fields.get("Sig"):
       raise ValueError(f"Incomplete or mismatched narinfo for {path}")
-    references = {store_path("/nix/store/" + name) for name in fields["References"].split()}
+    references = {store_path("/nix/store/" + name) for name in fields.get("References", "").split()}
     nar_url = urljoin(self.url, fields["URL"])
     if urlsplit(nar_url).scheme != "https":
       raise ValueError(f"NAR URL must use HTTPS: {path}")
