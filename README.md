@@ -292,8 +292,10 @@ hint, network event or scheduled run can retry once the cache is ready.
 
 Attic expires unused objects after 60 days. A daily host timer refreshes cached
 paths referenced by every retained system generation and the booted system without
-downloading the binaries. Hosts offline for more than the retention period can lose
-remote cache entries; their installed generations remain in the local store.
+downloading the binaries. Large private copies stop being refreshed when the exact
+binary becomes available upstream, allowing those duplicates to expire too. Hosts
+offline for more than the retention period can lose remote cache entries; their
+installed generations remain in the local store.
 
 CI plans Framework, dynamically discovered checks, Rust dependencies, development
 shells and both Proton outputs alongside a separate Rocket planner. The two native

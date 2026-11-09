@@ -212,13 +212,20 @@ def upgrade(args, caches):
   ], check=True)
 
 
-def refresh(private):
+def refresh(private, public, max_bytes):
   links = ["/run/current-system", "/run/booted-system", *glob.glob("/nix/var/nix/profiles/system-*-link")]
   roots = sorted({str(Path(link).resolve(strict=True)) for link in links if Path(link).exists()})
   if not roots:
     raise RuntimeError("No installed NixOS generations found")
   paths = inventory(roots)
-  results = parallel(sorted(paths), private.probe)
+  def renew(path):
+    # A large private copy can expire once the exact binary is served upstream,
+    # even while the corresponding generation remains installed.
+    if paths[path]["narSize"] >= max_bytes and public.probe(path) is not None:
+      return None
+    return private.probe(path)
+
+  results = parallel(sorted(paths), renew)
   count = sum(value is not None for value in results.values())
   print(f"Refreshed retention for {count} private-cache paths used by installed generations.", flush=True)
 
@@ -254,7 +261,7 @@ def main():
     elif args.mode == "upgrade":
       upgrade(args, [public, private])
     elif args.mode == "refresh":
-      refresh(private)
+      refresh(private, public, args.max_mib * 1024 * 1024)
     else:
       if not args.paths:
         parser.error("verify requires system store paths")

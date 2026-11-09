@@ -215,11 +215,22 @@ class UpgradeTests(unittest.TestCase):
     with patch.object(policy.glob, "glob", return_value=["/nix/var/nix/profiles/system-1-link"]), \
       patch.object(policy.Path, "exists", return_value=True), \
       patch.object(policy.Path, "resolve", side_effect=[Path(SYSTEM), Path(CODEX), Path(RIDER)]), \
-      patch.object(policy, "inventory", return_value={SYSTEM: {}, CODEX: {}, RIDER: {}}) as inventory, \
+       patch.object(policy, "inventory", return_value={path: {"narSize": 1} for path in (SYSTEM, CODEX, RIDER)}) as inventory, \
       redirect_stdout(io.StringIO()):
-      policy.refresh(client)
+      policy.refresh(client, cache({}), 512 * MIB)
     self.assertEqual(set(inventory.call_args.args[0]), {SYSTEM, CODEX, RIDER})
     self.assertEqual({call.args[0] for call in client.probe.call_args_list}, {SYSTEM, CODEX, RIDER})
+
+  def test_large_private_copy_can_expire_after_upstream_becomes_available(self):
+    private = cache({CODEX: set(), RIDER: set()})
+    public = cache({CODEX: set()})
+    with patch.object(policy.glob, "glob", return_value=[]), \
+       patch.object(policy.Path, "exists", return_value=True), \
+       patch.object(policy.Path, "resolve", return_value=Path(SYSTEM)), \
+       patch.object(policy, "inventory", return_value={path: {"narSize": 600 * MIB} for path in (CODEX, RIDER)}), \
+       redirect_stdout(io.StringIO()):
+      policy.refresh(private, public, 512 * MIB)
+    private.probe.assert_called_once_with(RIDER)
 
 
 if __name__ == "__main__":
