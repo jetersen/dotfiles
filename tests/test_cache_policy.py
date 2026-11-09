@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import MagicMock, Mock, patch
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
 
@@ -139,12 +139,24 @@ class ProtocolTests(unittest.TestCase):
     for code in (404, 401, 403, 500):
       opener = Mock()
       opener.open.side_effect = HTTPError(policy.PRIVATE, code, "fixture", {}, None)
-      with self.subTest(code=code), patch.object(policy, "build_opener", return_value=opener):
+      with self.subTest(code=code), patch.object(policy, "build_opener", return_value=opener), \
+         patch.object(policy.time, "sleep"):
         if code == 404:
           self.assertIsNone(client.request(policy.PRIVATE))
         else:
           with self.assertRaisesRegex(RuntimeError, str(code)):
             client.request(policy.PRIVATE)
+
+  def test_transient_dns_and_server_errors_are_retried(self):
+    client = policy.Cache(policy.PUBLIC)
+    opener = MagicMock()
+    response = MagicMock()
+    response.__enter__.return_value.read.return_value = b"ready"
+    opener.open.side_effect = [URLError("Temporary failure in name resolution"),
+                              HTTPError(policy.PUBLIC, 503, "fixture", {}, None), response]
+    with patch.object(policy, "build_opener", return_value=opener), patch.object(policy.time, "sleep"):
+      self.assertEqual(client.request(policy.PUBLIC), b"ready")
+      self.assertEqual(opener.open.call_count, 3)
 
   def test_credentials_are_not_forwarded_to_another_origin(self):
     client = policy.Cache(policy.PRIVATE, ("user", None, "secret"))

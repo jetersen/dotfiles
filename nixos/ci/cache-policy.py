@@ -12,7 +12,8 @@ import re
 import signal
 import subprocess
 import sys
-from urllib.error import HTTPError
+import time
+from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
@@ -51,14 +52,22 @@ class Cache:
       user, _, password = self.credentials
       encoded = base64.b64encode(f"{user}:{password}".encode()).decode()
       request.add_header("Authorization", "Basic " + encoded)
-    try:
-      # Each worker owns its opener; no shared HTTP/auth state.
-      with build_opener(SafeRedirect()).open(request, timeout=15) as response:
-        return response.read(1024 * 1024) if method == "GET" else b""
-    except HTTPError as error:
-      if error.code == 404:
-        return None
-      raise RuntimeError(f"Cache returned HTTP {error.code}: {url}") from None
+    for attempt in range(3):
+      try:
+        # Each worker owns its opener; no shared HTTP/auth state.
+        with build_opener(SafeRedirect()).open(request, timeout=15) as response:
+          return response.read(1024 * 1024) if method == "GET" else b""
+      except HTTPError as error:
+        if error.code == 404:
+          return None
+        if error.code != 429 and error.code < 500:
+          raise RuntimeError(f"Cache returned HTTP {error.code}: {url}") from None
+        reason = f"HTTP {error.code}"
+      except (URLError, TimeoutError) as error:
+        reason = str(error)
+      if attempt == 2:
+        raise RuntimeError(f"Cache request failed after retries: {url}: {reason}")
+      time.sleep(2 ** attempt)
 
   def probe(self, path):
     store_path(path)
@@ -84,10 +93,14 @@ class Cache:
     return references
 
 
-def parallel(items, operation):
+def parallel(items, operation, label=None):
   pool = ThreadPoolExecutor(max_workers=16)
   try:
-    results = dict(zip(items, pool.map(operation, items)))
+    results = {}
+    for index, (item, value) in enumerate(zip(items, pool.map(operation, items)), start=1):
+      results[item] = value
+      if label and (index % 1000 == 0 or index == len(items)):
+        print(f"{label}: {index}/{len(items)}", flush=True)
   except BaseException:
     pool.shutdown(wait=False, cancel_futures=True)
     raise
@@ -137,7 +150,7 @@ def inventory(roots):
 
 def publication_plan(paths, required, upstream, max_bytes):
   candidates = sorted(paths)
-  public = parallel(candidates, upstream.probe)
+  public = parallel(candidates, upstream.probe, label="Checked upstream cache paths")
   selected = []
   for path in candidates:
     metadata = paths[path]
@@ -160,6 +173,7 @@ def publish(args, private, public):
     extras.extend((temporary / name).read_text().splitlines())
   required = inventory(systems)
   paths = inventory([*systems, *extras])
+  print(f"Checking {len(paths)} paths; {len(required)} are required for deployment.", flush=True)
   selected = publication_plan(paths, required, public, args.max_mib * 1024 * 1024)
   if selected:
     subprocess.run([
