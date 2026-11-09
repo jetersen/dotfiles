@@ -1,0 +1,11 @@
+{
+  "id": "workTailnet",
+  "name": "Work Tailnet",
+  "description": "An optional work connection alongside your personal tailnet",
+  "version": "1.0.0",
+  "type": "widget",
+  "capabilities": ["dankbar-widget"],
+  "component": "./WorkTailnet.qml",
+  "icon": "work",
+  "permissions": ["process"]
+}

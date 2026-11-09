@@ -128,9 +128,9 @@ try:
     root = str(Path.cwd())
     for port, ip, magic in [(15354, "100.64.0.7", True), (15355, "192.0.2.1", False),
                              (15356, "192.0.2.2", False), (15357, "192.0.2.3", False),
-                             (15358, "192.0.2.4", False)]:
+                             (15358, "192.0.2.4", False), (15360, "192.0.2.5", False)]:
         backends.append(Backend(port, ip, magic))
-    magic, cluster, nas, public, vpn = backends
+    magic, cluster, nas, public, vpn, work = backends
     assert query(PEER, 15354).rcode() == 0
     assert query(SUFFIX, 15354).rcode() == dns.rcode.SERVFAIL
     spawn("doh", f'''
@@ -147,7 +147,8 @@ newServer({{address="127.0.0.1:15357", healthCheckMode="up"}})
 setSecurityPollSuffix("")
 homelabDnsEndpoints = {{listen="127.0.0.1:15353", magic="127.0.0.1:15354",
 cluster="127.0.0.1:15355", nas="127.0.0.1:15356", fallback={{"127.0.0.1:15443"}},
-fallbackName="fallback.test", caStore="{root}/cert.pem", stateDirectory="{root}"}}
+fallbackName="fallback.test", caStore="{root}/cert.pem", stateDirectory="{root}",
+work="127.0.0.1:15360", workDomains="{root}/work-tailnet-domains"}}
 dofile("{sys.argv[1]}")
 ''')
     wait("home preferred", lambda: address(query("public.example.")) in {cluster.answer, nas.answer})
@@ -168,6 +169,12 @@ dofile("{sys.argv[1]}")
     assert address(query("host.private.moviestarplanet.tech.")) in {cluster.answer, nas.answer}
     assert address(query("moviestarplanet.tech.corp.test.")) in {cluster.answer, nas.answer}
     assert public.count(GRAFANA) == 0
+    write("work-tailnet-domains", "work.ts.net\n")
+    wait("second tailnet DNS active", lambda: address(query("peer.work.ts.net.")) == work.answer)
+    assert address(query(PEER)) == magic.answer
+    assert address(query("public.example.")) in {cluster.answer, nas.answer}
+    write("work-tailnet-domains", "")
+    wait("second tailnet DNS removed", lambda: address(query("peer.work.ts.net.")) in {cluster.answer, nas.answer})
     write("vpn-routes.lua", 'return {{pool="vpn-test", servers={"127.0.0.1:15358"}, domains={"corp.test.", "moviestarplanet.tech."}}}')
     wait("dynamic VPN route active", lambda: address(query("host.corp.test.")) == vpn.answer)
     assert address(query(GRAFANA)) == vpn.answer

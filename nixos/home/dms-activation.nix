@@ -23,6 +23,7 @@ let
         enableFprint = osConfig.services.fprintd.enable;
         extraRightWidgets =
           lib.optional osConfig.programs.openvpn3.enable "openvpn3"
+          ++ lib.optional osConfig.dotfiles.workTailnet.enable "workTailnet"
           ++ lib.optional osConfig.dotfiles.work.enable "storageMonitor";
       })
       // {
@@ -88,7 +89,8 @@ let
   };
   plugins =
     lib.optionalAttrs osConfig.programs.openvpn3.enable { openvpn3.enabled = true; }
-    // lib.optionalAttrs osConfig.dotfiles.work.enable { storageMonitor.enabled = true; };
+    // lib.optionalAttrs osConfig.dotfiles.work.enable { storageMonitor.enabled = true; }
+    // lib.optionalAttrs osConfig.dotfiles.workTailnet.enable { workTailnet.enabled = true; };
   pluginSettings = pkgs.writeText "dms-plugins.json" (builtins.toJSON plugins);
   configurePlugins = pkgs.writeShellApplication {
     name = "configure-dms-plugins";

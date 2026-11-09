@@ -67,6 +67,7 @@ in
           gh-stack = pkgsUnstable.gh-stack.src + "/skills/gh-stack";
           t3-remote-thread = ../../home/dot_agents/skills/t3-remote-thread;
           t3-completion-notifier = ../../home/dot_agents/skills/t3-completion-notifier;
+          work-tailnet = ../../home/dot_agents/skills/work-tailnet;
           full-send = ../../home/dot_agents/skills/full-send;
           full-stop = ../../home/dot_agents/skills/full-stop;
           sol-loop = ../../home/dot_agents/skills/sol-loop;

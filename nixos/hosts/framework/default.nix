@@ -8,6 +8,7 @@
 {
   imports = [
     ../../modules/pc2mqtt.nix
+    ../../modules/work-tailnet.nix
     inputs.self.nixosModules.workstation
     inputs.self.nixosModules.work
     inputs.self.nixosModules.encrypted-laptop
@@ -25,6 +26,11 @@
   };
 
   networking.hostName = "framework";
+  dotfiles.workTailnet = {
+    enable = true;
+    defaultMode = "auto";
+    officeSsids = [ "MSP" ];
+  };
   users.users.joseph.uid = 1000;
   # Authenticate relay connections through the existing tailnet SSH policy.
   services.tailscale.extraSetFlags = [

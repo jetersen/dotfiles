@@ -207,6 +207,47 @@ disconnected. MagicDNS is scoped to the tailnet suffix.
 Rocket uses LAN routes and the normal systemd-resolved setup; it does not accept
 Tailscale subnet routes. Framework accepts those routes for access away from home.
 SSH aliases use Tailscale names; additional aliases belong in `~/.ssh/local.config`.
+
+Both hosts keep the homelab Tailscale instance as their primary connection.
+The Dux Work Tailnet widget controls a second, isolated work
+instance: On connects, Off disconnects and overrides automation, and
+Auto follows office Wi-Fi or fresh Home Assistant presence. Framework defaults
+to Auto on the `MSP` SSID; Rocket defaults to Off. Mode choices survive reboot.
+Framework reuses its existing work identity. For a fresh work
+instance, sign in with `work-tailnet login`, choosing your work
+tailnet, then select Auto again if wanted. The CLI also
+supports `work-tailnet on`, `off`, `auto`, and `status`.
+The `work-tailnet` agent skill maps requests such as "join work VPN" to this CLI,
+including when working through SSH.
+
+The first successful connection records its stable tailnet ID and local profile
+in `/var/lib/work-tailnet/tailnet.json`. Subsequent connections must match that
+identity; the personal tailnet is always rejected. No expected company name needs
+to be configured. An optional root-owned `/var/lib/work-tailnet/hostname` file sets the work device's
+name at daemon startup. Keep the name in that machine-local file rather than Nix
+or plugin settings. Without the file, an existing profile keeps its saved name.
+Sign in uses the name prepared by the daemon.
+
+The work daemon has separate account state, socket, network namespace and firewall.
+Apps use normal IPv4/IPv6 connections and fully qualified work DNS names without
+a proxy. Only accepted work routes and work DNS suffixes reach that namespace;
+homelab destinations and directly connected networks take precedence when ranges
+overlap. Work exit-node/default routes are not exported. Work peers cannot initiate
+connections to host services through this setup. Office detection uses the active
+Wi-Fi connection, not nearby access points, and checks every ten seconds.
+The personal `100.99.0.0/16` IP pool is always excluded from work routes, including
+addresses not currently assigned to a homelab peer. Keeping work node allocations
+outside that pool in the company policy prevents address conflicts; setting an
+IP pool does not renumber existing nodes.
+
+Home Assistant can optionally deliver location over an existing SSH connection
+as `joseph`: run `work-tailnet presence work --ttl 120` on Framework every minute
+while the chosen person or phone tracker is at work, and `work-tailnet presence
+away` when it leaves. Presence expires after 120 seconds without a refresh and is
+discarded on controller restart. It affects Auto mode only; no HA token or MQTT
+credential is needed. Use a laptop tracker or office Wi-Fi when the laptop's own
+location matters, rather than the person's location. pc2mqtt remains independent
+of the work connection so homelab monitoring continues.
 `remote-clip framework` transfers a clipboard image or text. From a work-enabled
 machine, `argocd-remote-sso framework --vpn-profile moviestarplanet` uses its
 browser for SSO and copies only the selected Argo CD context.

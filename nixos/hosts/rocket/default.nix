@@ -8,6 +8,7 @@
 {
   imports = [
     ../../modules/pc2mqtt.nix
+    ../../modules/work-tailnet.nix
     inputs.self.nixosModules.workstation
     inputs.self.nixosModules.company-vpn
     inputs.self.nixosModules.gaming
@@ -31,6 +32,7 @@
         '';
   };
   networking.hostName = "rocket";
+  dotfiles.workTailnet.enable = true;
   # Keep the login keyring encrypted; unlock it separately after desktop login.
   services.displayManager.autoLogin = {
     enable = true;

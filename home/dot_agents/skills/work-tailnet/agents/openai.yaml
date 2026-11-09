@@ -1,0 +1,3 @@
+interface:
+  display_name: "Work Tailnet"
+  short_description: "Connect or check the isolated work tailnet"

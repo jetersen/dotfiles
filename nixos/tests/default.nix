@@ -40,6 +40,7 @@ in
   desktop-activation = import ./desktop.nix { inherit pkgs inputs configurations; };
   dns-routing = import ./dns.nix { inherit pkgs pkgsUnstable; };
   tooling-unit = import ./tooling.nix { inherit pkgs; };
+  work-tailnet-isolation = import ./work-tailnet.nix { inherit pkgs configurations; };
   keyring-unlock = import ./keyring.nix { inherit pkgs; };
   module-contracts = import ./modules.nix {
     inherit pkgs pkgsUnstable configurations;
