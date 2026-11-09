@@ -18,6 +18,7 @@ jobs:
         with:
           persist-credentials: false
       - run: python3 -m unittest discover -s tests -p 'test_ci_graph.py'
+      - run: python3 -m unittest discover -s tests -p 'test_cache_policy.py'
       - run: python3 -m unittest discover -s tests -p 'test_package_updates.py'
       - run: python3 -m unittest discover -s tests -p 'test_wayland_clipboard.py'
       - run: python3 -m unittest discover -s tests -p 'test_pc2mqtt_audio.py'
@@ -32,7 +33,6 @@ jobs:
     timeout-minutes: 90
     env:
       XDG_CACHE_HOME: /nix/var/nix/ci-cache
-      ATTIC_MAX_NAR_MIB: 512
       TIMEFORMAT: "CI timing: wall=%3Rs user=%3Us sys=%3Ss"
       NIX_CONFIG: |
         experimental-features = nix-command flakes
@@ -79,7 +79,7 @@ jobs:
       - name: Build systems, checks and development tools in one graph
         shell: bash
         run: bash nixos/ci/build-systems.sh
-      - name: Publish eligible system outputs
+      - name: Publish cache misses and verify deployment readiness
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'
         shell: bash
         env:
@@ -89,22 +89,7 @@ jobs:
           umask 077
           mkdir -p "$HOME/.config/attic"
           printf 'default-server = "homelab"\n[servers.homelab]\nendpoint = "https://nix-cache.jetersen.dev/"\ntoken = "%s"\n' "$CACHE_TOKEN" > "$HOME/.config/attic/config.toml"
-          mapfile -t project_shells < "$RUNNER_TEMP/project-shells"
-          mapfile -t check_outputs < "$RUNNER_TEMP/check-outputs"
-          pc2mqtt_deps=$(cat "$RUNNER_TEMP/pc2mqtt-deps")
-          # Locally generated paths may also exist upstream without having its
-          # signature locally. Import it so Attic's upstream filter recognizes them.
-          # Cache public misses for a day; private-cache lookups remain immediate.
-          time nix store copy-sigs --substituter https://cache.nixos.org \
-            --option narinfo-cache-negative-ttl 86400 --recursive \
-            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "$pc2mqtt_deps" "${project_shells[@]}" "${check_outputs[@]}"
-          # Keep large outputs local to CI and let hosts build them as needed.
-          time nix path-info --recursive --json \
-            "$(cat "$RUNNER_TEMP/framework-system")" "$(cat "$RUNNER_TEMP/rocket-system")" "$pc2mqtt_deps" "${project_shells[@]}" "${check_outputs[@]}" > "$RUNNER_TEMP/system-paths.json"
-          time jq -r --argjson maxMiB "$ATTIC_MAX_NAR_MIB" '
-            to_entries[] | select(.value.narSize < ($maxMiB * 1024 * 1024)) | .key
-          ' "$RUNNER_TEMP/system-paths.json" \
-            | attic push --no-closure --stdin homelab:workstations
+          time python3 nixos/ci/cache-policy.py publish --netrc "$RUNNER_TEMP/nix-netrc" --max-mib 512 --timeout 1800
       - name: Check whether main still selects this revision
         id: current
         if: forgejo.ref == 'refs/heads/main' && forgejo.event_name != 'pull_request'

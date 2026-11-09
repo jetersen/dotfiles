@@ -15,6 +15,8 @@ let
         "nixos/modules/work-tailnet/control.py"
         "nixos/hosts/rocket/dictation.py"
         "tests/test_ci_graph.py"
+        "tests/test_cache_policy.py"
+        "nixos/ci/cache-policy.py"
         "nixos/ci/build-graph.py"
         "nixos/ci/build-systems.sh"
         "tests/test_package_updates.py"

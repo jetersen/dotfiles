@@ -278,10 +278,22 @@ Forgejo is primary; its native push mirror updates GitHub for existing chezmoi
 installations. All NixOS hosts follow `main` through an on-demand systemd upgrade service. Lightweight Python
 checks run on Kubernetes before full Nix builds run on either Docker pool with
 sandboxing and a persistent store volume. CI builds both systems
-and development shells, uploads eligible paths to Attic, checks that `main` still
-selects its revision, then notifies the hosts. Outputs of 512 MiB or more stay
-out of Attic and may build locally. Lifecycle fetches can see a revision before
-CI finishes, so cached output is preferred but not required for deployment.
+and development shells, then publishes private-cache misses and verifies that both
+system closures are available from the configured binary caches before notifying
+hosts. The 512 MiB limit applies only to optional development and test outputs;
+required system dependencies are uploaded at any size when unavailable upstream.
+Large packages already available upstream do not need a duplicate in Attic.
+
+Automatic upgrades pin the selected Git revision and check every dependency and
+NAR endpoint before invoking `nixos-rebuild` for that same revision. A cache miss
+or a 15-minute readiness timeout leaves the current system running. Local package
+builds and remote builders are disabled for automatic upgrades; a later update
+hint, network event or scheduled run can retry once the cache is ready.
+
+Attic expires unused objects after 60 days. A daily host timer refreshes cached
+paths referenced by every retained system generation and the booted system without
+downloading the binaries. Hosts offline for more than the retention period can lose
+remote cache entries; their installed generations remain in the local store.
 
 CI plans Framework, dynamically discovered checks, Rust dependencies, development
 shells and both Proton outputs alongside a separate Rocket planner. The two native
@@ -331,8 +343,9 @@ rebuild them.
 Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
 only its own state and discovery records, and read its own command topics.
 A non-retained `PRESS` on `<host>/button/update/command` starts
-`nixos-upgrade.service`. NixOS's standard updater refreshes the remote `main`
-flake, respects its lockfile, prefers cached outputs, and runs `nixos-rebuild switch`.
+`nixos-upgrade.service`. The updater resolves the remote `main` revision, respects
+its lockfile, verifies binary availability, and runs `nixos-rebuild switch` at that
+same revision.
 It never reboots automatically. The job runs independently of pc2mqtt, survives
 service changes during activation, and coalesces concurrent starts. There is no
 persistent Comin process or gRPC connection.

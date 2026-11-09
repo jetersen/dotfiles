@@ -1,12 +1,18 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   ...
 }:
 let
   pc2mqtt = inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.pc2mqtt;
   startUpgrade = "${pkgs.systemd}/bin/systemctl --no-block start nixos-upgrade.service";
+  cachePolicy = pkgs.writeScriptBin "nixos-cache-policy" ''
+    #!${pkgs.python3}/bin/python3
+    ${builtins.readFile ../ci/cache-policy.py}
+  '';
+  cacheNetrc = config.sops.secrets.nix-cache-netrc.path;
 in
 {
   # A running Comin evaluates this attribute in the target flake before it can
@@ -49,9 +55,18 @@ in
   };
 
   systemd.services.nixos-upgrade = {
+    script = lib.mkForce ''
+      ${cachePolicy}/bin/nixos-cache-policy upgrade \
+        --netrc ${lib.escapeShellArg cacheNetrc} \
+        --flake ${lib.escapeShellArg "git+https://forgejo.jetersen.dev/jetersen/dotfiles.git?ref=main"} \
+        --host ${lib.escapeShellArg config.networking.hostName} \
+        --rebuild ${config.system.build.nixos-rebuild}/bin/nixos-rebuild
+    '';
     environment.NIX_CONFIG = ''
       always-allow-substitutes = true
-      max-jobs = 1
+      # A missing cached package must fail the upgrade instead of compiling here.
+      max-jobs = 0
+      builders =
       cores = 4
       fallback = false
     '';
@@ -62,6 +77,29 @@ in
       # Let an existing Comin deployment finish before this updater takes over.
       ExecCondition = "${pkgs.bash}/bin/bash -c '! ${pkgs.systemd}/bin/systemctl --quiet is-active comin.service'";
       ExecStopPost = "${pc2mqtt}/bin/pc2mqtt --report-update-result";
+    };
+  };
+
+  # Retention remains bounded on Attic. Touch the NAR endpoints for generations
+  # still installed here; narinfo queries alone do not renew Attic's access time.
+  systemd.services.nixos-cache-retention = {
+    description = "Refresh cached binaries for installed NixOS generations";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    path = [ config.nix.package ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${cachePolicy}/bin/nixos-cache-policy refresh --netrc ${cacheNetrc}";
+      TimeoutStartSec = "16min";
+      Nice = 10;
+    };
+  };
+  systemd.timers.nixos-cache-retention = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
     };
   };
 

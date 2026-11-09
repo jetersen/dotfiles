@@ -48,6 +48,10 @@ let
       };
       upgrade = {
         enabled = c.system.autoUpgrade.enable;
+        nixConfig = c.systemd.services.nixos-upgrade.environment.NIX_CONFIG;
+        script = c.systemd.services.nixos-upgrade.script;
+        retention = c.systemd.services.nixos-cache-retention.serviceConfig.ExecStart;
+        retentionTimer = c.systemd.timers.nixos-cache-retention.timerConfig;
         flake = c.system.autoUpgrade.flake;
         autoReboot = c.system.autoUpgrade.allowReboot;
         upgradeInputs = c.system.autoUpgrade.upgrade;
@@ -284,6 +288,14 @@ let
           {
             assertion =
               c.upgrade.enabled
+              && lib.hasInfix "max-jobs = 0" c.upgrade.nixConfig
+              && lib.hasInfix "always-allow-substitutes = true" c.upgrade.nixConfig
+              && lib.hasInfix "builders =" c.upgrade.nixConfig
+              && lib.hasInfix "nixos-cache-policy upgrade" c.upgrade.script
+              && lib.hasInfix "--host ${host}" c.upgrade.script
+              && lib.hasInfix "nixos-cache-policy refresh" c.upgrade.retention
+              && c.upgrade.retentionTimer.OnCalendar == "daily"
+              && c.upgrade.retentionTimer.Persistent
               && !c.upgrade.autoReboot
               && !c.upgrade.upgradeInputs
               && c.upgrade.persistent
