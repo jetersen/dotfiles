@@ -44,7 +44,7 @@
       };
     };
     pulumi-packages = {
-      url = "git+https://github.com/unmango/pulumipkgs.git?rev=df941098a9fc1805a75dc4b88266e27fd699385d&shallow=1";
+      url = "git+https://github.com/unmango/pulumipkgs.git?rev=fd8b2976e45c1b141e8daa73021454f345b1c056&shallow=1";
       flake = false;
     };
     dms-openvpn3 = {
