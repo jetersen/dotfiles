@@ -183,16 +183,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1793755740,
-        "narHash": "sha256-7t40yrXTwPUMWNkGv6QiPoZ49G6BHloQjDtKSeC3WVM=",
-        "ref": "refs/tags/v2.1.0",
-        "rev": "7627111c3ebd402662283f5f4a93223cda9e0a9d",
+        "lastModified": 1794152448,
+        "narHash": "sha256-D8Ps69xp345EKBDqgznn5kDeb2UEOtNX5+wChMKGBDo=",
+        "ref": "refs/tags/v2.1.2",
+        "rev": "43255a46ea01e9d0de1fe8ce9897c0d71566b2a8",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/duxlabs-dev/dux-shell.git"
       },
       "original": {
-        "ref": "refs/tags/v2.1.0",
+        "ref": "refs/tags/v2.1.2",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/duxlabs-dev/dux-shell.git"

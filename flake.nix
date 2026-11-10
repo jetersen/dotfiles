@@ -112,7 +112,7 @@
       flake = false;
     };
     dms = {
-      url = "git+https://github.com/duxlabs-dev/dux-shell.git?ref=refs/tags/v2.1.0&shallow=1";
+      url = "git+https://github.com/duxlabs-dev/dux-shell.git?ref=refs/tags/v2.1.2&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-compat = {
         url = "git+https://github.com/NixOS/flake-compat.git?rev=5edf11c44bc78a0d334f6334cdaf7d60d732daab&shallow=1";
