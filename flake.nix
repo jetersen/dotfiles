@@ -124,7 +124,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     dux-files = {
-      url = "git+https://github.com/duxlabs-dev/dux-files.git?ref=refs/tags/v2.1.0&shallow=1";
+      url = "git+https://github.com/duxlabs-dev/dux-files.git?ref=refs/tags/v2.1.2&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     zen-browser = {
