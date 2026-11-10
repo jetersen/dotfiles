@@ -109,6 +109,49 @@ class ReadinessTests(unittest.TestCase):
       policy.verify([SYSTEM], [cache({SYSTEM: set()})], {SYSTEM: {"references": [CODEX]}})
 
 
+class DnsTests(unittest.TestCase):
+  def setUp(self):
+    policy.resolve.cache_clear()
+    self.addCleanup(policy.resolve.cache_clear)
+    self.address = (policy.socket.AF_INET, policy.socket.SOCK_STREAM, 6, "", ("192.0.2.1", 443))
+
+  def test_closure_probes_reuse_dns_and_refresh_within_a_minute(self):
+    with patch.object(policy.socket, "getaddrinfo", return_value=[self.address]) as lookup, \
+      patch.object(policy.socket, "socket"), patch.object(policy.time, "monotonic", return_value=59) as clock:
+      for _ in range(2048):
+        policy.cached_connection(("cache.example", 443), 15)
+      self.assertEqual(lookup.call_count, 1)
+      clock.return_value = 60
+      policy.cached_connection(("cache.example", 443), 15)
+      self.assertEqual(lookup.call_count, 2)
+
+  def test_transient_dns_failure_is_not_cached(self):
+    with patch.object(policy.socket, "getaddrinfo", side_effect=[policy.socket.gaierror("temporary"), [self.address]]) as lookup:
+      with self.assertRaises(policy.socket.gaierror):
+        policy.resolve("cache.example", 443, 0)
+      self.assertEqual(policy.resolve("cache.example", 443, 0), [self.address])
+      self.assertEqual(lookup.call_count, 2)
+
+  def test_unreachable_address_falls_back_and_closes_socket(self):
+    first, second = Mock(), Mock()
+    first.connect.side_effect = OSError("unreachable")
+    ipv6 = (policy.socket.AF_INET6, policy.socket.SOCK_STREAM, 6, "", ("2001:db8::1", 443, 0, 0))
+    with patch.object(policy.socket, "getaddrinfo", return_value=[ipv6, self.address]), \
+      patch.object(policy.socket, "socket", side_effect=[first, second]):
+      self.assertIs(policy.cached_connection(("cache.example", 443), 15), second)
+    first.close.assert_called_once()
+    second.connect.assert_called_once_with(self.address[-1])
+    second.settimeout.assert_called_once_with(15)
+
+  def test_tls_still_verifies_original_hostname(self):
+    context = Mock()
+    connection = policy.CachedHTTPSConnection("cache.example", context=context, timeout=15)
+    with patch.object(policy.socket, "getaddrinfo", return_value=[self.address]), \
+      patch.object(policy.socket, "socket") as create:
+      connection.connect()
+    context.wrap_socket.assert_called_once_with(create.return_value, server_hostname="cache.example")
+
+
 class ProtocolTests(unittest.TestCase):
   def test_probe_checks_nar_endpoint_without_downloading_it(self):
     client = policy.Cache(policy.PRIVATE)

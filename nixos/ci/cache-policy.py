@@ -3,24 +3,65 @@
 import argparse
 import base64
 from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
 import glob
+from http.client import HTTPSConnection
 import json
 import netrc
 import os
 from pathlib import Path
 import re
 import signal
+import socket
 import subprocess
 import sys
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
 
 
 PRIVATE = "https://nix-cache.jetersen.dev/workstations"
 PUBLIC = "https://cache.nixos.org"
 STORE_NAME = re.compile(r"[0-9abcdfghijklmnpqrsvwxyz]{32}-[^/\s]+\Z")
+
+
+@lru_cache(maxsize=32)
+def resolve(host, port, minute):
+  # urllib opens a connection per request. Thousands of closure probes must not
+  # become thousands of DNS queries and trip the resolver's client rate limit.
+  # The time bucket expires successful answers within 60 seconds; errors are
+  # never cached. Keep the hostname on HTTPSConnection for TLS verification.
+  return socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+
+
+def cached_connection(address, timeout=None, source_address=None):
+  error = OSError("DNS returned no addresses")
+  for family, kind, protocol, _, target in resolve(*address, int(time.monotonic() // 60)):
+    connection = None
+    try:
+      connection = socket.socket(family, kind, protocol)
+      connection.settimeout(timeout)
+      if source_address:
+        connection.bind(source_address)
+      connection.connect(target)
+      return connection
+    except OSError as failure:
+      error = failure
+      if connection is not None:
+        connection.close()
+  raise error
+
+
+class CachedHTTPSConnection(HTTPSConnection):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+    self._create_connection = cached_connection
+
+
+class CachedHTTPSHandler(HTTPSHandler):
+  def https_open(self, request):
+    return self.do_open(CachedHTTPSConnection, request, context=self._context)
 
 
 def store_path(path):
@@ -55,7 +96,7 @@ class Cache:
     for attempt in range(3):
       try:
         # Each worker owns its opener; no shared HTTP/auth state.
-        with build_opener(SafeRedirect()).open(request, timeout=15) as response:
+        with build_opener(SafeRedirect(), CachedHTTPSHandler()).open(request, timeout=15) as response:
           return response.read(1024 * 1024) if method == "GET" else b""
       except HTTPError as error:
         if error.code == 404:
