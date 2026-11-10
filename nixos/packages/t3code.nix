@@ -6,6 +6,7 @@
   appimageTools,
   autoPatchelfHook,
   musl,
+  vulkan-loader,
   symlinkJoin,
   makeWrapper,
   git,
@@ -55,7 +56,11 @@ let
       makeWrapper
     ];
     # Upstream bundles both glibc and musl native modules.
-    buildInputs = [ stdenv.cc.cc.lib musl ];
+    buildInputs = [
+      stdenv.cc.cc.lib
+      musl
+      vulkan-loader
+    ];
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/lib/t3" "$out/bin"

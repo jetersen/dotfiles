@@ -89,6 +89,16 @@
   ],
   "packageRules": [
     {
+      "description": "Update the Dux desktop applications together; each release supplies its tested QML dependency",
+      "matchPackageNames": [
+        "duxlabs-dev/dux-shell",
+        "duxlabs-dev/dux-greeter",
+        "duxlabs-dev/dux-files"
+      ],
+      "groupName": "Dux desktop",
+      "groupSlug": "dux-desktop"
+    },
+    {
       "description": "Stay on Freelens v2 while the installed Karpenter, FluxCD and Gateway API extensions target its API",
       "matchPackageNames": [
         "freelensapp/freelens"

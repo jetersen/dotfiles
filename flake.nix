@@ -114,10 +114,6 @@
     dms = {
       url = "git+https://github.com/duxlabs-dev/dux-shell.git?ref=refs/tags/v2.1.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.dank-qml-common = {
-        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=be3e16ca62866a749b34cfefe1aaed81cfe21e94&shallow=1";
-        flake = false;
-      };
       inputs.flake-compat = {
         url = "git+https://github.com/NixOS/flake-compat.git?rev=5edf11c44bc78a0d334f6334cdaf7d60d732daab&shallow=1";
         flake = false;
@@ -126,19 +122,10 @@
     dank-greeter = {
       url = "git+https://github.com/duxlabs-dev/dux-greeter.git?ref=refs/tags/v2.1.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.dank-qml-common = {
-        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=be3e16ca62866a749b34cfefe1aaed81cfe21e94&shallow=1";
-        flake = false;
-      };
     };
     dux-files = {
       url = "git+https://github.com/duxlabs-dev/dux-files.git?ref=refs/tags/v2.1.0&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
-      # Keep Files paired with the shared UI revision in its release lock.
-      inputs.dank-qml-common = {
-        url = "git+https://github.com/duxlabs-dev/dux-qml-common.git?rev=69971fe7203deaca031d04c434b3fcc016a2fb9e&shallow=1";
-        flake = false;
-      };
     };
     zen-browser = {
       url = "git+https://github.com/0xc000022070/zen-browser-flake.git?ref=main&shallow=1";
