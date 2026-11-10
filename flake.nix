@@ -120,7 +120,7 @@
       };
     };
     dank-greeter = {
-      url = "git+https://github.com/duxlabs-dev/dux-greeter.git?ref=refs/tags/v2.1.0&shallow=1";
+      url = "git+https://github.com/duxlabs-dev/dux-greeter.git?ref=refs/tags/v2.1.2&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     dux-files = {
