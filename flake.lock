@@ -101,55 +101,49 @@
     "dank-qml-common": {
       "flake": false,
       "locked": {
-        "lastModified": 1793720721,
-        "narHash": "sha256-A266EMSFs169/cqH+9elzMX/6N+ycuEBXFw4qXdTD7k=",
-        "ref": "refs/heads/master",
-        "rev": "be3e16ca62866a749b34cfefe1aaed81cfe21e94",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+        "lastModified": 1794151087,
+        "narHash": "sha256-U8tfltFSLjvb+FqbRbydohaMFUt1MiHJqBMrcWCr6t4=",
+        "owner": "duxlabs-dev",
+        "repo": "dux-qml-common",
+        "rev": "b78c6fc861bcf1955d3db0c016779886add1f207",
+        "type": "github"
       },
       "original": {
-        "rev": "be3e16ca62866a749b34cfefe1aaed81cfe21e94",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+        "owner": "duxlabs-dev",
+        "repo": "dux-qml-common",
+        "type": "github"
       }
     },
     "dank-qml-common_2": {
       "flake": false,
       "locked": {
-        "lastModified": 1793720721,
-        "narHash": "sha256-A266EMSFs169/cqH+9elzMX/6N+ycuEBXFw4qXdTD7k=",
-        "ref": "refs/heads/master",
-        "rev": "be3e16ca62866a749b34cfefe1aaed81cfe21e94",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+        "lastModified": 1794150008,
+        "narHash": "sha256-04v9TZkFikV738/IQCqDqGj+ejT8R6/uwrsatDVlHdo=",
+        "owner": "duxlabs-dev",
+        "repo": "dux-qml-common",
+        "rev": "0877466a25b8e191a865bf75d0e500de6351ae04",
+        "type": "github"
       },
       "original": {
-        "rev": "be3e16ca62866a749b34cfefe1aaed81cfe21e94",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+        "owner": "duxlabs-dev",
+        "repo": "dux-qml-common",
+        "type": "github"
       }
     },
     "dank-qml-common_3": {
       "flake": false,
       "locked": {
-        "lastModified": 1793739121,
-        "narHash": "sha256-tuZawVduVTBkUo2e5SrmA5tGEVEHZiIPqbOUwA007H4=",
-        "ref": "refs/heads/master",
-        "rev": "69971fe7203deaca031d04c434b3fcc016a2fb9e",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+        "lastModified": 1794151661,
+        "narHash": "sha256-DhTvMaG7G0hG9eOZjgX24NR+cc9vRQ77LXrGfnF5dxY=",
+        "owner": "duxlabs-dev",
+        "repo": "dux-qml-common",
+        "rev": "2eb518fa47397d9b06d5ab1fd49bf045e16018e0",
+        "type": "github"
       },
       "original": {
-        "rev": "69971fe7203deaca031d04c434b3fcc016a2fb9e",
-        "shallow": true,
-        "type": "git",
-        "url": "https://github.com/duxlabs-dev/dux-qml-common.git"
+        "owner": "duxlabs-dev",
+        "repo": "dux-qml-common",
+        "type": "github"
       }
     },
     "disko": {
