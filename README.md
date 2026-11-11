@@ -245,6 +245,8 @@ An isolated loopback bridge sends app queries to the advertised peer endpoint,
 preserving connector route discovery. Failed peer lookups return DNS failure
 without falling back to public DNS. DNS replies wait for the corresponding work
 routes to be installed on the host, including newly rotated S3/CDN addresses.
+Application routes use MTU 1280; the namespace transport link uses MTU 1500 so
+encrypted Tailscale packets have room for their tunnel overhead.
 Connected work routes refresh every second; office Wi-Fi detection remains on
 a ten-second interval. Personal DNS remains separate.
 

@@ -34,6 +34,24 @@ let
         data, address = server.recvfrom(4096)
         server.sendto(reply(data), address)
   '';
+  outerUdp = pkgs.writeText "work-outer-udp.py" ''
+    import socket
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.bind(("169.254.77.1", 9099))
+    while True:
+        data, address = server.recvfrom(4096)
+        server.sendto(data, address)
+  '';
+  outerProbe = pkgs.writeText "work-outer-probe.py" ''
+    import socket
+    client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    client.settimeout(2)
+    # Linux IP_MTU_DISCOVER / IP_PMTUDISC_DO: no IP fragmentation is allowed.
+    client.setsockopt(socket.IPPROTO_IP, 10, 2)
+    packet = b"x" * 1360
+    client.sendto(packet, ("169.254.77.1", 9099))
+    assert client.recv(4096) == packet
+  '';
 in
 pkgs.testers.runNixOSTest {
   name = "work-tailnet-isolation";
@@ -72,6 +90,16 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_unit("work-tailnet-dns.service")
     machine.wait_for_unit("work-tailnet-peer-dns.service")
     machine.fail("ss -lnt | grep ':5354 '")
+    # A 1280-byte inner tunnel packet plus encryption overhead must cross the
+    # namespace WAN link without IP fragmentation or an EMSGSIZE failure.
+    machine.succeed("python3 ${outerUdp} >/tmp/work-outer-udp.log 2>&1 &")
+    machine.succeed("iptables -I INPUT 1 -i wt-host -s 169.254.77.2 -p udp --dport 9099 -j ACCEPT")
+    machine.wait_until_succeeds("ip netns exec work-tailnet python3 ${outerProbe}", timeout=10)
+    machine.succeed("ip -n work-tailnet link set wt-peer mtu 1280")
+    machine.fail("ip netns exec work-tailnet python3 ${outerProbe}")
+    machine.succeed("ip -n work-tailnet link set wt-peer mtu 1500")
+    machine.succeed("ip netns exec work-tailnet python3 ${outerProbe}")
+    machine.succeed("iptables -D INPUT -i wt-host -s 169.254.77.2 -p udp --dport 9099 -j ACCEPT")
     machine.wait_until_succeeds("su joseph -c 'work-tailnet status'")
     # First sign-in must retain the operator even without Internet/SSO access.
     machine.execute("su joseph -c 'timeout 4 work-tailnet login' >/tmp/work-login.log 2>&1")
@@ -105,6 +133,7 @@ pkgs.testers.runNixOSTest {
     # client transports through the real namespace, dnsmasq and HTTP bridge.
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns(['app.test'], {'SplitDNSRoutes': {'app.test': [{'Addr': 'http://100.64.80.2:8053/dns-query'}]}})\"")
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_routes({'100.64.80.2/32'})\"")
+    machine.succeed("ip route get 100.64.80.2 | grep 'mtu 1280'")
     machine.wait_until_succeeds("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
     machine.succeed("dig +tcp +short +time=2 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
     machine.succeed("echo '[]' > /run/work-tailnet/exported-routes.json")

@@ -93,7 +93,7 @@ class WorkTailnetTests(unittest.TestCase):
   def test_empty_table_and_normalized_host_routes_are_idempotent(self):
     def kernel(*args):
       self.assertEqual(args[-2:], ("table", "all"))
-      return json.dumps([{"dst": "10.20.1.1", "table": "53"}]) if "-4" in args else "[]"
+      return json.dumps([{"dst": "10.20.1.1", "table": "53", "metrics": [{"mtu": 1280}]}]) if "-4" in args else "[]"
     with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), \
         patch.object(work, "run", side_effect=kernel) as commands:
       controller = self.controller(root)
@@ -101,6 +101,15 @@ class WorkTailnetTests(unittest.TestCase):
       self.assertEqual(commands.call_count, 2)  # No add/delete for an unchanged host route.
       self.assertEqual(json.loads((Path(root) / "exported-routes.json").read_text()), ["10.20.1.1/32"])
       self.assertEqual(work.routes_in("-6", {"53"}), [])
+
+  def test_application_mtu_is_constrained_on_routes_and_repairs_existing_routes(self):
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), \
+        patch.object(work, "routes_in", side_effect=[[{"dst": "203.0.113.25", "metrics": [{"mtu": 1500}]}], []]), \
+        patch.object(work, "run") as run:
+      self.controller(root).sync_routes({"203.0.113.25/32", "2001:db8::25/128"})
+      self.assertEqual(run.call_count, 2)
+      for call in run.call_args_list:
+        self.assertEqual(call.args[-4:], ("table", "53", "mtu", "1280"))
 
   def test_route_receipt_is_published_only_after_success_and_cleared_when_off(self):
     with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), \

@@ -26,11 +26,13 @@ trap 'ip link del wt-host 2>/dev/null || true; ip netns del work-tailnet' ERR
 ip link add wt-host type veth peer name wt-peer netns work-tailnet
 ip addr add 169.254.77.1/30 dev wt-host
 ip -6 addr add fd42:77::1/64 dev wt-host nodad
-ip link set wt-host mtu 1280 up
+# This veth also carries encrypted Tailscale UDP to the physical network.
+# Leave room for tunnel overhead; exported application routes constrain inner MTU.
+ip link set wt-host mtu 1500 up
 ip -n work-tailnet link set lo up
 ip -n work-tailnet addr add 169.254.77.2/30 dev wt-peer
 ip -n work-tailnet -6 addr add fd42:77::2/64 dev wt-peer nodad
-ip -n work-tailnet link set wt-peer mtu 1280 up
+ip -n work-tailnet link set wt-peer mtu 1500 up
 ip -n work-tailnet route add default via 169.254.77.1
 ip netns exec work-tailnet sysctl -qw net.ipv4.ip_forward=1
 ip netns exec work-tailnet sysctl -qw net.ipv6.conf.all.forwarding=1

@@ -278,13 +278,15 @@ class Controller:
 
   def sync_routes(self, desired):
     for family in ("-4", "-6"):
-      current = {str(ipaddress.ip_network(r["dst"], strict=False)) for r in routes_in(family, {"53"})}
+      current = {str(ipaddress.ip_network(r["dst"], strict=False)):
+        next((metric["mtu"] for metric in r.get("metrics", []) if "mtu" in metric), r.get("mtu"))
+        for r in routes_in(family, {"53"})}
       target = {r for r in desired if (":" in r) == (family == "-6")}
-      for prefix in sorted(current - target):
+      for prefix in sorted(current.keys() - target):
         run("ip", family, "route", "del", prefix, "table", "53")
-      for prefix in sorted(target - current):
+      for prefix in sorted(prefix for prefix in target if current.get(prefix) != 1280):
         gateway = "169.254.77.2" if family == "-4" else "fd42:77::2"
-        run("ip", family, "route", "replace", prefix, "via", gateway, "dev", "wt-host", "table", "53")
+        run("ip", family, "route", "replace", prefix, "via", gateway, "dev", "wt-host", "table", "53", "mtu", "1280")
     # A DNS reply must not expose a newly learned address until its work route
     # is installed on the host. The unprivileged bridge only reads this receipt.
     write_json(RUN / "exported-routes.json", sorted(desired))
