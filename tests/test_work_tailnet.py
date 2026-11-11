@@ -94,11 +94,28 @@ class WorkTailnetTests(unittest.TestCase):
     def kernel(*args):
       self.assertEqual(args[-2:], ("table", "all"))
       return json.dumps([{"dst": "10.20.1.1", "table": "53"}]) if "-4" in args else "[]"
-    with tempfile.TemporaryDirectory() as root, patch.object(work, "run", side_effect=kernel) as commands:
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), \
+        patch.object(work, "run", side_effect=kernel) as commands:
       controller = self.controller(root)
       controller.sync_routes({"10.20.1.1/32"})
       self.assertEqual(commands.call_count, 2)  # No add/delete for an unchanged host route.
+      self.assertEqual(json.loads((Path(root) / "exported-routes.json").read_text()), ["10.20.1.1/32"])
       self.assertEqual(work.routes_in("-6", {"53"}), [])
+
+  def test_route_receipt_is_published_only_after_success_and_cleared_when_off(self):
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), \
+        patch.object(work, "routes_in", return_value=[]), patch.object(work, "run") as run:
+      controller = self.controller(root)
+      receipt = Path(root) / "exported-routes.json"
+      run.side_effect = OSError("route installation failed")
+      with self.assertRaises(OSError):
+        controller.sync_routes({"203.0.113.25/32"})
+      self.assertFalse(receipt.exists())
+      run.side_effect = None
+      controller.sync_routes({"203.0.113.25/32"})
+      self.assertEqual(json.loads(receipt.read_text()), ["203.0.113.25/32"])
+      controller.sync_routes(set())
+      self.assertEqual(json.loads(receipt.read_text()), [])
 
   def test_domains_are_validated_and_root_is_rejected(self):
     self.assertEqual(work.valid_domains({"CurrentTailnet": {"MagicDNSSuffix": "work.ts.net"},

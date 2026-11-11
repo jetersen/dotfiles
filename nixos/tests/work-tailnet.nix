@@ -104,8 +104,12 @@ pkgs.testers.runNixOSTest {
     # App-connector discovery must retain the HTTP endpoint and work over both
     # client transports through the real namespace, dnsmasq and HTTP bridge.
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns(['app.test'], {'SplitDNSRoutes': {'app.test': [{'Addr': 'http://100.64.80.2:8053/dns-query'}]}})\"")
+    machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_routes({'100.64.80.2/32'})\"")
     machine.wait_until_succeeds("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
     machine.succeed("dig +tcp +short +time=2 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
+    machine.succeed("echo '[]' > /run/work-tailnet/exported-routes.json")
+    machine.succeed("ip netns exec work-tailnet dig +time=5 +tries=1 @127.0.0.1 -p 5354 blocked.app.test | grep SERVFAIL")
+    machine.fail("dig +short +time=5 +tries=1 @169.254.77.2 blocked.app.test | grep '^100.64.80.2$'")
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns([])\"")
     machine.succeed("test \"$(cat /run/work-tailnet/peer-dns.json)\" = '{}'")
     machine.wait_until_fails("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")

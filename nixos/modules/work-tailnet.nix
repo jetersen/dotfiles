@@ -91,6 +91,7 @@ in
       "d /run/work-tailnet 0755 root root -"
       "f /run/work-tailnet/dnsmasq.servers 0644 root root -"
       "f /run/work-tailnet/peer-dns.json 0644 root root - {}"
+      "f /run/work-tailnet/exported-routes.json 0644 root root - []"
       "d /var/lib/work-tailnet 0700 root root -"
     ];
     systemd.services.work-tailnet-netns = {

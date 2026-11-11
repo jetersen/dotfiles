@@ -6,6 +6,7 @@ import socket
 import sys
 import tempfile
 import threading
+import time
 import unittest
 from unittest.mock import patch
 
@@ -34,7 +35,39 @@ class PeerDnsTests(unittest.TestCase):
     config = patch.object(peer, "CONFIG", self.config)
     config.start()
     self.addCleanup(config.stop)
+    self.routes = Path(self.root.name) / "exported-routes.json"
+    self.routes.write_text('["203.0.113.25/32"]')
+    routes = patch.object(peer, "ROUTES", self.routes)
+    routes.start()
+    self.addCleanup(routes.stop)
     self.query = dns.message.make_query("app.example", "A")
+
+  def test_fresh_addresses_wait_for_host_routes_in_both_families(self):
+    reply = dns.message.make_response(self.query)
+    reply.answer.append(dns.rrset.from_text("app.example.", 60, "IN", "A", "203.0.113.25"))
+    reply.answer.append(dns.rrset.from_text("app.example.", 60, "IN", "AAAA", "2001:db8::25"))
+    self.assertFalse(peer.wait_for_routes(reply, timeout=0.01))
+
+    def publish_routes():
+      time.sleep(0.03)
+      temporary = self.routes.with_suffix(".tmp")
+      temporary.write_text('["203.0.113.25/32", "2001:db8::25/128"]')
+      temporary.replace(self.routes)
+
+    writer = threading.Thread(target=publish_routes)
+    writer.start()
+    try:
+      self.assertTrue(peer.wait_for_routes(reply, timeout=1))
+    finally:
+      writer.join()
+
+  def test_dns_never_returns_an_address_before_its_route_is_exported(self):
+    reply = dns.message.make_response(self.query)
+    reply.answer.append(dns.rrset.from_text("app.example.", 60, "IN", "A", "203.0.113.25"))
+    with patch.object(peer, "exchange", return_value=reply), patch.object(peer, "wait_for_routes", return_value=False):
+      result = dns.message.from_wire(peer.answer(self.query.to_wire()))
+    self.assertEqual(result.rcode(), dns.rcode.SERVFAIL)
+    self.assertEqual(result.answer, [])
 
   def test_longest_suffix_and_removed_policy_never_fall_back(self):
     self.config.write_text(json.dumps({"app.example": [URL], "nested.app.example": ["specific"]}))

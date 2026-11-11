@@ -243,7 +243,10 @@ IP pool does not renumber existing nodes.
 Work split DNS supports both IP resolvers and app-connector HTTP DNS URLs.
 An isolated loopback bridge sends app queries to the advertised peer endpoint,
 preserving connector route discovery. Failed peer lookups return DNS failure
-without falling back to public DNS. Personal DNS remains separate.
+without falling back to public DNS. DNS replies wait for the corresponding work
+routes to be installed on the host, including newly rotated S3/CDN addresses.
+Connected work routes refresh every second; office Wi-Fi detection remains on
+a ten-second interval. Personal DNS remains separate.
 
 Home Assistant can optionally deliver location over an existing SSH connection
 as `joseph`: run `work-tailnet presence work --ttl 120` on Framework every minute

@@ -1,21 +1,25 @@
 """Loopback DNS-to-HTTP bridge for app connectors in the work namespace."""
 
 import http.client
+import ipaddress
 import json
 from pathlib import Path
 import socketserver
 import struct
 import threading
+import time
 
 import dns.exception
 import dns.flags
 import dns.message
 import dns.opcode
 import dns.rcode
+import dns.rdatatype
 
 from control import peer_doh_url
 
 CONFIG = Path("/run/work-tailnet/peer-dns.json")
+ROUTES = Path("/run/work-tailnet/exported-routes.json")
 
 
 def upstreams(name):
@@ -42,6 +46,24 @@ def exchange(packet, address):
     connection.close()
 
 
+def wait_for_routes(reply, timeout=3):
+  addresses = [ipaddress.ip_address(record.address) for rrset in reply.answer
+    if rrset.rdtype in (dns.rdatatype.A, dns.rdatatype.AAAA) for record in rrset]
+  if not addresses:
+    return True
+  deadline = time.monotonic() + timeout
+  while True:
+    try:
+      routes = [ipaddress.ip_network(prefix) for prefix in json.loads(ROUTES.read_text())]
+      if all(any(address.version == route.version and address in route for route in routes) for address in addresses):
+        return True
+    except (OSError, ValueError):
+      pass
+    if time.monotonic() >= deadline:
+      return False
+    time.sleep(0.05)
+
+
 def answer(packet, tcp=False):
   query = dns.message.from_wire(packet)
   if query.flags & dns.flags.QR:
@@ -58,6 +80,8 @@ def answer(packet, tcp=False):
             raise ValueError("Mismatched peer DNS response")
           if reply.rcode() == dns.rcode.SERVFAIL:
             continue
+          if not wait_for_routes(reply):
+            raise ValueError("Connector routes are not ready")
           response = reply
           break
         except (OSError, ValueError, http.client.HTTPException, dns.exception.DNSException):

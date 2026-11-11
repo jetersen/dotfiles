@@ -221,6 +221,8 @@ class Controller:
     self.domains = None
     self.servers = None
     self.peers = None
+    self.ssids = set()
+    self.wifi_checked = -10
 
   def request(self, request):
     command = request["command"]
@@ -283,10 +285,16 @@ class Controller:
       for prefix in sorted(target - current):
         gateway = "169.254.77.2" if family == "-4" else "fd42:77::2"
         run("ip", family, "route", "replace", prefix, "via", gateway, "dev", "wt-host", "table", "53")
+    # A DNS reply must not expose a newly learned address until its work route
+    # is installed on the host. The unprivileged bridge only reads this receipt.
+    write_json(RUN / "exported-routes.json", sorted(desired))
 
   def reconcile(self):
     mode = self.state["mode"]
-    ssids = active_ssids() if mode == "auto" else set()
+    if mode == "auto" and time.monotonic() - self.wifi_checked >= 10:
+      self.ssids = active_ssids()
+      self.wifi_checked = time.monotonic()
+    ssids = self.ssids if mode == "auto" else set()
     enabled = wanted(mode, ssids, self.office_ssids, self.presence, time.monotonic())
     identity = json.loads(self.tailnet_path.read_text()) if enabled and self.tailnet_path.exists() else None
     status = json.loads(tailscale("status", "--json"))
@@ -352,12 +360,14 @@ def serve(args):
     os.chmod(SOCKET, 0o600)
     os.chown(SOCKET, args.uid, -1)
     server.listen(4)
-    server.settimeout(1)
+    server.settimeout(0.25)
     next_tick = 0
     while True:
       if time.monotonic() >= next_tick:
         controller.tick()
-        next_tick = time.monotonic() + 10
+        # Connector DNS can introduce fresh S3/CDN routes at any time. Export
+        # promptly while connected; office Wi-Fi detection remains ten-second.
+        next_tick = time.monotonic() + (1 if controller.snapshot.get("connected") else 10)
       try:
         connection, _ = server.accept()
       except TimeoutError:
