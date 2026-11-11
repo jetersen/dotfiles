@@ -112,7 +112,8 @@ nix develop ~/git/dotfiles#python --command fish
 ```
 
 Other shells are `rust`, `go`, `jvm`, `pulumi`, and `dotnet-preview`.
-.NET 10 is the global default; the preview shell sets its own `DOTNET_ROOT`.
+.NET 11 is the global default, with .NET 10 also available for existing projects.
+The `dotnet-preview` shell uses only .NET 11 and sets its own `DOTNET_ROOT`.
 Temporary tools can use `nix shell nixpkgs#PACKAGE` or comma, for example
 `, dig example.com`. Bash, Zsh, and Fish suggest packages for missing commands.
 The pinned nix-index database covers executables only and needs no local indexing;

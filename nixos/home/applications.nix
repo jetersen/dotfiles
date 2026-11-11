@@ -32,7 +32,7 @@ in
     (pkgsMaster.discord.override {
       source = builtins.fromJSON (builtins.readFile ../packages/discord-source.json);
     })
-    dotnet-sdk_10
+    dotfilesPackages.dotnet-sdk
     (symlinkJoin {
       name = "${pkgsUnstable.proton-pass-cli.name}-desktop";
       paths = [ pkgsUnstable.proton-pass-cli ];
@@ -51,7 +51,7 @@ in
 
   home.sessionVariables = {
     NIXOS_OZONE_WL = "1";
-    DOTNET_ROOT = "${pkgs.dotnet-sdk_10}/share/dotnet";
+    DOTNET_ROOT = "${dotfilesPackages.dotnet-sdk}/share/dotnet";
   };
 
   programs.zed-editor = {

@@ -172,6 +172,14 @@
       packages.x86_64-linux.installer-iso =
         inputs.self.nixosConfigurations.installer.config.system.build.isoImage;
       packages.x86_64-linux.nixos-anywhere = pkgs.nixos-anywhere;
+      # Generated with nixpkgs' generate-dotnet-sdk --sdk -o
+      # nixos/packages/dotnet-11-releases.nix 11.0.100.
+      packages.x86_64-linux.dotnet-sdk_11 =
+        (pkgs.dotnetCorePackages.buildDotnetSdk ./nixos/packages/dotnet-11-releases.nix).sdk;
+      packages.x86_64-linux.dotnet-sdk = pkgs.dotnetCorePackages.combinePackages [
+        inputs.self.packages.x86_64-linux.dotnet-sdk_11
+        pkgs.dotnet-sdk_10
+      ];
       packages.x86_64-linux.lanzaboote-system-profiles = lanzabooteSystemProfiles.packages.lzbt;
       packages.x86_64-linux.lanzaboote-system-profiles-vm =
         lanzabooteSystemProfiles.checks.tests.system-profiles;
@@ -243,7 +251,7 @@
             source = inputs.pulumi-upgrade-provider-source;
           };
       devShells.x86_64-linux = import ./nixos/dev-shells.nix {
-        inherit pkgs pkgsUnstable;
+        inherit pkgs;
         dotfilesPackages = inputs.self.packages.x86_64-linux;
       };
       packages.x86_64-linux.ci-tools = pkgs.buildEnv {
