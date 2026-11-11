@@ -12,7 +12,7 @@ import struct
 import subprocess
 import sys
 import time
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 ROOT = Path("/var/lib/work-tailnet")
 RUN = Path("/run/work-tailnet")
@@ -164,16 +164,37 @@ def route_plan(routes, protected):
   return result
 
 
-def dnsmasq_servers(domains, dns):
+def peer_doh_url(address):
+  """Accept only the HTTP DNS endpoint advertised by Tailscale peers."""
+  if any(ord(c) <= 32 or ord(c) >= 127 for c in address):
+    raise ValueError("Invalid peer DNS URL")
+  endpoint = urlsplit(address)
+  ip = ipaddress.ip_address(endpoint.hostname or "")
+  pool = ipaddress.ip_network("100.64.0.0/10" if ip.version == 4 else "fd7a:115c:a1e0::/48")
+  if (endpoint.scheme != "http" or ip not in pool or "%" in str(ip)
+      or not endpoint.port or endpoint.username is not None or endpoint.password is not None
+      or endpoint.path != "/dns-query" or endpoint.query or endpoint.fragment):
+    raise ValueError("Invalid peer DNS URL")
+  return endpoint
+
+
+def dns_plan(domains, dns):
   lines = set()
+  peers = {}
   for domain, resolvers in (dns.get("SplitDNSRoutes") or {}).items():
     domain = domain.rstrip(".").lower()
     if domain not in domains:
       continue
     for resolver in resolvers or []:
-      address = str(ipaddress.ip_address(resolver["Addr"]))
+      address = resolver["Addr"]
+      if "://" in address:
+        peer_doh_url(address)
+        peers.setdefault(domain, []).append(address)
+        address = "127.0.0.1#5354"
+      else:
+        address = str(ipaddress.ip_address(address))
       lines.add(f"server=/{domain}/{address}\n")
-  return "".join(sorted(lines))
+  return "".join(sorted(lines)), peers
 
 
 def protected_routes():
@@ -199,6 +220,7 @@ class Controller:
     self.snapshot = {"connected": False, "mode": self.state["mode"], "error": "Starting"}
     self.domains = None
     self.servers = None
+    self.peers = None
 
   def request(self, request):
     command = request["command"]
@@ -223,11 +245,14 @@ class Controller:
 
   def sync_dns(self, domains, dns=None):
     domains = sorted(domains)
-    servers = dnsmasq_servers(domains, dns or {})
-    if domains == self.domains and servers == self.servers:
+    servers, peers = dns_plan(domains, dns or {})
+    if domains == self.domains and servers == self.servers and peers == self.peers:
       return
     # With accept-dns=false, Quad100 only serves MagicDNS. Forward work split
     # domains directly to their advertised resolvers inside the work namespace.
+    # dnsmasq cannot speak HTTP; the loopback bridge retains the peer URL/port
+    # and DNS discovery, so the connector can learn routes from the replies.
+    write_json(RUN / "peer-dns.json", peers)
     temporary = RUN / "dnsmasq.servers.tmp"
     temporary.write_text(servers)
     temporary.chmod(0o644)
@@ -247,6 +272,7 @@ class Controller:
         run("resolvectl", "revert", "wt-host")
     self.domains = domains
     self.servers = servers
+    self.peers = peers
 
   def sync_routes(self, desired):
     for family in ("-4", "-6"):

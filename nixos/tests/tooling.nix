@@ -12,7 +12,9 @@ let
         "home/dot_agents/skills/t3-remote-thread/scripts"
         "tests/test_dictation.py"
         "tests/test_work_tailnet.py"
+        "tests/test_work_tailnet_peer_dns.py"
         "nixos/modules/work-tailnet/control.py"
+        "nixos/modules/work-tailnet/peer_dns.py"
         "nixos/hosts/rocket/dictation.py"
         "tests/test_ci_graph.py"
         "tests/test_cache_policy.py"
@@ -32,7 +34,10 @@ in
 pkgs.runCommand "tooling-unit-checks"
   {
     nativeBuildInputs = [
-      (pkgs.python3.withPackages (p: [ p.websocket-client ]))
+      (pkgs.python3.withPackages (p: [
+        p.websocket-client
+        p.dnspython
+      ]))
       pkgs.openssl
       pkgs.bash
       pkgs.sox

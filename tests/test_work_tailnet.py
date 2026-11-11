@@ -2,7 +2,6 @@ import importlib.util
 import ipaddress
 import json
 from pathlib import Path
-import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -109,11 +108,43 @@ class WorkTailnetTests(unittest.TestCase):
   def test_split_dns_uses_own_resolver_and_excludes_personal_domains(self):
     dns = {"SplitDNSRoutes": {"corp.example.": [{"Addr": "100.65.1.1"}],
       "jetersen.dev": [{"Addr": "100.65.1.2"}]}}
-    self.assertEqual(work.dnsmasq_servers(["corp.example", "work.ts.net"], dns),
-      "server=/corp.example/100.65.1.1\n")
+    self.assertEqual(work.dns_plan(["corp.example", "work.ts.net"], dns),
+      ("server=/corp.example/100.65.1.1\n", {}))
     dns["SplitDNSRoutes"]["corp.example."] = [{"Addr": "100.65.1.1\nserver=1.1.1.1"}]
     with self.assertRaises(ValueError):
-      work.dnsmasq_servers(["corp.example"], dns)
+      work.dns_plan(["corp.example"], dns)
+
+  def test_app_connector_urls_use_bridge_and_preserve_ipv4_ipv6_endpoints(self):
+    urls = ["http://100.64.165.232:63028/dns-query",
+      "http://[fd7a:115c:a1e0::a332:a419]:63029/dns-query"]
+    dns = {"SplitDNSRoutes": {"APP.EXAMPLE.": [{"Addr": url} for url in urls],
+      "jetersen.dev": [{"Addr": urls[0]}]}}
+    self.assertEqual(work.dns_plan(["app.example"], dns),
+      ("server=/app.example/127.0.0.1#5354\n", {"app.example": urls}))
+
+  def test_peer_dns_rejects_non_tailnet_endpoints_and_url_injection(self):
+    for url in ["https://100.64.165.232:63028/dns-query", "http://1.1.1.1:53/dns-query",
+        "http://localhost:53/dns-query", "http://100.64.165.232/dns-query",
+        "http://100.64.165.232:0/dns-query", "http://100.64.165.232:65536/dns-query",
+        "http://user@100.64.165.232:53/dns-query", "http://100.64.165.232:53/other",
+        "http://100.64.165.232:53/dns-query?dns=x", "http://100.64.165.232:53/dns-query#x",
+        "http://[fd00::1]:53/dns-query", "http://100.64.165.232:53/dns-query\n"]:
+      with self.subTest(url=url), self.assertRaises(ValueError):
+        work.peer_doh_url(url)
+
+  def test_bridge_updates_endpoint_ports_and_clears_policy_when_off(self):
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), patch.object(work, "run"):
+      controller = self.controller(root)
+      dns = {"SplitDNSRoutes": {"app.example": [{"Addr": "http://100.64.165.232:63028/dns-query"}]}}
+      controller.sync_dns(["app.example"], dns)
+      config = Path(root) / "peer-dns.json"
+      self.assertEqual(json.loads(config.read_text()), {"app.example": ["http://100.64.165.232:63028/dns-query"]})
+      dns["SplitDNSRoutes"]["app.example"][0]["Addr"] = "http://100.64.165.232:63029/dns-query"
+      controller.sync_dns(["app.example"], dns)
+      self.assertEqual(json.loads(config.read_text()), {"app.example": ["http://100.64.165.232:63029/dns-query"]})
+      controller.sync_dns([])
+      self.assertEqual(json.loads(config.read_text()), {})
+      self.assertEqual((Path(root) / "dnsmasq.servers").read_text(), "")
 
   def test_split_dns_updates_upstream_without_changing_suffixes(self):
     with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), patch.object(work, "run") as run:

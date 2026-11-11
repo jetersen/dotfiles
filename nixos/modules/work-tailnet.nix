@@ -34,6 +34,7 @@ let
     text = builtins.readFile ./work-tailnet/netns.sh;
   };
   socket = "/run/work-tailnet/tailscaled.sock";
+  peerDnsPython = pkgs.python3.withPackages (p: [ p.dnspython ]);
   # These rules let the namespace reach coordination/DERP endpoints. Work
   # application traffic is NATed separately inside the namespace, to its node IP.
   firewallRules = [
@@ -89,6 +90,7 @@ in
     systemd.tmpfiles.rules = [
       "d /run/work-tailnet 0755 root root -"
       "f /run/work-tailnet/dnsmasq.servers 0644 root root -"
+      "f /run/work-tailnet/peer-dns.json 0644 root root - {}"
       "d /var/lib/work-tailnet 0700 root root -"
     ];
     systemd.services.work-tailnet-netns = {
@@ -130,11 +132,37 @@ in
         RestartSec = 5;
       };
     };
+    systemd.services.work-tailnet-peer-dns = {
+      description = "Work app-connector DNS over HTTP bridge";
+      wantedBy = [ "multi-user.target" ];
+      bindsTo = [ "work-tailnet-netns.service" ];
+      after = [ "work-tailnet-netns.service" ];
+      partOf = [ "work-tailnet-netns.service" ];
+      serviceConfig = {
+        NetworkNamespacePath = "/run/netns/work-tailnet";
+        ExecStart = "${peerDnsPython}/bin/python3 ${./work-tailnet}/peer_dns.py";
+        DynamicUser = true;
+        Restart = "on-failure";
+        RestartSec = 5;
+        NoNewPrivileges = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+        ];
+      };
+    };
     systemd.services.work-tailnet-dns = {
       description = "Work-only MagicDNS forwarder";
       wantedBy = [ "multi-user.target" ];
       bindsTo = [ "work-tailnet-netns.service" ];
-      after = [ "work-tailnet-netns.service" ];
+      requires = [ "work-tailnet-peer-dns.service" ];
+      after = [
+        "work-tailnet-netns.service"
+        "work-tailnet-peer-dns.service"
+      ];
       partOf = [ "work-tailnet-netns.service" ];
       serviceConfig = {
         NetworkNamespacePath = "/run/netns/work-tailnet";

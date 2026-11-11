@@ -4,19 +4,35 @@ let
     p: (p.name or "") == "work-tailnet"
   ) (throw "missing work-tailnet CLI") configurations.rocket.config.environment.systemPackages;
   resolver = pkgs.writeText "work-dns-fixture.py" ''
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import socket
     import struct
-    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server.bind(("100.64.80.2", 53))
-    while True:
-        data, address = server.recvfrom(4096)
+    import threading
+    def reply(data):
         end = 12
         while data[end]:
             end += data[end] + 1
         question = data[12:end + 5]
         header = data[:2] + struct.pack("!HHHHH", 0x8180, 1, 1, 0, 0)
         answer = b"\xc0\x0c" + struct.pack("!HHIH", 1, 1, 0, 4) + socket.inet_aton("100.64.80.2")
-        server.sendto(header + question + answer, address)
+        return header + question + answer
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            assert self.path == "/dns-query"
+            assert self.headers["Content-Type"] == "application/dns-message"
+            body = reply(self.rfile.read(int(self.headers["Content-Length"])))
+            self.send_response(200)
+            self.send_header("Content-Type", "application/dns-message")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+    http = ThreadingHTTPServer(("100.64.80.2", 8053), Handler)
+    threading.Thread(target=http.serve_forever, daemon=True).start()
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    server.bind(("100.64.80.2", 53))
+    while True:
+        data, address = server.recvfrom(4096)
+        server.sendto(reply(data), address)
   '';
 in
 pkgs.testers.runNixOSTest {
@@ -54,6 +70,8 @@ pkgs.testers.runNixOSTest {
     start_all()
     machine.wait_for_unit("work-tailnet.service")
     machine.wait_for_unit("work-tailnet-dns.service")
+    machine.wait_for_unit("work-tailnet-peer-dns.service")
+    machine.fail("ss -lnt | grep ':5354 '")
     machine.wait_until_succeeds("su joseph -c 'work-tailnet status'")
     # First sign-in must retain the operator even without Internet/SSO access.
     machine.execute("su joseph -c 'timeout 4 work-tailnet login' >/tmp/work-login.log 2>&1")
@@ -83,6 +101,14 @@ pkgs.testers.runNixOSTest {
     machine.succeed("truncate -s 0 /run/work-tailnet/dnsmasq.servers")
     machine.succeed("systemctl kill --kill-whom=main --signal=HUP work-tailnet-dns.service")
     machine.wait_until_fails("dig +short +time=1 +tries=1 @169.254.77.2 app.corp.test | grep '^100.64.80.2$'")
+    # App-connector discovery must retain the HTTP endpoint and work over both
+    # client transports through the real namespace, dnsmasq and HTTP bridge.
+    machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns(['app.test'], {'SplitDNSRoutes': {'app.test': [{'Addr': 'http://100.64.80.2:8053/dns-query'}]}})\"")
+    machine.wait_until_succeeds("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
+    machine.succeed("dig +tcp +short +time=2 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
+    machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns([])\"")
+    machine.succeed("test \"$(cat /run/work-tailnet/peer-dns.json)\" = '{}'")
+    machine.wait_until_fails("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
     machine.succeed("ip -4 route add 100.99.0.1/32 dev lo table 52")
     machine.succeed("ip rule show | grep '5270:.*lookup 52'")
     machine.succeed("ip route get 100.99.0.1 | grep 'dev lo'")

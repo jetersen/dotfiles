@@ -240,6 +240,11 @@ addresses not currently assigned to a homelab peer. Keeping work node allocation
 outside that pool in the company policy prevents address conflicts; setting an
 IP pool does not renumber existing nodes.
 
+Work split DNS supports both IP resolvers and app-connector HTTP DNS URLs.
+An isolated loopback bridge sends app queries to the advertised peer endpoint,
+preserving connector route discovery. Failed peer lookups return DNS failure
+without falling back to public DNS. Personal DNS remains separate.
+
 Home Assistant can optionally deliver location over an existing SSH connection
 as `joseph`: run `work-tailnet presence work --ttl 120` on Framework every minute
 while the chosen person or phone tracker is at work, and `work-tailnet presence
