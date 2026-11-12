@@ -41,7 +41,8 @@ let
       read_only = " ro";
     };
     git_branch = {
-      format = "[$branch]($style) ";
+      format = "[$symbol$branch]($style) ";
+      symbol = " ";
       style = "#a6e3a1";
       truncation_length = 25;
     };
@@ -49,16 +50,16 @@ let
     git_status = {
       format = "([$all_status$ahead_behind]($style) )";
       style = "#f9e2af";
-      conflicted = "conflict:\${count} ";
-      untracked = "?\${count} ";
-      stashed = "*\${count} ";
-      modified = "!\${count} ";
-      staged = "+\${count} ";
-      renamed = "r\${count} ";
-      deleted = "-\${count} ";
-      ahead = "↑\${count}";
-      behind = "↓\${count}";
-      diverged = "↑\${ahead_count}↓\${behind_count}";
+      conflicted = " \${count} ";
+      untracked = "\${count} ";
+      stashed = " \${count} ";
+      modified = " \${count} ";
+      staged = " \${count} ";
+      renamed = "󰑕 \${count} ";
+      deleted = " \${count} ";
+      ahead = " \${count}";
+      behind = " \${count}";
+      diverged = " \${ahead_count}  \${behind_count}";
     };
     dotnet.format = "[.NET $version](#89b4fa) ";
     nodejs.disabled = true;
