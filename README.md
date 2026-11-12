@@ -249,7 +249,11 @@ routes to be installed on the host, including newly rotated S3/CDN addresses.
 Application routes use MTU 1280; the namespace transport link uses MTU 1500 so
 encrypted Tailscale packets have room for their tunnel overhead.
 Connected work routes refresh every second; office Wi-Fi detection remains on
-a ten-second interval. Personal DNS remains separate.
+a ten-second interval. While connected, the work MagicDNS suffix is also a
+search domain, so short names such as `teamcity` resolve alongside personal
+MagicDNS names. Application split-DNS zones remain route-only. Use a full
+MagicDNS name when the same short name exists in both tailnets. Personal DNS
+configuration remains separate.
 
 Home Assistant can optionally deliver location over an existing SSH connection
 as `joseph`: run `work-tailnet presence work --ttl 120` on Framework every minute

@@ -75,6 +75,7 @@ pkgs.testers.runNixOSTest {
       };
       networking.networkmanager.enable = true;
       services.tailscale.enable = true;
+      services.resolved.enable = true;
       environment.systemPackages = [
         pkgs.curl
         pkgs.python3
@@ -126,6 +127,12 @@ pkgs.testers.runNixOSTest {
     machine.succeed("echo server=/corp.test/100.64.80.2 > /run/work-tailnet/dnsmasq.servers")
     machine.succeed("systemctl kill --kill-whom=main --signal=HUP work-tailnet-dns.service")
     machine.wait_until_succeeds("dig +short +time=1 +tries=1 @169.254.77.2 app.corp.test | grep '^100.64.80.2$'")
+    # Short work names use the MagicDNS search suffix, while split zones remain
+    # route-only. Exercise the host resolver through the actual namespace DNS path.
+    machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], True).sync_dns(['corp.test', 'work.test'], {'CurrentTailnet': {'MagicDNSSuffix': 'work.test', 'MagicDNSEnabled': True}, 'SplitDNSRoutes': {'corp.test': [{'Addr': '100.64.80.2'}], 'work.test': [{'Addr': '100.64.80.2'}]}})\"")
+    machine.wait_until_succeeds("resolvectl query -4 teamcity | grep '100.64.80.2'")
+    machine.succeed("resolvectl domain wt-host | grep '~corp.test work.test'")
+    machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], True).sync_dns([])\"")
     machine.succeed("truncate -s 0 /run/work-tailnet/dnsmasq.servers")
     machine.succeed("systemctl kill --kill-whom=main --signal=HUP work-tailnet-dns.service")
     machine.wait_until_fails("dig +short +time=1 +tries=1 @169.254.77.2 app.corp.test | grep '^100.64.80.2$'")

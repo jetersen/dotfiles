@@ -221,6 +221,7 @@ class Controller:
     self.domains = None
     self.servers = None
     self.peers = None
+    self.resolved_domains = None
     self.ssids = set()
     self.wifi_checked = -10
 
@@ -247,8 +248,16 @@ class Controller:
 
   def sync_dns(self, domains, dns=None):
     domains = sorted(domains)
-    servers, peers = dns_plan(domains, dns or {})
-    if domains == self.domains and servers == self.servers and peers == self.peers:
+    dns = dns or {}
+    servers, peers = dns_plan(domains, dns)
+    tailnet = dns.get("CurrentTailnet") or {}
+    suffix = tailnet.get("MagicDNSSuffix", "").rstrip(".").lower()
+    # A search domain also routes its FQDNs. Only the validated work MagicDNS
+    # suffix expands short names; application split zones stay route-only.
+    search = suffix if tailnet.get("MagicDNSEnabled") and suffix in domains else None
+    resolved_domains = [d if d == search else "~" + d for d in domains]
+    if (domains == self.domains and servers == self.servers and peers == self.peers
+        and resolved_domains == self.resolved_domains):
       return
     # With accept-dns=false, Quad100 only serves MagicDNS. Forward work split
     # domains directly to their advertised resolvers inside the work namespace.
@@ -269,12 +278,13 @@ class Controller:
       if domains:
         run("resolvectl", "dns", "wt-host", "169.254.77.2")
         run("resolvectl", "default-route", "wt-host", "no")
-        run("resolvectl", "domain", "wt-host", *("~" + d for d in domains))
+        run("resolvectl", "domain", "wt-host", *resolved_domains)
       else:
         run("resolvectl", "revert", "wt-host")
     self.domains = domains
     self.servers = servers
     self.peers = peers
+    self.resolved_domains = resolved_domains
 
   def sync_routes(self, desired):
     for family in ("-4", "-6"):

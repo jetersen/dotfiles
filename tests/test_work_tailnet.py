@@ -184,6 +184,30 @@ class WorkTailnetTests(unittest.TestCase):
       self.assertEqual(run.call_count, 2)
       self.assertEqual((Path(root) / "dnsmasq.servers").read_text(), "server=/corp.example/100.65.1.2\n")
 
+  def test_work_magicdns_search_suffix_is_dynamic_and_split_zones_stay_route_only(self):
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), patch.object(work, "run") as run:
+      controller = self.controller(root)
+      controller.resolved = True
+      dns = {"CurrentTailnet": {"MagicDNSSuffix": "Work.Ts.Net.", "MagicDNSEnabled": True}}
+      controller.sync_dns(["corp.example", "work.ts.net"], dns)
+      run.assert_any_call("resolvectl", "domain", "wt-host", "~corp.example", "work.ts.net")
+      self.assertFalse(any("tailscale0" in call.args for call in run.call_args_list))
+      controller.sync_dns(["corp.example", "work.ts.net"], dns)
+      self.assertEqual(run.call_count, 4)
+      dns["CurrentTailnet"]["MagicDNSEnabled"] = False
+      controller.sync_dns(["corp.example", "work.ts.net"], dns)
+      run.assert_called_with("resolvectl", "domain", "wt-host", "~corp.example", "~work.ts.net")
+      controller.sync_dns([])
+      run.assert_called_with("resolvectl", "revert", "wt-host")
+
+  def test_filtered_work_magicdns_suffix_does_not_become_a_search_domain(self):
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), patch.object(work, "run") as run:
+      controller = self.controller(root)
+      controller.resolved = True
+      controller.sync_dns(["corp.example"], {"CurrentTailnet": {
+        "MagicDNSSuffix": "personal.ts.net", "MagicDNSEnabled": True}})
+      run.assert_called_with("resolvectl", "domain", "wt-host", "~corp.example")
+
   def controller(self, root):
     with patch.object(work, "ROOT", Path(root)):
       return work.Controller("auto", ["MSP"], False)
