@@ -19,10 +19,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1794282401,
-        "narHash": "sha256-+IiibHWZqo++kalPVdUSnMNnnGfMxjwTM7BfGPOMROM=",
+        "lastModified": 1794451654,
+        "narHash": "sha256-9CVLe/FVXw0LnjVCaLL+X/qAEyEqNQ7u5cb1dHtcDv8=",
         "ref": "main",
-        "rev": "031536bc9eea22ee9ce2cc1d31bfd30d0c14cfd2",
+        "rev": "0ae5148bb355bb4cda003b83e7d55cafaecbb5ba",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/microsoft/aspire.git"
@@ -153,10 +153,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1792526520,
-        "narHash": "sha256-3hSJlv8mUVnZPMWK2+CM7a9O+nR6Z4mCh27NfLCmTPc=",
+        "lastModified": 1794328522,
+        "narHash": "sha256-h2BYMW4nTFpIqnMd8gwAPFmJAp/1wWLQ6vT0NfL5qt4=",
         "ref": "master",
-        "rev": "cedd626e11b635470fa6f9fdb8ad79b0075dd7f9",
+        "rev": "1dd30c29c88d99ce295f15e27f93c49bc5fbae07",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/nix-community/disko.git"
@@ -421,10 +421,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1794222723,
-        "narHash": "sha256-jehPADpSIsWnyNHw/s44OHF9l6Y75QmW74sqO9cEe0A=",
+        "lastModified": 1794425805,
+        "narHash": "sha256-4s5CRvkYX4oAJVZ+zu2bBKFH2gG2GqN6OKHEWgJr1AY=",
         "ref": "master",
-        "rev": "919c16cf46a7acf9b44b2c2444bc39aa094eaa85",
+        "rev": "b6ca87f78ec5bafc4b2aef7b29803dcf419266af",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/NixOS/nixos-hardware.git"
@@ -451,11 +451,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1794291846,
-        "narHash": "sha256-xRJ9As/lMeomabdm6T0R5LzqPLL1PwnyUzwg06KyZOk=",
+        "lastModified": 1794463159,
+        "narHash": "sha256-EOonSEwU1qm5A8xhaK15OvSEiLBmDdknOrF4TgauWpc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "81a724d447c4c5b5161b530e9cb542756c1cfa10",
+        "rev": "beb47986f4b16b54c0bfd80029fd234beb480816",
         "type": "github"
       },
       "original": {
@@ -467,11 +467,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1794042290,
-        "narHash": "sha256-VZ8WvA9m3XN36juXyg/GwbDRU2OezOHJlXpJCXkccv0=",
-        "rev": "f4a03c008967841f2a0b3cb7c436fc6fc31671f6",
+        "lastModified": 1794192123,
+        "narHash": "sha256-YOhabADcIwaWo9992egosQF3iVpvWysmZAyhbGBzinY=",
+        "rev": "177d0540942fb205af6993b1d5fa0b57799e09f8",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1113206.f4a03c008967/nixexprs.tar.xz"
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1114946.177d0540942f/nixexprs.tar.xz"
       },
       "original": {
         "type": "tarball",
@@ -735,10 +735,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1794215717,
-        "narHash": "sha256-es8MSf8k9iRKAW0ny1Dfqo09imWwx0w561wbuz4u5Xk=",
+        "lastModified": 1794463259,
+        "narHash": "sha256-X1zgmlTHAeF3zynB4qY0EIpKI71hsUCr4Ye1qoPbL5s=",
         "ref": "main",
-        "rev": "3c9c2843c3ca92de0c82f98e1c4641d95e7163f2",
+        "rev": "7ae4b419e36f18fa5743556e379e4b0154171949",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/0xc000022070/zen-browser-flake.git"
