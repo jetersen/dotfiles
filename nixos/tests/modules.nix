@@ -209,9 +209,12 @@ let
     }
     {
       assertion =
-        framework.environment.etc."resolv.conf".text
+        framework.environment.etc."resolv.conf".source == "/run/homelab-dns/resolv.conf"
+        && bridge.serviceConfig.RuntimeDirectory == "homelab-dns"
+        && bridge.serviceConfig.RuntimeDirectoryMode == "0755"
+        && (builtins.fromJSON framework.environment.etc."homelab-dns/config.json".text).resolv_conf
         == "nameserver 127.0.0.2\nsearch rockhopper-bleak.ts.net\noptions timeout:2 attempts:2\n";
-      message = "Framework must resolve through local split DNS";
+      message = "Framework must publish dynamic search domains through the local split DNS resolver";
     }
   ]
   ++
