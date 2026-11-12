@@ -9,6 +9,11 @@
 let
   source = ../../home/dot_local/share/homelab-dns;
   python = pkgs.python3.withPackages (ps: [ ps.dbus-python ]);
+  resolvConf = ''
+    nameserver 127.0.0.2
+    search rockhopper-bleak.ts.net
+    options timeout:2 attempts:2
+  '';
 in
 {
   # Stable's 2.0.7 is affected by CVE-2026-52682; the locked unstable
@@ -21,11 +26,8 @@ in
   services.resolved.enable = lib.mkForce false;
   networking.networkmanager.dns = lib.mkForce "none";
   networking.resolvconf.enable = false;
-  environment.etc."resolv.conf".text = ''
-    nameserver 127.0.0.2
-    search rockhopper-bleak.ts.net
-    options timeout:2 attempts:2
-  '';
+  # The bridge adds the connected work MagicDNS suffix without changing DNS servers.
+  environment.etc."resolv.conf".source = "/run/homelab-dns/resolv.conf";
   services.tailscale.extraSetFlags = [ "--accept-dns=false" ];
   services.avahi = {
     enable = true;
@@ -60,6 +62,7 @@ in
 
   environment.etc."homelab-dns/config.json".text = builtins.toJSON {
     mode = "dnsdist";
+    resolv_conf = resolvConf;
     uid = config.users.users.joseph.uid;
   };
   # OpenVPN retains resolver metadata without writing the system's resolv.conf.
@@ -89,6 +92,8 @@ in
       ExecStart = "${python}/bin/python3 ${source}/vpn_bridge.py";
       Restart = "always";
       RestartSec = 2;
+      RuntimeDirectory = "homelab-dns";
+      RuntimeDirectoryMode = "0755";
       StateDirectory = "homelab-dns";
       StateDirectoryMode = "0750";
       Group = "dnsdist";

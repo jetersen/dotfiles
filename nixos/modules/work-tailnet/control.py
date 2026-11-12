@@ -274,6 +274,7 @@ class Controller:
     temporary.write_text("".join(d + "\n" for d in domains))
     temporary.chmod(0o644)
     temporary.replace(RUN / "domains")
+    write_json(RUN / "search-domain.json", search)
     if self.resolved:
       if domains:
         run("resolvectl", "dns", "wt-host", "169.254.77.2")

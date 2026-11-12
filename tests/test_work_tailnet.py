@@ -200,6 +200,25 @@ class WorkTailnetTests(unittest.TestCase):
       controller.sync_dns([])
       run.assert_called_with("resolvectl", "revert", "wt-host")
 
+  def test_dnsdist_search_suffix_is_exported_and_cleared_without_resolved(self):
+    with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), patch.object(work, "run") as run:
+      controller = self.controller(root)
+      path = Path(root) / "search-domain.json"
+      dns = {"CurrentTailnet": {"MagicDNSSuffix": "Work.Ts.Net.", "MagicDNSEnabled": True}}
+      controller.sync_dns(["corp.example", "work.ts.net"], dns)
+      self.assertEqual(json.loads(path.read_text()), "work.ts.net")
+      self.assertFalse(any(call.args[0] == "resolvectl" for call in run.call_args_list))
+      controller.sync_dns(["corp.example"], dns)
+      self.assertIsNone(json.loads(path.read_text()))
+      controller.sync_dns(["work.ts.net"], dns)
+      dns["CurrentTailnet"]["MagicDNSEnabled"] = False
+      controller.sync_dns(["work.ts.net"], dns)
+      self.assertIsNone(json.loads(path.read_text()))
+      dns["CurrentTailnet"]["MagicDNSEnabled"] = True
+      controller.sync_dns(["work.ts.net"], dns)
+      controller.sync_dns([])
+      self.assertIsNone(json.loads(path.read_text()))
+
   def test_filtered_work_magicdns_suffix_does_not_become_a_search_domain(self):
     with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), patch.object(work, "run") as run:
       controller = self.controller(root)

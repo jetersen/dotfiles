@@ -74,13 +74,31 @@ def render(entries):
         for x in entries) + '}\n'
 
 
-def publish(path, text):
+def resolver_config(base, search_path=Path('/run/work-tailnet/search-domain.json')):
+    try:
+        search = json.loads(search_path.read_text())
+    except (FileNotFoundError, ValueError):
+        search = None
+    if not isinstance(search, str) or not DOMAIN.fullmatch(search):
+        return base
+    lines = base.splitlines()
+    for index, line in enumerate(lines):
+        if line.startswith('search '):
+            domains = line.split()[1:]
+            if search not in domains:
+                domains.append(search)
+            lines[index] = 'search ' + ' '.join(domains)
+            break
+    return '\n'.join(lines) + '\n'
+
+
+def publish(path, text, mode=0o640):
     if path.exists() and path.read_text() == text:
-        path.chmod(0o640)
+        path.chmod(mode)
         return
     temporary = path.with_suffix('.tmp')
     temporary.write_text(text)
-    temporary.chmod(0o640)
+    temporary.chmod(mode)
     temporary.replace(path)
 
 
@@ -108,6 +126,9 @@ def main():
                 logging.warning('VPN DNS bridge will retry: %s', message)
             previous_error = message
         publish(root / 'vpn-routes.lua', render(entries))
+        if 'resolv_conf' in config:
+            publish(Path('/run/homelab-dns/resolv.conf'),
+                    resolver_config(config['resolv_conf']), mode=0o644)
         if notify:
             address = '\0' + notify[1:] if notify.startswith('@') else notify
             with socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM) as ready:

@@ -12,6 +12,8 @@ let
         "home/dot_agents/skills/t3-remote-thread/scripts"
         "tests/test_dictation.py"
         "tests/test_work_tailnet.py"
+        "tests/test_dns_resolver.py"
+        "home/dot_local/share/homelab-dns/vpn_bridge.py"
         "tests/test_work_tailnet_peer_dns.py"
         "nixos/modules/work-tailnet/control.py"
         "nixos/modules/work-tailnet/peer_dns.py"
