@@ -103,7 +103,11 @@ in
   '';
 
   xdg.configFile = {
-    "DankMaterialShell/plugins/emojiPicker".source = emojiPicker;
+    "DankMaterialShell/plugins/emojiPicker" = {
+      source = emojiPicker;
+      # These immutable assets may already be present from a local trial.
+      force = true;
+    };
     "DankMaterialShell/plugins/storageMonitor" = lib.mkIf osConfig.dotfiles.work.enable {
       source = storageMonitor;
     };
