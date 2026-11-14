@@ -83,6 +83,15 @@ monitor and workspace preferences. DMS-generated bindings and display settings
 remain writable. Super+L locks, Super+D opens the overview, and Super+M focuses
 Music Assistant. Print selects a region with DMS; Ctrl+Print captures the focused
 screen and Alt+Print captures the focused window on both hosts.
+Super+period opens the Dux Emoji Picker. Search and press Enter or click to paste
+at the cursor; Ctrl+Enter or right-click copies instead. Shift+Enter queues emoji.
+The picker accepts shortcodes such as `:clap:` and `:sweat_smile:`. Espanso expands
+the same shortcodes while typing in apps and pauses while the picker is open.
+Its keyboard detector follows Niri's active US/Danish layout. Stop or start
+`espanso.service` with `systemctl --user` to disable or enable automatic expansion.
+Custom text shortcodes live in `nixos/home/emoji-shortcodes.json` and work in both
+flows; `:ship_it:` inserts 🚢🚀, leaving Slack's image-based `:shipit:` untouched.
+T3's interface and prompt use Inter Variable with Noto Color Emoji as their explicit fallback.
 The Music Assistant companion loads its frontend from the selected server.
 `nix build .#music-assistant-frontend` builds the patched frontend separately;
 keep its version compatible with the server when updating the source pin.

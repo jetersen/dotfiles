@@ -1,0 +1,78 @@
+--- a/EmojiPicker.qml
++++ b/EmojiPicker.qml
+@@ -13,0 +14 @@
++import "EmojiShortcodes.js" as Shortcodes
+@@ -118,0 +120,13 @@
++    // Exact shortcodes and names must win over incidental keyword matches.
++    function searchRank(entry, query) {
++        const name = entry.name.toLowerCase();
++        const aliases = entry.shortcodes || [];
++        if (name === query || aliases.includes(query) || root.effectiveEmoji(entry).toLowerCase() === query)
++            return 0;
++        if (name.startsWith(query) || aliases.some(alias => alias.startsWith(query)))
++            return 1;
++        if (name.includes(query) || aliases.some(alias => alias.includes(query)))
++            return 2;
++        return 3;
++    }
++
+@@ -120 +134 @@
+-        const q = root.query.trim().toLowerCase();
++        const q = root.query.trim().toLowerCase().replace(/^:+|:+$/g, "");
+@@ -129 +143 @@
+-        const searchSource = root.selectedCategory === "recent"
++        const searchSource = root.query.trim().startsWith(":") || root.selectedCategory === "recent"
+@@ -134 +148 @@
+-        });
++        }).sort((a, b) => root.searchRank(a, q) - root.searchRank(b, q));
+@@ -152 +166,6 @@
+-            const entries = EmojiData.getEntries();
++            const entries = EmojiData.getEntries().slice();
++            for (const custom of Shortcodes.customEntries) {
++                const key = custom.emoji.replace(/\uFE0F/g, "");
++                if (!entries.some(entry => entry.emoji.replace(/\uFE0F/g, "") === key))
++                    entries.push(custom);
++            }
+@@ -157 +176,2 @@
+-                entry.searchText = [entry.name, entry.emoji].concat(entry.keywords || []).join(" ").toLowerCase();
++                entry.shortcodes = Shortcodes.byEmoji[entry.emoji.replace(/\uFE0F/g, "")] || [];
++                entry.searchText = [entry.name, entry.emoji].concat(entry.keywords || [], entry.shortcodes).join(" ").toLowerCase();
+@@ -182,0 +203,17 @@
++    }
++
++    property bool pickerRequested: false
++    property Process expansionPause: Process {
++        command: ["@EXPANSION_CONTROL@", "pause"]
++        onExited: (exitCode) => {
++            if (root.pickerRequested && exitCode === 0) {
++                pickerModal.open();
++            } else {
++                root.pickerRequested = false;
++                root.resumeExpansion();
++            }
++        }
++    }
++
++    function resumeExpansion() {
++        Quickshell.execDetached(["@EXPANSION_CONTROL@", "resume"]);
+@@ -196 +233,2 @@
+-        pickerModal.open();
++        root.pickerRequested = true;
++        expansionPause.running = true;
+@@ -200,0 +239 @@
++        root.pickerRequested = false;
+@@ -313,2 +352,2 @@
+-    Component.onCompleted: root.loadData()
+-    Component.onDestruction: root.clearQueue()
++    Component.onCompleted: { root.loadData(); root.resumeExpansion(); }
++    Component.onDestruction: { root.clearQueue(); root.resumeExpansion(); }
+@@ -323 +362 @@
+-            if (pickerModal.shouldBeVisible) {
++            if (pickerModal.shouldBeVisible || root.pickerRequested) {
+@@ -344 +383,5 @@
+-        onDialogClosed: root.clearQueue()
++        onDialogClosed: {
++            root.pickerRequested = false;
++            root.clearQueue();
++            root.resumeExpansion();
++        }

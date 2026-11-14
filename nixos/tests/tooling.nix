@@ -11,6 +11,11 @@ let
         "home/dot_agents/skills/t3-completion-notifier/scripts"
         "home/dot_agents/skills/t3-remote-thread/scripts"
         "tests/test_dictation.py"
+        "tests/test_emoji_expansion.py"
+        "nixos/home/espanso-layout.py"
+        "nixos/home/emoji-expansion-control.sh"
+        "nixos/packages/generate-emoji-shortcodes.py"
+        "home/dot_config/niri/cfg/input.kdl"
         "tests/test_work_tailnet.py"
         "tests/test_dns_resolver.py"
         "home/dot_local/share/homelab-dns/vpn_bridge.py"
@@ -42,6 +47,7 @@ pkgs.runCommand "tooling-unit-checks"
       ]))
       pkgs.openssl
       pkgs.bash
+      pkgs.util-linux
       pkgs.sox
       pkgs.jq
     ];

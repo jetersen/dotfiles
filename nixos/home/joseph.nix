@@ -4,6 +4,7 @@
     ./ai-tools.nix
     ./desktop.nix
     ./dms.nix
+    ./emoji.nix
     ./development.nix
     ./direnv.nix
     ./git.nix

@@ -14,6 +14,15 @@ let
     in
     {
       tailscaleOperator = builtins.elem "--operator=joseph" c.services.tailscale.extraSetFlags;
+      emojiExpansion = {
+        enabled = c.services.espanso.enable;
+        wayland = c.services.espanso.package.waylandSupport;
+        capabilities = c.security.wrappers.espanso.capabilities;
+        configDirectory = c.systemd.user.services.espanso.environment.ESPANSO_CONFIG_DIR;
+        layoutDependency = builtins.elem "espanso-layout.service" c.systemd.user.services.espanso.requires;
+        layoutReadiness = c.systemd.user.services.espanso-layout.serviceConfig.Type;
+        matches = home.xdg.configFile."espanso/match/emoji.yml".enable;
+      };
       ssh = {
         linked = home.home.file.".ssh/config".enable;
         generated = home.home.file.".ssh/config".text;
@@ -86,6 +95,21 @@ let
   rocket = configurations.rocket.config;
   runner = rocket.systemd.services.forgejo-runner;
   assertions = [
+    {
+      assertion = lib.all (
+        host:
+        host.emojiExpansion == {
+          enabled = true;
+          wayland = true;
+          capabilities = "cap_dac_override+p";
+          configDirectory = "%t/espanso-niri";
+          layoutDependency = true;
+          layoutReadiness = "notify";
+          matches = true;
+        }
+      ) (builtins.attrValues hosts);
+      message = "Both desktops need Wayland Espanso, its capability wrapper, emoji matches and layout readiness.";
+    }
     {
       assertion =
         lib.all
@@ -212,8 +236,9 @@ let
         framework.environment.etc."resolv.conf".source == "/run/homelab-dns/resolv.conf"
         && bridge.serviceConfig.RuntimeDirectory == "homelab-dns"
         && bridge.serviceConfig.RuntimeDirectoryMode == "0755"
-        && (builtins.fromJSON framework.environment.etc."homelab-dns/config.json".text).resolv_conf
-        == "nameserver 127.0.0.2\nsearch rockhopper-bleak.ts.net\noptions timeout:2 attempts:2\n";
+        &&
+          (builtins.fromJSON framework.environment.etc."homelab-dns/config.json".text).resolv_conf
+          == "nameserver 127.0.0.2\nsearch rockhopper-bleak.ts.net\noptions timeout:2 attempts:2\n";
       message = "Framework must publish dynamic search domains through the local split DNS resolver";
     }
   ]

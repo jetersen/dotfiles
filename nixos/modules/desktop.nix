@@ -6,6 +6,7 @@
   ...
 }:
 {
+  imports = [ ./emoji.nix ];
   # DMS 2.1 uses ScriptModel.comparisonMode. Keep every desktop component on
   # this Quickshell version, built against the desktop's Qt libraries.
   nixpkgs.overlays = [

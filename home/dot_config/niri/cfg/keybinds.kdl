@@ -13,6 +13,7 @@ binds {
   Mod+L      hotkey-overlay-title="Lock Screen" { spawn "dms" "ipc" "call" "lock" "lock"; }
   Mod+M      hotkey-overlay-title="Focus or Open Music Assistant" { spawn "focus-music-assistant"; }
   Mod+D      repeat=false { toggle-overview; }
+  Mod+Period repeat=false hotkey-overlay-title="Emoji Picker" { spawn "dms" "ipc" "call" "emojiPicker" "toggle"; }
 
   // Annotate a clipboard screenshot with Satty (DMS uses bare Print).
   Mod+Print  hotkey-overlay-title="Annotate Clipboard Screenshot: Satty" { spawn-sh "wl-paste --type image/png | satty -f - --copy-command wl-copy --early-exit"; }

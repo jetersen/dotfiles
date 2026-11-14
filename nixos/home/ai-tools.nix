@@ -20,6 +20,14 @@ let
       exec ${mcpPython}/bin/python3 ${./configure-ai-mcp.py} ${lib.optionalString workEnabled (lib.escapeShellArg osConfig.sops.secrets.victorialogs-mcp-url.path)}
     '';
   };
+  configureT3Typography = pkgs.writeShellApplication {
+    name = "configure-t3-typography";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.jq
+    ];
+    text = builtins.readFile ./configure-t3-typography.sh;
+  };
   instructions =
     if workEnabled then
       {
@@ -43,6 +51,9 @@ in
 
   home.activation.configureAiMcp = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
     run ${lib.getExe configureAiMcp}
+  '';
+  home.activation.configureT3Typography = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${lib.getExe configureT3Typography}
   '';
 
   # Both clients discover the same immutable, pinned skill directories.

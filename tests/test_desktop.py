@@ -23,7 +23,8 @@ for host in json.loads(Path(sys.argv[1]).read_text()):
         plugins = config / 'DankMaterialShell/plugin_settings.json'
         expected = json.loads(Path(host['pluginSettings']).read_text())
         for initial in [None, {'custom': {'enabled': True, 'option': 9},
-                               **{key: {'enabled': False, 'localOption': 7} for key in expected}}]:
+                               **{key: {'enabled': False, 'localOption': 7,
+                                        'defaultAction': 'copy'} for key in expected}}]:
             if initial is None:
                 plugins.unlink(missing_ok=True)
             else:
@@ -31,7 +32,8 @@ for host in json.loads(Path(sys.argv[1]).read_text()):
             subprocess.run([host['plugins']], env=environment, check=True)
             result = json.loads(plugins.read_text())
             for key, value in expected.items():
-                assert result[key]['enabled'] == value['enabled'], host['name']
+                for setting, managed in value.items():
+                    assert result[key][setting] == managed, (host['name'], key, setting)
                 if initial is not None:
                     assert result[key]['localOption'] == 7, host['name']
             if initial is not None:

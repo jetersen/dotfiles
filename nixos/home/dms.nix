@@ -9,6 +9,39 @@
   ...
 }:
 let
+  emojiShortcodes = pkgs.callPackage ../packages/emoji-shortcodes.nix { };
+  expansionControl = pkgs.callPackage ./emoji-expansion-control.nix { };
+  emojiPickerSource = pkgs.fetchFromGitHub {
+    owner = "hthienloc";
+    repo = "dms-plugins";
+    rev = "57b8796638d8045105735e50d26af34d131db2db";
+    hash = "sha256-5eQ2lyHfkIYwlSsapK291VqGA221LdkWOsGVo7iECfY=";
+  };
+  emojiPicker = pkgs.runCommand "dms-emoji-picker" { } ''
+    cp -r ${emojiPickerSource}/emojiPicker "$out"
+    chmod -R u+w "$out"
+    ${pkgs.patch}/bin/patch -d "$out" -p1 < ${../packages/dms-emoji-search.patch}
+    cp ${emojiShortcodes}/EmojiShortcodes.js "$out/EmojiShortcodes.js"
+    cp ${emojiShortcodes}/LICENSE-gemoji "$out/LICENSE-gemoji"
+    substituteInPlace "$out/EmojiPicker.qml" \
+      --replace-fail '@EXPANSION_CONTROL@' '${lib.getExe expansionControl}'
+    ${pkgs.nodejs}/bin/node ${../../tests/test_emoji_search.mjs} "$out"
+    # Resolve entrypoints through the immutable store URL, as for storageMonitor.
+    ${pkgs.python3}/bin/python3 - "$out" <<'PYTHON'
+    import json
+    from pathlib import Path
+    import sys
+    root = Path(sys.argv[1])
+    entrypoints = root / root.name
+    entrypoints.mkdir()
+    manifest = json.loads((root / "plugin.json").read_text())
+    for key, component in (("component", "EmojiPicker"), ("settings", "EmojiPickerSettings")):
+        wrapper = entrypoints / (component + ".qml")
+        wrapper.write_text(f'import QtQuick\nimport "file:{root}" as Packaged\nPackaged.{component} {{}}\n')
+        manifest[key] = "./" + str(wrapper.relative_to(root))
+    (root / "plugin.json").write_text(json.dumps(manifest) + "\n")
+    PYTHON
+  '';
   storageMonitor = pkgs.runCommand "dms-storage-monitor" { } ''
     cp -r ${storageMonitorSource} "$out"
     chmod -R u+w "$out"
@@ -70,6 +103,7 @@ in
   '';
 
   xdg.configFile = {
+    "DankMaterialShell/plugins/emojiPicker".source = emojiPicker;
     "DankMaterialShell/plugins/storageMonitor" = lib.mkIf osConfig.dotfiles.work.enable {
       source = storageMonitor;
     };
