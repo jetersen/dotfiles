@@ -35,8 +35,8 @@ class EmojiExpansionTests(unittest.TestCase):
         codes = layout.layout_codes((ROOT / 'home/dot_config/niri/cfg/input.kdl').read_text())
         self.assertEqual(codes, ['us', 'dk'])
         with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / 'config').mkdir()
+            root = Path(directory) / 'espanso-niri'
+            (root / 'config').mkdir(parents=True)
             ready = []
             layout.watch(root, codes, io.StringIO(json.dumps({
                 'KeyboardLayoutsChanged': {'keyboard_layouts': {
@@ -52,6 +52,12 @@ class EmojiExpansionTests(unittest.TestCase):
             settings = json.loads(target.read_text())
             self.assertEqual(settings['keyboard_layout'], {'layout': 'us'})
             self.assertEqual(settings['search_shortcut'], 'off')
+            self.assertTrue(settings['enable'])
+            (root.parent / 'espanso-picker/resume').touch()
+            layout.watch(root, codes, io.StringIO('{"KeyboardLayoutSwitched": {"idx": 1}}\n'), lambda: None)
+            settings = json.loads(target.read_text())
+            self.assertEqual(settings['keyboard_layout'], {'layout': 'dk'})
+            self.assertFalse(settings['enable'], 'a keymap reload must not enable expansion in the picker')
 
     def run_control(self, directory, action):
         return subprocess.run(['bash', '-euo', 'pipefail',
@@ -60,7 +66,7 @@ class EmojiExpansionTests(unittest.TestCase):
                                        PATH=directory + os.pathsep + os.environ['PATH']),
                               check=True)
 
-    def test_picker_stops_and_restores_only_a_running_service(self):
+    def test_picker_disables_and_enables_without_restarting_or_rewriting_config(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             fake = root / 'systemctl'
@@ -68,23 +74,51 @@ class EmojiExpansionTests(unittest.TestCase):
 cd "$XDG_RUNTIME_DIR"
 case "$2" in
  is-active) test -f active ;;
- stop) echo stop >> calls; rm active ;;
- start) echo start >> calls; touch active ;;
- *) exit 2 ;;
+ *) echo 'service restart is forbidden' >&2; exit 99 ;;
 esac
 ''')
             fake.chmod(0o700)
+            fake = root / 'espanso'
+            fake.write_text(f'#!{shutil.which("bash")}\n' + '''set -eu
+cd "$XDG_RUNTIME_DIR"
+test "$1" = cmd
+test -f active
+test ! -f fail-command
+echo "$2" >> calls
+''')
+            fake.chmod(0o700)
+            config = root / 'espanso-niri/config/default.yml'
+            config.parent.mkdir(parents=True)
+            config.write_text(json.dumps({'enable': True, 'keyboard_layout': {'layout': 'us'}}))
+            unchanged = config.stat().st_mtime_ns
             self.run_control(directory, 'pause')
             self.run_control(directory, 'resume')
             self.assertFalse((root / 'calls').exists(), 'do not enable a previously stopped service')
             (root / 'active').touch()
             self.run_control(directory, 'pause')
             self.run_control(directory, 'pause')
-            self.assertFalse((root / 'active').exists())
+            self.assertTrue((root / 'active').exists(), 'the daemon must keep running')
             self.run_control(directory, 'resume')
             self.run_control(directory, 'resume')
             self.assertTrue((root / 'active').exists())
-            self.assertEqual((root / 'calls').read_text().splitlines(), ['stop', 'start'])
+            self.assertEqual((root / 'calls').read_text().splitlines(), ['disable', 'enable'])
+            self.assertEqual(config.stat().st_mtime_ns, unchanged, 'normal picks must not trigger a worker reload')
+            self.run_control(directory, 'pause')
+            (root / 'fail-command').touch()
+            with self.assertRaises(subprocess.CalledProcessError):
+                self.run_control(directory, 'resume')
+            self.assertTrue((root / 'espanso-picker/resume').exists(), 'failed resume must remain retryable')
+            (root / 'fail-command').unlink()
+            # A layout switch may persist a disabled default while paused.
+            config.write_text(json.dumps({'enable': False, 'keyboard_layout': {'layout': 'dk'}}))
+            self.run_control(directory, 'resume')
+            self.assertEqual(json.loads(config.read_text()),
+                             {'enable': True, 'keyboard_layout': {'layout': 'dk'}})
+            # Explicitly stopping Espanso during a pause must not start it on close.
+            self.run_control(directory, 'pause')
+            (root / 'active').unlink()
+            self.run_control(directory, 'resume')
+            self.assertFalse((root / 'active').exists())
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 """Keep Espanso's evdev keymap in sync with niri, including IPC layout changes."""
 import json
+import fcntl
 import os
 from pathlib import Path
 import re
@@ -16,9 +17,19 @@ def layout_codes(source):
 
 
 def write_config(root, codes, index):
+    # Share the picker controller's lock so a resume cannot overwrite a new layout.
+    pause = root.parent / 'espanso-picker'
+    pause.mkdir(exist_ok=True)
+    with (pause / 'lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        _write_config(root, codes, index, not (pause / 'resume').exists())
+
+
+def _write_config(root, codes, index, enabled):
     layout = codes[index]
     settings = {
         'keyboard_layout': {'layout': layout},
+        'enable': enabled,
         'backend': 'clipboard',
         'search_shortcut': 'off',  # Alt+Space belongs to niri's layout switcher.
         'toggle_key': 'OFF',
