@@ -247,7 +247,9 @@ preserving connector route discovery. Failed peer lookups return DNS failure
 without falling back to public DNS. DNS replies wait for the corresponding work
 routes to be installed on the host, including newly rotated S3/CDN addresses.
 Application routes use MTU 1280; the namespace transport link uses MTU 1500 so
-encrypted Tailscale packets have room for their tunnel overhead.
+encrypted Tailscale packets have room for their tunnel overhead. The transit
+link uses `192.168.77.0/30`; keep that subnet free on both hosts. Link-local
+IPv4 addresses prevent Tailscale from recognizing usable IPv4 for UDP discovery.
 Connected work routes refresh every second; office Wi-Fi detection remains on
 a ten-second interval. While connected, the work MagicDNS suffix is also a
 search domain in both systemd-resolved and the dnsdist system resolver, so short

@@ -38,11 +38,11 @@ let
   # These rules let the namespace reach coordination/DERP endpoints. Work
   # application traffic is NATed separately inside the namespace, to its node IP.
   firewallRules = [
-    "-t nat POSTROUTING -s 169.254.77.2/32 ! -o wt-host -j MASQUERADE"
+    "-t nat POSTROUTING -s 192.168.77.2/32 ! -o wt-host -j MASQUERADE"
     # Insertions run in this order, so the specific allowances precede the drops.
     "FORWARD -i wt-host -j DROP"
     "FORWARD -o wt-host -j DROP"
-    "FORWARD -i wt-host -s 169.254.77.2/32 -j ACCEPT"
+    "FORWARD -i wt-host -s 192.168.77.2/32 -j ACCEPT"
     "FORWARD -o wt-host -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT"
     "INPUT -i wt-host -m conntrack --ctstate NEW -j DROP"
   ];
@@ -167,7 +167,7 @@ in
       partOf = [ "work-tailnet-netns.service" ];
       serviceConfig = {
         NetworkNamespacePath = "/run/netns/work-tailnet";
-        ExecStart = "${pkgs.dnsmasq}/bin/dnsmasq --keep-in-foreground --conf-file=/dev/null --no-resolv --no-hosts --cache-size=0 --bind-interfaces --listen-address=169.254.77.2 --server=100.100.100.100 --servers-file=/run/work-tailnet/dnsmasq.servers --user=nobody --group=nogroup --pid-file=";
+        ExecStart = "${pkgs.dnsmasq}/bin/dnsmasq --keep-in-foreground --conf-file=/dev/null --no-resolv --no-hosts --cache-size=0 --bind-interfaces --listen-address=192.168.77.2 --server=100.100.100.100 --servers-file=/run/work-tailnet/dnsmasq.servers --user=nobody --group=nogroup --pid-file=";
         Restart = "on-failure";
         RestartSec = 5;
         NoNewPrivileges = true;

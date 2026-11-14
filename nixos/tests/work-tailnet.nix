@@ -37,7 +37,7 @@ let
   outerUdp = pkgs.writeText "work-outer-udp.py" ''
     import socket
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server.bind(("169.254.77.1", 9099))
+    server.bind(("192.168.77.1", 9099))
     while True:
         data, address = server.recvfrom(4096)
         server.sendto(data, address)
@@ -49,7 +49,7 @@ let
     # Linux IP_MTU_DISCOVER / IP_PMTUDISC_DO: no IP fragmentation is allowed.
     client.setsockopt(socket.IPPROTO_IP, 10, 2)
     packet = b"x" * 1360
-    client.sendto(packet, ("169.254.77.1", 9099))
+    client.sendto(packet, ("192.168.77.1", 9099))
     assert client.recv(4096) == packet
   '';
 in
@@ -90,17 +90,20 @@ pkgs.testers.runNixOSTest {
     machine.wait_for_unit("work-tailnet.service")
     machine.wait_for_unit("work-tailnet-dns.service")
     machine.wait_for_unit("work-tailnet-peer-dns.service")
+    # Exercise the real daemon's interface classification without Internet/SSO.
+    # Link-local transit IPv4 made it report v4=false and skip IPv4 STUN probes.
+    machine.wait_until_succeeds("journalctl -u tailscaled-work.service --no-pager | grep 'link state:.*v4=true'", timeout=30)
     machine.fail("ss -lnt | grep ':5354 '")
     # A 1280-byte inner tunnel packet plus encryption overhead must cross the
     # namespace WAN link without IP fragmentation or an EMSGSIZE failure.
     machine.succeed("python3 ${outerUdp} >/tmp/work-outer-udp.log 2>&1 &")
-    machine.succeed("iptables -I INPUT 1 -i wt-host -s 169.254.77.2 -p udp --dport 9099 -j ACCEPT")
+    machine.succeed("iptables -I INPUT 1 -i wt-host -s 192.168.77.2 -p udp --dport 9099 -j ACCEPT")
     machine.wait_until_succeeds("ip netns exec work-tailnet python3 ${outerProbe}", timeout=10)
     machine.succeed("ip -n work-tailnet link set wt-peer mtu 1280")
     machine.fail("ip netns exec work-tailnet python3 ${outerProbe}")
     machine.succeed("ip -n work-tailnet link set wt-peer mtu 1500")
     machine.succeed("ip netns exec work-tailnet python3 ${outerProbe}")
-    machine.succeed("iptables -D INPUT -i wt-host -s 169.254.77.2 -p udp --dport 9099 -j ACCEPT")
+    machine.succeed("iptables -D INPUT -i wt-host -s 192.168.77.2 -p udp --dport 9099 -j ACCEPT")
     machine.wait_until_succeeds("su joseph -c 'work-tailnet status'")
     # First sign-in must retain the operator even without Internet/SSO access.
     machine.execute("su joseph -c 'timeout 4 work-tailnet login' >/tmp/work-login.log 2>&1")
@@ -121,12 +124,12 @@ pkgs.testers.runNixOSTest {
     machine.succeed("ip -n remote-work link set lo up; ip -n remote-work addr add 100.64.80.2/30 dev remote; ip -n remote-work link set remote up")
     # No default route on the remote: replies require the namespace's source NAT.
     machine.succeed("ip netns exec remote-work python3 -m http.server 8080 --bind 100.64.80.2 >/tmp/work-http.log 2>&1 &")
-    machine.succeed("ip -4 route add 100.64.80.2/32 via 169.254.77.2 dev wt-host table 53")
+    machine.succeed("ip -4 route add 100.64.80.2/32 via 192.168.77.2 dev wt-host table 53")
     machine.wait_until_succeeds("curl --fail --max-time 2 http://100.64.80.2:8080/")
     machine.succeed("ip netns exec remote-work python3 ${resolver} >/tmp/work-dns.log 2>&1 &")
     machine.succeed("echo server=/corp.test/100.64.80.2 > /run/work-tailnet/dnsmasq.servers")
     machine.succeed("systemctl kill --kill-whom=main --signal=HUP work-tailnet-dns.service")
-    machine.wait_until_succeeds("dig +short +time=1 +tries=1 @169.254.77.2 app.corp.test | grep '^100.64.80.2$'")
+    machine.wait_until_succeeds("dig +short +time=1 +tries=1 @192.168.77.2 app.corp.test | grep '^100.64.80.2$'")
     # Short work names use the MagicDNS search suffix, while split zones remain
     # route-only. Exercise the host resolver through the actual namespace DNS path.
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], True).sync_dns(['corp.test', 'work.test'], {'CurrentTailnet': {'MagicDNSSuffix': 'work.test', 'MagicDNSEnabled': True}, 'SplitDNSRoutes': {'corp.test': [{'Addr': '100.64.80.2'}], 'work.test': [{'Addr': '100.64.80.2'}]}})\"")
@@ -135,24 +138,24 @@ pkgs.testers.runNixOSTest {
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], True).sync_dns([])\"")
     machine.succeed("truncate -s 0 /run/work-tailnet/dnsmasq.servers")
     machine.succeed("systemctl kill --kill-whom=main --signal=HUP work-tailnet-dns.service")
-    machine.wait_until_fails("dig +short +time=1 +tries=1 @169.254.77.2 app.corp.test | grep '^100.64.80.2$'")
+    machine.wait_until_fails("dig +short +time=1 +tries=1 @192.168.77.2 app.corp.test | grep '^100.64.80.2$'")
     # App-connector discovery must retain the HTTP endpoint and work over both
     # client transports through the real namespace, dnsmasq and HTTP bridge.
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns(['app.test'], {'SplitDNSRoutes': {'app.test': [{'Addr': 'http://100.64.80.2:8053/dns-query'}]}})\"")
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_routes({'100.64.80.2/32'})\"")
     machine.succeed("ip route get 100.64.80.2 | grep 'mtu 1280'")
-    machine.wait_until_succeeds("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
-    machine.succeed("dig +tcp +short +time=2 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
+    machine.wait_until_succeeds("dig +short +time=1 +tries=1 @192.168.77.2 app.test | grep '^100.64.80.2$'")
+    machine.succeed("dig +tcp +short +time=2 +tries=1 @192.168.77.2 app.test | grep '^100.64.80.2$'")
     machine.succeed("echo '[]' > /run/work-tailnet/exported-routes.json")
     machine.succeed("ip netns exec work-tailnet dig +time=5 +tries=1 @127.0.0.1 -p 5354 blocked.app.test | grep SERVFAIL")
-    machine.fail("dig +short +time=5 +tries=1 @169.254.77.2 blocked.app.test | grep '^100.64.80.2$'")
+    machine.fail("dig +short +time=5 +tries=1 @192.168.77.2 blocked.app.test | grep '^100.64.80.2$'")
     machine.succeed("python3 -c \"import runpy; m = runpy.run_path('${../modules/work-tailnet/control.py}'); m['Controller']('off', [], False).sync_dns([])\"")
     machine.succeed("test \"$(cat /run/work-tailnet/peer-dns.json)\" = '{}'")
-    machine.wait_until_fails("dig +short +time=1 +tries=1 @169.254.77.2 app.test | grep '^100.64.80.2$'")
+    machine.wait_until_fails("dig +short +time=1 +tries=1 @192.168.77.2 app.test | grep '^100.64.80.2$'")
     machine.succeed("ip -4 route add 100.99.0.1/32 dev lo table 52")
     machine.succeed("ip rule show | grep '5270:.*lookup 52'")
     machine.succeed("ip route get 100.99.0.1 | grep 'dev lo'")
-    machine.succeed("ip route get 100.64.80.2 | grep 'via 169.254.77.2'")
+    machine.succeed("ip route get 100.64.80.2 | grep 'via 192.168.77.2'")
     machine.succeed("systemctl restart firewall.service")
     machine.succeed("curl --fail --max-time 2 http://100.64.80.2:8080/")
     machine.succeed("ip -n work-tailnet -6 addr add fd7a:115c:a1e0:80::1/64 dev tailscale-work nodad")

@@ -110,6 +110,8 @@ class WorkTailnetTests(unittest.TestCase):
       self.assertEqual(run.call_count, 2)
       for call in run.call_args_list:
         self.assertEqual(call.args[-4:], ("table", "53", "mtu", "1280"))
+        self.assertEqual(call.args[call.args.index("via") + 1],
+          "192.168.77.2" if call.args[1] == "-4" else "fd42:77::2")
 
   def test_route_receipt_is_published_only_after_success_and_cleared_when_off(self):
     with tempfile.TemporaryDirectory() as root, patch.object(work, "RUN", Path(root)), \
