@@ -71,7 +71,7 @@ jobs:
           extra-substituters = https://nix-cache.jetersen.dev/workstations
           extra-trusted-public-keys = workstations:DVP/4iu54FicWbjvEU44a+Y7izu351Ty7+fbvaiNFas=
           netrc-file = $RUNNER_TEMP/nix-netrc"
-          tools=$(time nix build .#ci-tools --no-update-lock-file \
+          tools=$(time nix build .#ci-tools --no-update-lock-file --keep-going \
             --out-link /nix/var/nix/gcroots/ci-tools --print-out-paths)
           "$tools/bin/nix" --version
           printf 'PATH=%s/bin:%s\n' "$tools" "$PATH" >> "$GITHUB_ENV"

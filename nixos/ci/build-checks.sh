@@ -12,6 +12,6 @@ if (( ${#checks[@]} == 0 )); then
   echo 'No Nix checks were selected' >&2
   exit 1
 fi
-time nix build "${checks[@]}" --no-update-lock-file \
+time nix build "${checks[@]}" --no-update-lock-file --keep-going \
   --out-link "$roots/ci-checks" --json > "$RUNNER_TEMP/checks.json"
 jq -er '.[].outputs[]' "$RUNNER_TEMP/checks.json" > "$RUNNER_TEMP/check-outputs"
