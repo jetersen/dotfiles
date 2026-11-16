@@ -62,6 +62,8 @@ craneLib.buildPackage (
   commonArgs
   // {
     inherit cargoArtifacts;
+    # Required during evaluation, outside the installed runtime closure.
+    passthru.evaluationSource = upstreamSource;
     version = shortRevision;
 
     postPatch = commonArgs.postPatch + ''

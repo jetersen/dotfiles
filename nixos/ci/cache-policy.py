@@ -212,8 +212,14 @@ def publish(args, private, public):
   extras = []
   for name in ("project-shells", "check-outputs", "pc2mqtt-deps"):
     extras.extend((temporary / name).read_text().splitlines())
-  required = inventory(systems)
-  paths = inventory([*systems, *extras])
+  # Reading Cargo.toml is import-from-derivation. Cache its original source,
+  # which is absent from the runtime closure, for hosts with max-jobs=0.
+  evaluation_source = store_path(subprocess.check_output([
+    "nix", "eval", "--raw", "--no-update-lock-file", ".#pc2mqtt.evaluationSource",
+  ], text=True).strip())
+  deployment_roots = [*systems, evaluation_source]
+  required = inventory(deployment_roots)
+  paths = inventory([*deployment_roots, *extras])
   print(f"Checking {len(paths)} paths; {len(required)} are required for deployment.", flush=True)
   selected = publication_plan(paths, required, public, args.max_mib * 1024 * 1024)
   if selected:
@@ -223,7 +229,7 @@ def publish(args, private, public):
     ], input="".join(path + "\n" for path in selected), text=True, check=True)
   # A successful upload alone is insufficient. Check the complete remote graph
   # and NAR endpoints before the workflow is allowed to send deployment hints.
-  verify(systems, [public, private], expected=required)
+  verify(deployment_roots, [public, private], expected=required)
 
 
 def pinned_flake(flake, revision):
