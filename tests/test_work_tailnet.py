@@ -1,6 +1,7 @@
 import importlib.util
 import ipaddress
 import json
+import re
 from pathlib import Path
 import tempfile
 import unittest
@@ -14,6 +15,14 @@ spec.loader.exec_module(work)
 
 
 class WorkTailnetTests(unittest.TestCase):
+  def test_host_dns_backend_matches_the_work_namespace_address(self):
+    root = SOURCE.parents[3]
+    netns = (SOURCE.parent / "netns.sh").read_text()
+    dnsdist = (root / "home/dot_local/share/homelab-dns/dnsdist.conf").read_text()
+    address = re.search(r"ip -n work-tailnet addr add ([0-9.]+)/", netns).group(1)
+    backend = re.search(r'endpoints.work or "([0-9.]+):53"', dnsdist).group(1)
+    self.assertEqual(backend, address)
+
   def test_on_restores_saved_work_profile_without_creating_a_new_one(self):
     profiles = [{"id": "existing-work", "tailnet": "example.work", "selected": False}]
     with patch.object(work, "tailscale", return_value=json.dumps(profiles)), patch.object(work, "local_request") as api:

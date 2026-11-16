@@ -20,6 +20,8 @@ let
         "tests/test_dns_resolver.py"
         "home/dot_local/share/homelab-dns/vpn_bridge.py"
         "tests/test_work_tailnet_peer_dns.py"
+        "nixos/modules/work-tailnet/netns.sh"
+        "home/dot_local/share/homelab-dns/dnsdist.conf"
         "nixos/modules/work-tailnet/control.py"
         "nixos/modules/work-tailnet/peer_dns.py"
         "nixos/hosts/rocket/dictation.py"
