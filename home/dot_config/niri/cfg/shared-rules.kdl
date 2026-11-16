@@ -17,6 +17,17 @@ window-rule {
   open-on-workspace "chat"
 }
 
+// Espanso briefly maps this helper to read Wayland keyboard modifiers on reload.
+// Keep keyboard focus enabled: it needs a modifier event before it can close.
+window-rule {
+  match app-id=r#"^Espanso\.SyncTool$"# title="^Espanso Sync Tool$"
+  open-floating true
+  opacity 0.0
+  focus-ring { off; }
+  border { off; }
+  shadow { off; }
+}
+
 // Float transient/utility windows.
 window-rule {
   match app-id=r#"firefox$"# title="^Picture-in-Picture$"
