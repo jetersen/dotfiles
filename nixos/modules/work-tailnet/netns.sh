@@ -1,8 +1,8 @@
 set -euo pipefail
 
 if [[ "$1" == stop ]]; then
-  ip -4 rule del priority 5300 table 53 2>/dev/null || true
-  ip -6 rule del priority 5300 table 53 2>/dev/null || true
+  ip -4 rule del priority 5260 table 53 2>/dev/null || true
+  ip -6 rule del priority 5260 table 53 2>/dev/null || true
   ip -4 route flush table 53 || true
   ip -6 route flush table 53 || true
   ip link del wt-host 2>/dev/null || true
@@ -12,8 +12,8 @@ fi
 
 # Fail on collisions rather than removing a namespace or interface we don't own.
 for family in -4 -6; do
-  if ip "$family" rule show | grep -q '^5300:'; then
-    echo "Routing priority 5300 is already in use" >&2
+  if ip "$family" rule show | grep -q '^5260:'; then
+    echo "Routing priority 5260 is already in use" >&2
     exit 1
   fi
   if [[ -n "$(ip "$family" route show table 53 2>/dev/null || true)" ]]; then
@@ -43,5 +43,7 @@ ip netns exec work-tailnet sysctl -qw net.ipv6.conf.all.forwarding=1
 for family in iptables ip6tables; do
   ip netns exec work-tailnet "$family" -w -t nat -A POSTROUTING -o tailscale-work -j MASQUERADE
 done
-ip -4 rule add priority 5300 table 53
-ip -6 rule add priority 5300 table 53
+# Follow personal Tailscale's marked transport bypass, but precede its generic
+# table 52 /48. Table 53 contains only explicit work routes minus protections.
+ip -4 rule add priority 5260 table 53
+ip -6 rule add priority 5260 table 53

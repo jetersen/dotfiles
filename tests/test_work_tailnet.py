@@ -75,7 +75,7 @@ class WorkTailnetTests(unittest.TestCase):
       {"dst": "10.40.0.0/16", "type": "throw"}]
     protected = list(map(ipaddress.ip_network,
       ["100.100.100.100/32", "100.99.130.103/32", "192.168.1.0/24", "fd7a:115c:a1e0::1/128"]))
-    result = list(map(ipaddress.ip_network, work.route_plan(routes, protected)))
+    result = list(map(ipaddress.ip_network, work.route_plan(routes, protected, {"Peers": [{"AllowedIPs": ["fd7a:115c:a1e0::2/128"]}]})))
     for reserved in protected:
       self.assertFalse(any(n.overlaps(reserved) for n in result if n.version == reserved.version))
     for allowed in ["100.98.179.109", "10.20.1.2", "fd7a:115c:a1e0::2"]:
@@ -84,9 +84,34 @@ class WorkTailnetTests(unittest.TestCase):
     self.assertFalse(any(n.prefixlen == 0 for n in result))
     self.assertNotIn(ipaddress.ip_network("10.30.0.0/16"), result)
 
+  def test_shared_ipv6_pool_exports_only_explicit_work_destinations(self):
+    pool = "fd7a:115c:a1e0::/48"
+    service = "fd7a:115c:a1e0::abcd/128"
+    personal = "fd7a:115c:a1e0::1234/128"
+    local = "fd7a:115c:a1e0:beef::/64"
+    netmap = {"Peers": [{"AllowedIPs": [pool, service, personal, local, "::/0"]}]}
+    personal_map = {"SelfNode": {"Addresses": [personal]},
+      "Peers": [{"AllowedIPs": ["fd7a:115c:a1e0::5678/128"]}]}
+    kernel = [{"dst": pool, "table": 52, "dev": "tailscale0"},
+      {"dst": local, "dev": "lan0"}]
+    with patch.object(work, "routes_in", side_effect=[[], kernel]):
+      protected = work.protected_routes(personal_map)
+    routes = [{"dst": pool, "dev": "tailscale-work"},
+      {"dst": "10.20.0.0/16", "dev": "tailscale-work"}]
+    self.assertEqual(work.route_plan(routes, protected, netmap), {service, "10.20.0.0/16"})
+    self.assertEqual(work.route_plan(routes, protected), {"10.20.0.0/16"})
+    # A netmap entry without an accepted namespace route cannot be exported.
+    self.assertEqual(work.route_plan([], protected, netmap), set())
+    # Without a personal netmap, retain its catch-all protection.
+    with patch.object(work, "routes_in", side_effect=[[], kernel]):
+      self.assertEqual(work.route_plan(routes, work.protected_routes({}), netmap), {"10.20.0.0/16"})
+    # A /48 from a real LAN is still protected, regardless of the netmap.
+    with patch.object(work, "routes_in", side_effect=[[], [{"dst": pool, "dev": "lan0"}]]):
+      self.assertEqual(work.route_plan(routes, work.protected_routes(personal_map), netmap), {"10.20.0.0/16"})
+
   def test_entire_personal_pool_is_reserved_for_future_nodes(self):
     with patch.object(work, "routes_in", return_value=[]):
-      protected = work.protected_routes()
+      protected = work.protected_routes({})
     self.assertIn(ipaddress.ip_network("100.99.0.0/16"), protected)
     self.assertEqual(work.route_plan([{"dst": "100.99.10.1/32", "dev": "tailscale-work"}], protected), set())
 

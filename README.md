@@ -242,7 +242,12 @@ The work daemon has separate account state, socket, network namespace and firewa
 Apps use normal IPv4/IPv6 connections and fully qualified work DNS names without
 a proxy. Only accepted work routes and work DNS suffixes reach that namespace;
 homelab destinations and directly connected networks take precedence when ranges
-overlap. Work exit-node/default routes are not exported. Work peers cannot initiate
+overlap. Linux installs the same generic Tailscale IPv6 `/48` for both instances. The
+controller expands that catch-all into explicit work peer and Service destinations
+from the work daemon's netmap, covered by accepted namespace routes. Personal
+netmap destinations, local routes and homelab subnets remain protected. Table 53
+runs before personal table 52, after Tailscale's marked transport bypass rules;
+unclaimed IPv6 destinations stay personal. Work exit-node/default routes are not exported. Work peers cannot initiate
 connections to host services through this setup. Office detection uses the active
 Wi-Fi connection, not nearby access points, and checks every ten seconds.
 The personal `100.99.0.0/16` IP pool is always excluded from work routes, including

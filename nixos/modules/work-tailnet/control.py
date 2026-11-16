@@ -19,6 +19,7 @@ RUN = Path("/run/work-tailnet")
 SOCKET = str(RUN / "control.sock")
 TS_SOCKET = str(RUN / "tailscaled.sock")
 NS = "work-tailnet"
+TAILSCALE_V6 = ipaddress.ip_network("fd7a:115c:a1e0::/48")
 
 
 def run(*args):
@@ -138,7 +139,18 @@ def valid_domains(dns):
     and all(0 < len(label) <= 63 for label in d.rstrip(".").split("."))})
 
 
-def route_plan(routes, protected):
+def explicit_tailnet_v6(netmap):
+  """Control-plane destinations, not the generic IPv6 route installed by Linux."""
+  result = set()
+  for node in [netmap.get("SelfNode") or {}, *(netmap.get("Peers") or [])]:
+    for prefix in node.get("AllowedIPs", []) + node.get("Addresses", []):
+      network = ipaddress.ip_network(prefix, strict=False)
+      if network.version == 6 and network.subnet_of(TAILSCALE_V6) and network != TAILSCALE_V6:
+        result.add(network)
+  return result
+
+
+def route_plan(routes, protected, netmap=None):
   """Export only actual accepted work routes; leave local and homelab ranges alone."""
   result = set()
   for route in routes:
@@ -150,7 +162,10 @@ def route_plan(routes, protected):
     network = ipaddress.ip_network(dst, strict=False)
     if network.prefixlen == 0 or network.is_multicast or network.is_link_local:
       continue
-    pieces = [network]
+    # Linux compresses all peer and Service IPv6 routes into one shared /48.
+    # Expand only control-plane destinations covered by an accepted kernel route.
+    # Never infer ownership of that entire pool from either daemon's catch-all.
+    pieces = (list(explicit_tailnet_v6(netmap or {})) if network == TAILSCALE_V6 else [network])
     for reserved in protected:
       if reserved.version != network.version:
         continue
@@ -197,13 +212,18 @@ def dns_plan(domains, dns):
   return "".join(sorted(lines)), peers
 
 
-def protected_routes():
+def protected_routes(personal_netmap):
   # The personal tailnet's policy reserves this pool, including future peers.
   result = list(map(ipaddress.ip_network, ["100.99.0.0/16", "100.100.100.100/32"]))
+  result.extend(explicit_tailnet_v6(personal_netmap))
   for family in ("-4", "-6"):
     for route in routes_in(family, {"main", "local", "52"}):
       if route.get("dst", "default") != "default":
         network = ipaddress.ip_network(route["dst"], strict=False)
+        if (personal_netmap.get("SelfNode") and network == TAILSCALE_V6
+            and str(route.get("table")) == "52"
+            and route.get("dev") == "tailscale0" and route.get("type", "unicast") == "unicast"):
+          continue
         if network.prefixlen:
           result.append(network)
   return result
@@ -343,7 +363,9 @@ class Controller:
       routes = []
       for family in ("-4", "-6"):
         routes += routes_in(family, {"52"}, NS)
-      self.sync_routes(route_plan(routes, protected_routes()))
+      work_netmap = json.loads(tailscale("debug", "netmap"))
+      personal_netmap = json.loads(run("tailscale", "debug", "netmap"))
+      self.sync_routes(route_plan(routes, protected_routes(personal_netmap), work_netmap))
       self.sync_dns(domains, work_dns)
     elif enabled:
       self.sync_routes(set())
