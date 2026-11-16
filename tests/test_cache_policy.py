@@ -75,7 +75,7 @@ class PublicationTests(unittest.TestCase):
       for name in ("project-shells", "check-outputs", "pc2mqtt-deps"):
         (root / name).write_text("")
       with patch.dict(policy.os.environ, RUNNER_TEMP=temporary), \
-        patch.object(policy.subprocess, "check_output", return_value=SMALL), \
+        patch.object(policy.subprocess, "check_output", return_value=json.dumps([SMALL])), \
         patch.object(policy, "inventory", return_value=required), \
         patch.object(policy.subprocess, "run") as run, redirect_stdout(io.StringIO()):
         # Successful upload exit code cannot conceal a missing remote dependency.
@@ -98,7 +98,7 @@ class PublicationTests(unittest.TestCase):
       for name in ("project-shells", "check-outputs", "pc2mqtt-deps"):
         (root / name).write_text("")
       with patch.dict(policy.os.environ, RUNNER_TEMP=temporary), \
-          patch.object(policy.subprocess, "check_output", return_value=SMALL), \
+          patch.object(policy.subprocess, "check_output", return_value=json.dumps([SMALL])), \
           patch.object(policy, "inventory", return_value=metadata) as inventory, \
           patch.object(policy.subprocess, "run") as upload, redirect_stdout(io.StringIO()):
         with self.assertRaisesRegex(RuntimeError, "Binary not available"):

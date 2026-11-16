@@ -254,6 +254,11 @@
         inherit pkgs;
         dotfilesPackages = inputs.self.packages.x86_64-linux;
       };
+      # IFD sources must be cached alongside runtime closures for cache-only hosts.
+      deploymentEvaluationSources.x86_64-linux = [
+        inputs.self.packages.x86_64-linux.pc2mqtt.evaluationSource
+        lanzabooteSystemProfiles.evaluationSource
+      ];
       packages.x86_64-linux.ci-tools = pkgs.buildEnv {
         name = "dotfiles-ci-tools";
         paths = [

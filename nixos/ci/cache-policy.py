@@ -212,12 +212,13 @@ def publish(args, private, public):
   extras = []
   for name in ("project-shells", "check-outputs", "pc2mqtt-deps"):
     extras.extend((temporary / name).read_text().splitlines())
-  # Reading Cargo.toml is import-from-derivation. Cache its original source,
-  # which is absent from the runtime closure, for hosts with max-jobs=0.
-  evaluation_source = store_path(subprocess.check_output([
-    "nix", "eval", "--raw", "--no-update-lock-file", ".#pc2mqtt.evaluationSource",
-  ], text=True).strip())
-  deployment_roots = [*systems, evaluation_source]
+  # Import-from-derivation sources are absent from the runtime closure.
+  # Both metadata reads and patched Nix modules must work with max-jobs=0.
+  evaluation_sources = [store_path(path) for path in json.loads(subprocess.check_output([
+    "nix", "eval", "--json", "--no-update-lock-file",
+    ".#deploymentEvaluationSources.x86_64-linux", "--apply", "map toString",
+  ], text=True))]
+  deployment_roots = [*systems, *evaluation_sources]
   required = inventory(deployment_roots)
   paths = inventory([*deployment_roots, *extras])
   print(f"Checking {len(paths)} paths; {len(required)} are required for deployment.", flush=True)

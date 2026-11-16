@@ -12,9 +12,11 @@ let
     ];
   };
 in
-import source {
+(import source {
   inherit pkgs;
   system = pkgs.stdenv.hostPlatform.system;
   rust-overlay = inputs.lanzaboote.inputs.rust-overlay;
   crane = inputs.crane.mkLib pkgs;
+}) // {
+  evaluationSource = source;
 }

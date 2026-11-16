@@ -311,7 +311,7 @@ installations. All NixOS hosts follow `main` through an on-demand systemd upgrad
 checks run on Kubernetes before full Nix builds run on either Docker pool with
 sandboxing and a persistent store volume. CI builds both systems
 and development shells, then publishes private-cache misses and verifies that both
-system closures and the pc2mqtt source needed during evaluation are available
+system closures and sources needed during evaluation (pc2mqtt and patched Lanzaboote) are available
 from the configured binary caches before notifying
 hosts. The 512 MiB limit applies only to optional development and test outputs;
 required system dependencies are uploaded at any size when unavailable upstream.
