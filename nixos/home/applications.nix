@@ -27,7 +27,7 @@ in
   home.packages = with pkgs; [
     tiny-rdm
     rustdesk-flutter
-    jetbrains.rider
+    (callPackage ../packages/rider.nix { })
     # Match the preserved Discord profile until nixpkgs catches up.
     (pkgsMaster.discord.override {
       source = builtins.fromJSON (builtins.readFile ../packages/discord-source.json);
