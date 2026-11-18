@@ -1,8 +1,8 @@
 {
-  "version": "2.1.326",
+  "version": "2.1.327",
   "platforms": {
     "linux-x64": {
-      "checksum": "b6b3647d981130dc44fc670846ae97b6cde531ffb667cf9c4d17cfcafb38cb37"
+      "checksum": "343c744baa14bfd38286a7cb90871051f04379956da6c5b803a9e66019a76ac9"
     }
   }
 }
