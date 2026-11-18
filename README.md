@@ -385,6 +385,12 @@ It never reboots automatically. The job runs independently of pc2mqtt, survives
 service changes during activation, and coalesces concurrent starts. There is no
 persistent Comin process or gRPC connection.
 
+On Rocket, Home Manager stages T3 Code server updates without restarting the
+running server. The new version starts on the next boot or an explicit
+`systemctl --user restart t3code.service`. Wait for agents to finish before
+restarting it; disabling T3's built-in updater alone does not prevent service
+restarts during system upgrades.
+
 Hosts check at boot, daily, on resume, NetworkManager events, and MQTT connections.
 To request a check, run `sudo systemctl start nixos-upgrade.service`, or use
 `pc2mqtt --request-update` through the agent. Runtime update commands are not kept

@@ -96,6 +96,12 @@ let
   runner = rocket.systemd.services.forgejo-runner;
   assertions = [
     {
+      assertion =
+        rocket.home-manager.users.joseph.systemd.user.startServices
+        && rocket.home-manager.users.joseph.systemd.user.services.t3code.Unit.X-SwitchMethod == "keep-old";
+      message = "Rocket: Home Manager must stage T3 server updates without interrupting running agents";
+    }
+    {
       assertion = lib.all (
         host:
         host.emojiExpansion == {

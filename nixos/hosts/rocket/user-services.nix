@@ -66,6 +66,9 @@ in
       systemd.user.services.t3code = {
         Unit = {
           Description = "T3 Code server";
+          # Home Manager must not interrupt agents when the package or unit changes.
+          # Stage updates until an explicit restart or the next boot.
+          X-SwitchMethod = "keep-old";
           After = [ "network.target" ];
           StartLimitIntervalSec = 300;
           StartLimitBurst = 5;
