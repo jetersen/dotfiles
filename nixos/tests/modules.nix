@@ -98,8 +98,13 @@ let
     {
       assertion =
         rocket.home-manager.users.joseph.systemd.user.startServices
-        && rocket.home-manager.users.joseph.systemd.user.services.t3code.Unit.X-SwitchMethod == "keep-old";
-      message = "Rocket: Home Manager must stage T3 server updates without interrupting running agents";
+        && rocket.home-manager.users.joseph.systemd.user.services.t3code.Unit.X-SwitchMethod == "keep-old"
+        &&
+          rocket.home-manager.users.joseph.systemd.user.services.t3code-idle-update.Service.Type == "oneshot"
+        &&
+          rocket.home-manager.users.joseph.systemd.user.timers.t3code-idle-update.Timer.OnUnitActiveSec
+          == "1min";
+      message = "Rocket: stage T3 server updates and retry when agents are idle";
     }
     {
       assertion = lib.all (

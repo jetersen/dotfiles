@@ -386,10 +386,15 @@ service changes during activation, and coalesces concurrent starts. There is no
 persistent Comin process or gRPC connection.
 
 On Rocket, Home Manager stages T3 Code server updates without restarting the
-running server. The new version starts on the next boot or an explicit
-`systemctl --user restart t3code.service`. Wait for agents to finish before
-restarting it; disabling T3's built-in updater alone does not prevent service
-restarts during system upgrades.
+running server. A user timer checks every minute and applies staged server
+packages after two quiet minutes with no queued/running turns, approvals,
+delegated agents, background tasks or pending effects. Unreadable or unfamiliar
+server state defers the update. The final check reserves SQLite's writer and
+briefly suspends T3 so a new turn cannot start between checking and stopping it.
+If still idle, it kills the server process and lets systemd start the staged
+version; otherwise it resumes the server. It changes no T3 database records.
+Other services update normally. An explicit
+`systemctl --user restart t3code.service` bypasses this idle check.
 
 Hosts check at boot, daily, on resume, NetworkManager events, and MQTT connections.
 To request a check, run `sudo systemctl start nixos-upgrade.service`, or use

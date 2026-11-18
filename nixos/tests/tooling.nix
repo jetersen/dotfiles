@@ -32,6 +32,8 @@ let
         "nixos/ci/build-systems.sh"
         "tests/test_package_updates.py"
         "tests/test_wayland_clipboard.py"
+        "tests/test_t3code_idle_update.py"
+        "nixos/hosts/rocket/t3code-idle-update.py"
         "nixos/home/wayland-clipboard.py"
         "nixos/packages/update-claude-code.sh"
         "nixos/packages/update-t3code.sh"

@@ -67,7 +67,7 @@ in
         Unit = {
           Description = "T3 Code server";
           # Home Manager must not interrupt agents when the package or unit changes.
-          # Stage updates until an explicit restart or the next boot.
+          # The idle-update timer applies staged packages after agents finish.
           X-SwitchMethod = "keep-old";
           After = [ "network.target" ];
           StartLimitIntervalSec = 300;
@@ -91,6 +91,25 @@ in
           IOWeight = 1000;
         };
         Install.WantedBy = [ "default.target" ];
+      };
+
+      systemd.user.services.t3code-idle-update = {
+        Unit.Description = "Apply staged T3 Code updates when agents are idle";
+        Service = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.python3}/bin/python3 ${./t3code-idle-update.py} --package ${t3code} --database %h/.t3/userdata/statev2.sqlite --state %t/t3code-idle-update.json --systemctl ${pkgs.systemd}/bin/systemctl";
+          # Also resume T3 if this helper is terminated during its final check.
+          ExecStopPost = "-${pkgs.systemd}/bin/systemctl --user kill --kill-whom=main --signal=CONT t3code.service";
+          TimeoutStartSec = 30;
+        };
+      };
+      systemd.user.timers.t3code-idle-update = {
+        Unit.Description = "Check for idle T3 Code server updates";
+        Timer = {
+          OnBootSec = "1min";
+          OnUnitActiveSec = "1min";
+        };
+        Install.WantedBy = [ "timers.target" ];
       };
 
       # The desktop uses ~/.t3 with its local server disabled. Retain URL-handler names.
