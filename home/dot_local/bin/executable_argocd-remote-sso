@@ -110,7 +110,6 @@ def merge_context(settings, bundle):
 def main():
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument('host', help='remote browser host, for example framework')
-  parser.add_argument('--vpn-profile', required=True, help='connected local OpenVPN 3 profile')
   parser.add_argument('--server', help='Argo CD hostname[:port]; defaults to the remote context server')
   parser.add_argument('--context', help='remote context name; defaults to current context')
   parser.add_argument('--copy-only', action='store_true', help='copy without opening the remote browser')
@@ -119,15 +118,6 @@ def main():
   args = parser.parse_args()
   if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.@-]*', args.host):
     parser.error('host must be a Tailscale hostname or user@hostname')
-  status = subprocess.check_output(['openvpn3', 'sessions-list'], text=True, timeout=10)
-  profile, connected = '', False
-  for line in status.splitlines():
-    if 'Config name:' in line:
-      profile = line.split('Config name:', 1)[1].strip()
-    if 'Status:' in line and profile == args.vpn_profile and 'Client connected' in line:
-      connected = True
-  if not connected:
-    raise ValueError(f'OpenVPN profile {args.vpn_profile!r} is not connected')
   options = {key: getattr(args, key) for key in ('server', 'context', 'copy_only')}
   response = subprocess.run(
     ['tailscale', 'ssh', args.host, '-T', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8',

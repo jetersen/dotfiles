@@ -91,10 +91,17 @@ let
   );
   framework = configurations.framework.config;
   dns = framework.systemd.services.dnsdist;
-  bridge = framework.systemd.services.homelab-dns-vpn;
+  resolver = framework.systemd.services.homelab-dns-resolv;
   rocket = configurations.rocket.config;
   runner = rocket.systemd.services.forgejo-runner;
   assertions = [
+    {
+      assertion = lib.all (c: !c.programs.openvpn3.enable && !(c.systemd.services ? homelab-dns-vpn)) [
+        rocket
+        framework
+      ];
+      message = "Both hosts must retire OpenVPN and its DNS bridge";
+    }
     {
       assertion =
         rocket.home-manager.users.joseph.systemd.user.startServices
@@ -233,23 +240,24 @@ let
     }
     {
       assertion =
-        builtins.elem "homelab-dns-vpn.service" dns.requires
-        && builtins.elem "homelab-dns-vpn.service" dns.after;
-      message = "DNS must require the ready VPN bridge";
+        builtins.elem "homelab-dns-resolv.service" dns.requires
+        && builtins.elem "homelab-dns-resolv.service" dns.after;
+      message = "DNS must require the published resolver file";
     }
     {
       assertion =
-        bridge.serviceConfig.Type == "notify" && bridge.serviceConfig.StateDirectory == "homelab-dns";
-      message = "VPN bridge must signal readiness and own persistent route state";
+        resolver.serviceConfig.Type == "oneshot"
+        && resolver.serviceConfig.RuntimeDirectoryPreserve == "yes"
+        &&
+          framework.systemd.paths.homelab-dns-resolv.pathConfig.PathChanged
+          == "/run/work-tailnet/search-domain.json";
+      message = "Work search-domain changes must refresh the persistent runtime resolver file";
     }
     {
       assertion =
         framework.environment.etc."resolv.conf".source == "/run/homelab-dns/resolv.conf"
-        && bridge.serviceConfig.RuntimeDirectory == "homelab-dns"
-        && bridge.serviceConfig.RuntimeDirectoryMode == "0755"
-        &&
-          (builtins.fromJSON framework.environment.etc."homelab-dns/config.json".text).resolv_conf
-          == "nameserver 127.0.0.2\nsearch rockhopper-bleak.ts.net\noptions timeout:2 attempts:2\n";
+        && resolver.serviceConfig.RuntimeDirectory == "homelab-dns"
+        && resolver.serviceConfig.RuntimeDirectoryMode == "0755";
       message = "Framework must publish dynamic search domains through the local split DNS resolver";
     }
   ]

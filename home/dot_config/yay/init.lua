@@ -8,7 +8,6 @@ local approved_aur = {
   ["input-remapper-bin"] = true,
   ["oh-my-posh-bin"] = true,
   ["openai-codex-bin"] = true,
-  ["openvpn3"] = true,
   ["powershell-bin"] = true,
   ["proton-pass-cli-bin"] = true,
   ["pulumi-language-dotnet"] = true,

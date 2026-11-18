@@ -6,7 +6,6 @@ import json
 import os
 import re
 import shutil
-import signal
 import subprocess
 from pathlib import Path
 
@@ -19,11 +18,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', choices=['magic-only', 'dnsdist'])
     parser.add_argument('--stage', action='store_true', help='Test dnsdist alongside the existing resolver')
-    parser.add_argument('--uid', type=int, default=int(os.environ.get('PKEXEC_UID', os.environ.get('SUDO_UID', '1000'))))
     args = parser.parse_args()
     if os.geteuid() != 0:
         parser.error('Run with sudo or pkexec')
-    assert args.uid > 0
     source = Path(__file__).resolve().parent
     state = json.loads(run('tailscale', 'status', '--json'))
     suffix = state.get('MagicDNSSuffix', '')
@@ -34,7 +31,7 @@ def main():
     backup.parent.chmod(0o700)
     files = {
         Path('/usr/local/lib/homelab-dns/reconcile.py'): (source / 'reconcile.py').read_bytes(),
-        Path('/etc/homelab-dns/config.json'): (json.dumps({'mode': args.mode, 'magic_suffix': suffix, 'uid': args.uid}) + '\n').encode(),
+        Path('/etc/homelab-dns/config.json'): (json.dumps({'mode': args.mode, 'magic_suffix': suffix}) + '\n').encode(),
     }
     units = []
     if args.mode == 'magic-only':
@@ -42,9 +39,8 @@ def main():
         units = ['homelab-dns-reconcile.service']
     else:
         run('dnsdist', '--check-config', '-C', str(source / 'dnsdist.conf'))
-        files[Path('/usr/local/lib/homelab-dns/vpn_bridge.py')] = (source / 'vpn_bridge.py').read_bytes()
         files[Path('/etc/homelab-dns/dnsdist.conf')] = (source / 'dnsdist.conf').read_text().replace('rockhopper-bleak.ts.net.', suffix + '.').encode()
-        units = ['homelab-dns-vpn.service', 'homelab-dns.service']
+        units = ['homelab-dns.service']
     for unit in units:
         files[Path('/etc/systemd/system') / unit] = (source / unit).read_bytes()
     old_hook = Path('/etc/systemd/system/tailscaled.service.d/95-split-dns.conf')
@@ -84,21 +80,7 @@ def main():
         # The staged resolver must answer before changing the system's DNS path.
         answer = run('dig', '@127.0.0.2', 'example.com', 'A', '+time=3', '+tries=2', '+short')
         assert answer.strip(), 'Staged DNS did not answer'
-        import dbus
-        bus = dbus.SystemBus()
-        name = 'net.openvpn.v3.netcfg'
-        manager = dbus.Interface(bus.get_object(name, '/net/openvpn/v3/netcfg'), name)
-        assert not list(manager.FetchInterfaceList()), 'Disconnect the work VPN for activation, then reconnect afterward'
-        # Preserve OpenVPN's DNS metadata through its file backend, without
-        # allowing it to overwrite the system resolver or reactivate resolved.
-        config_path = Path(str(dbus.Interface(bus.get_object(name, '/net/openvpn/v3/netcfg'), 'org.freedesktop.DBus.Properties').Get(name, 'config_file')))
-        assert config_path == Path('/var/lib/openvpn3/netcfg.json')
         assert Path('/usr/lib/libnss_mdns_minimal.so.2').exists()
-        # OpenVPN uses JSON with comments; its own editor preserves the format.
-        save(config_path)
-        run('openvpn3-admin', 'netcfg-service', '--config-unset', 'systemd-resolved')
-        run('openvpn3-admin', 'netcfg-service', '--config-set', 'resolv-conf', '/var/lib/openvpn3/dnsdist-resolv.conf')
-        install(Path('/var/lib/openvpn3/dnsdist-resolv.conf'), b'nameserver 127.0.0.2\n')
         install(Path('/etc/resolv.conf'), f'nameserver 127.0.0.2\nsearch {suffix}\noptions timeout:2 attempts:2\n'.encode())
         install(Path('/etc/NetworkManager/conf.d/90-homelab-dns.conf'), b'[main]\ndns=none\nrc-manager=unmanaged\n')
         # Preserve .local lookup through the already-installed Avahi/NSS module.
@@ -107,10 +89,6 @@ def main():
         install(nss, text.encode())
         run('tailscale', 'set', '--accept-dns=false')
         run('nmcli', 'general', 'reload', 'conf')
-        dbus_manager = dbus.Interface(bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus'), 'org.freedesktop.DBus')
-        pid = int(dbus_manager.GetConnectionUnixProcessID(name))
-        assert Path(f'/proc/{pid}/exe').resolve().name == 'openvpn3-service-netcfg'
-        os.kill(pid, signal.SIGTERM)
         run('systemctl', 'disable', '--now', 'systemd-resolved.service')
         run('systemctl', 'mask', 'systemd-resolved.service', 'systemd-resolved-varlink.socket', 'systemd-resolved-monitor.socket')
         run('systemctl', 'stop', 'systemd-resolved-varlink.socket', 'systemd-resolved-monitor.socket')

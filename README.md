@@ -13,7 +13,7 @@ macOS, Windows, and Codespaces installations from `home/`.
 - `nixos/packages/` contains custom packages and release manifests.
 - `home/` supplies shared plain assets and shell helpers to both managers.
 
-Framework adds company VPN and credentials, encrypted storage, Secure Boot,
+Framework adds work credentials, encrypted storage, Secure Boot,
 fingerprint support, and roaming DNS. Rocket adds gaming, its existing Btrfs
 filesystems, the Windows VM tooling, and Forgejo runner.
 NixOS never runs chezmoi. Application profiles, authentication, projects, VM
@@ -193,10 +193,11 @@ Run `dictate` to toggle from a terminal, or
 
 ## Work access and DNS
 
-The work profile provides OpenVPN 3, its DMS plugin, Storage Monitor, cloud
-credentials, Varlock, and private AI instructions. Shared work secrets are in
-`nixos/secrets/work.yaml`; Framework's VPN profiles and routing domains are in
-`nixos/secrets/framework.yaml`. sops-nix decrypts with the persistent SSH host key.
+The work profile provides Storage Monitor, cloud credentials, Varlock, and
+private AI instructions. Shared work secrets are in `nixos/secrets/work.yaml`.
+sops-nix decrypts with the persistent SSH host key. The retired manually managed
+DNS domain list remains encrypted in `nixos/secrets/vpn-domains.yaml` as a
+reference; work DNS routing uses the work tailnet's advertised configuration.
 Never copy private keys or plaintext secrets into Nix expressions.
 
 Storage Monitor includes Python and util-linux for read-only monitoring of mounted
@@ -206,13 +207,12 @@ System and nested layouts remain monitor-only.
 Confirmed USB removal unmounts the device's filesystems and physical siblings before
 powering it off. Failed unmounts or changed device identities prevent power-off.
 
-VPN profiles are imported locally as `moviestarplanet` and `moviestarplanet-tcp`.
-The DMS plugin applies their split DNS domains. Framework uses dnsdist at
-`127.0.0.2`: home resolvers are preferred over LAN or Tailscale, and public
+Framework uses dnsdist at `127.0.0.2`: home resolvers are preferred over LAN or
+Tailscale, and public
 Cloudflare Security DNS over HTTPS is used only when both home resolvers fail
 health checks. Private home and reverse names never use public fallback.
-Work domains use VPN DNS while connected and ordinary resolution when
-disconnected. MagicDNS is scoped to the tailnet suffix.
+Work domains advertised by the work tailnet use its DNS while connected and
+ordinary resolution when disconnected. MagicDNS is scoped to the tailnet suffix.
 
 Rocket uses LAN routes and the normal systemd-resolved setup; it does not accept
 Tailscale subnet routes. Framework accepts those routes for access away from home.
@@ -281,7 +281,7 @@ credential is needed. Use a laptop tracker or office Wi-Fi when the laptop's own
 location matters, rather than the person's location. pc2mqtt remains independent
 of the work connection so homelab monitoring continues.
 `remote-clip framework` transfers a clipboard image or text. From a work-enabled
-machine, `argocd-remote-sso framework --vpn-profile moviestarplanet` uses its
+machine, `argocd-remote-sso framework` uses its
 browser for SSO and copies only the selected Argo CD context.
 
 On NixOS, `wl-copy` and `wl-paste` use the host's logged-in Wayland desktop,

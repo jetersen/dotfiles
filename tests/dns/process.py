@@ -128,9 +128,9 @@ try:
     root = str(Path.cwd())
     for port, ip, magic in [(15354, "100.64.0.7", True), (15355, "192.0.2.1", False),
                              (15356, "192.0.2.2", False), (15357, "192.0.2.3", False),
-                             (15358, "192.0.2.4", False), (15360, "192.0.2.5", False)]:
+                             (15360, "192.0.2.5", False)]:
         backends.append(Backend(port, ip, magic))
-    magic, cluster, nas, public, vpn, work = backends
+    magic, cluster, nas, public, work = backends
     assert query(PEER, 15354).rcode() == 0
     assert query(SUFFIX, 15354).rcode() == dns.rcode.SERVFAIL
     spawn("doh", f'''
@@ -142,12 +142,11 @@ newServer({{address="127.0.0.1:15357", healthCheckMode="up"}})
 ''')
     # Legacy retained domains must not block ordinary resolution.
     write("work-domains", "corp.test.\nmoviestarplanet.tech.\nprivate.moviestarplanet.tech.\nmoviestarplanet.tech.corp.test.\n")
-    write("vpn-routes.lua", "return {}")
     spawn("production", f'''
 setSecurityPollSuffix("")
 homelabDnsEndpoints = {{listen="127.0.0.1:15353", magic="127.0.0.1:15354",
 cluster="127.0.0.1:15355", nas="127.0.0.1:15356", fallback={{"127.0.0.1:15443"}},
-fallbackName="fallback.test", caStore="{root}/cert.pem", stateDirectory="{root}",
+fallbackName="fallback.test", caStore="{root}/cert.pem",
 work="127.0.0.1:15360", workDomains="{root}/work-tailnet-domains"}}
 dofile("{sys.argv[1]}")
 ''')
@@ -175,12 +174,6 @@ dofile("{sys.argv[1]}")
     assert address(query("public.example.")) in {cluster.answer, nas.answer}
     write("work-tailnet-domains", "")
     wait("second tailnet DNS removed", lambda: address(query("peer.work.ts.net.")) in {cluster.answer, nas.answer})
-    write("vpn-routes.lua", 'return {{pool="vpn-test", servers={"127.0.0.1:15358"}, domains={"corp.test.", "moviestarplanet.tech."}}}')
-    wait("dynamic VPN route active", lambda: address(query("host.corp.test.")) == vpn.answer)
-    assert address(query(GRAFANA)) == vpn.answer
-    write("vpn-routes.lua", "return {}")
-    wait("removed VPN route resumes home DNS", lambda: address(query("host.corp.test.")) in {cluster.answer, nas.answer})
-    assert address(query(GRAFANA)) in {cluster.answer, nas.answer}
     cluster.stop()
     wait_for_consistent_answers("remaining home backend consistently serves after cluster stops",
                                 "single.example.", nas.answer)

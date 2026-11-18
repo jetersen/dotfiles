@@ -1,4 +1,3 @@
-# Import with nixosModules.work so the company VPN input is supplied too.
 { pkgs, ... }:
 {
   imports = [ ../modules/work.nix ];

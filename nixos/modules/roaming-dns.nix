@@ -8,12 +8,20 @@
 }:
 let
   source = ../../home/dot_local/share/homelab-dns;
-  python = pkgs.python3.withPackages (ps: [ ps.dbus-python ]);
-  resolvConf = ''
+  resolvConf = pkgs.writeText "homelab-resolv.conf" ''
     nameserver 127.0.0.2
     search rockhopper-bleak.ts.net
     options timeout:2 attempts:2
   '';
+  publishResolver = pkgs.writeShellApplication {
+    name = "homelab-dns-resolv";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.jq
+      pkgs.gawk
+    ];
+    text = builtins.readFile (source + "/resolv-conf.sh");
+  };
 in
 {
   # Stable's 2.0.7 is affected by CVE-2026-52682; the locked unstable
@@ -26,7 +34,7 @@ in
   services.resolved.enable = lib.mkForce false;
   networking.networkmanager.dns = lib.mkForce "none";
   networking.resolvconf.enable = false;
-  # The bridge adds the connected work MagicDNS suffix without changing DNS servers.
+  # Add the connected work MagicDNS suffix without changing DNS servers.
   environment.etc."resolv.conf".source = "/run/homelab-dns/resolv.conf";
   services.tailscale.extraSetFlags = [ "--accept-dns=false" ];
   services.avahi = {
@@ -43,75 +51,39 @@ in
     );
   };
   systemd.services.dnsdist = {
-    requires = [ "homelab-dns-vpn.service" ];
-    after = [ "homelab-dns-vpn.service" ];
+    requires = [ "homelab-dns-resolv.service" ];
+    after = [ "homelab-dns-resolv.service" ];
     serviceConfig = {
       Restart = "on-failure";
       RestartSec = 2;
-      # dnsdist binds its VPN backend sockets to their originating tunnel.
       AmbientCapabilities = [
         "CAP_NET_BIND_SERVICE"
-        "CAP_NET_RAW"
       ];
       CapabilityBoundingSet = [
         "CAP_NET_BIND_SERVICE"
-        "CAP_NET_RAW"
       ];
     };
   };
 
-  environment.etc."homelab-dns/config.json".text = builtins.toJSON {
-    mode = "dnsdist";
-    resolv_conf = resolvConf;
-    uid = config.users.users.joseph.uid;
-  };
-  # OpenVPN retains resolver metadata without writing the system's resolv.conf.
-  programs.openvpn3.netcfg.settings = {
-    systemd_resolved = false;
-    resolv_conf_file = "/var/lib/openvpn3/dnsdist-resolv.conf";
-  };
-  # OpenVPN treats these backends as mutually exclusive even when the JSON
-  # boolean is false. The upstream NixOS module always emits that boolean.
-  environment.etc."openvpn3/netcfg.json".source = lib.mkForce (
-    (pkgs.formats.json { }).generate "netcfg.json" (
-      builtins.removeAttrs config.programs.openvpn3.netcfg.settings [ "systemd_resolved" ]
-    )
-  );
-  systemd.tmpfiles.rules = [
-    "d /var/lib/openvpn3 0750 openvpn openvpn -"
-    "f /var/lib/openvpn3/dnsdist-resolv.conf 0640 openvpn openvpn - nameserver\\x20127.0.0.2"
-  ];
-  systemd.services.homelab-dns-vpn = {
-    description = "Publish validated OpenVPN split DNS to dnsdist";
+  systemd.services.homelab-dns-resolv = {
+    description = "Publish homelab and work DNS search domains";
     wantedBy = [ "multi-user.target" ];
-    after = [ "dbus.service" ];
     before = [ "dnsdist.service" ];
-    wants = [ "dnsdist.service" ];
     serviceConfig = {
-      Type = "notify";
-      ExecStart = "${python}/bin/python3 ${source}/vpn_bridge.py";
-      Restart = "always";
-      RestartSec = 2;
+      Type = "oneshot";
+      ExecStart = "${lib.getExe publishResolver} ${resolvConf} /run/homelab-dns/resolv.conf /run/work-tailnet/search-domain.json";
       RuntimeDirectory = "homelab-dns";
       RuntimeDirectoryMode = "0755";
-      StateDirectory = "homelab-dns";
-      StateDirectoryMode = "0750";
-      Group = "dnsdist";
-      UMask = "0027";
+      RuntimeDirectoryPreserve = "yes";
       NoNewPrivileges = true;
       ProtectSystem = "strict";
-      ProtectHome = "read-only";
+      ProtectHome = true;
       PrivateTmp = true;
-      ReadWritePaths = [ "/var/lib/homelab-dns" ];
     };
   };
-  home-manager.users.joseph.xdg.configFile."dms-openvpn3/dns.json".text = lib.mkForce (
-    builtins.toJSON {
-      backend = "dnsdist";
-      profiles = lib.genAttrs [ "moviestarplanet" "moviestarplanet-tcp" ] (_: {
-        enabled = true;
-        file = "${config.home-manager.users.joseph.xdg.configHome}/dms-openvpn3/application-domains.json";
-      });
-    }
-  );
+  systemd.paths.homelab-dns-resolv = {
+    description = "Refresh resolver search domains when work connectivity changes";
+    wantedBy = [ "multi-user.target" ];
+    pathConfig.PathChanged = "/run/work-tailnet/search-domain.json";
+  };
 }

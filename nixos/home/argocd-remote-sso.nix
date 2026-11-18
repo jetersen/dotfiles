@@ -6,7 +6,6 @@
       runtimeInputs = [
         pkgs.openssh
         osConfig.services.tailscale.package
-        pkgs.openvpn3
         pkgs.yq-go
       ];
       text = ''

@@ -1,6 +1,6 @@
 ---
 name: work-tailnet
-description: Connect, disconnect, or check the work tailnet on Rocket or Framework. Use for "start work tailnet" or "join work VPN"; named OpenVPN connections are separate.
+description: Connect, disconnect, or check the work tailnet on Rocket or Framework. Use for "start work tailnet" or "join work VPN".
 ---
 
 Run `work-tailnet on`, `off`, or `status` on the requested machine, using SSH when

@@ -47,10 +47,6 @@
       url = "git+https://github.com/unmango/pulumipkgs.git?rev=0d3cbe536a431ee5560ef7bddf95a9facbab87fd&shallow=1";
       flake = false;
     };
-    dms-openvpn3 = {
-      url = "git+https://github.com/jetersen/dms-openvpn3.git?rev=b54cab26e7aa3ce427c3b63c20a95e07a3d867a6&shallow=1";
-      flake = false;
-    };
     dms-storage-monitor = {
       url = "git+https://github.com/jetersen/dms-storage-monitor.git?rev=1732a2de807e64e98480d46b75ae76d9bb34b092&shallow=1";
       flake = false;
@@ -318,10 +314,6 @@
             ./nixos/modules/secure-boot.nix
           ];
         };
-        company-vpn = {
-          imports = [ ./nixos/modules/company-vpn.nix ];
-          home-manager.extraSpecialArgs.openvpnPluginSource = inputs.dms-openvpn3;
-        };
         workstation =
           { pkgs, ... }:
           {
@@ -363,7 +355,6 @@
           };
         work = {
           imports = [
-            inputs.self.nixosModules.company-vpn
             ./nixos/profiles/work.nix
           ];
         };

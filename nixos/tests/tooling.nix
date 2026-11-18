@@ -18,7 +18,7 @@ let
         "home/dot_config/niri/cfg/input.kdl"
         "tests/test_work_tailnet.py"
         "tests/test_dns_resolver.py"
-        "home/dot_local/share/homelab-dns/vpn_bridge.py"
+        "home/dot_local/share/homelab-dns/resolv-conf.sh"
         "tests/test_work_tailnet_peer_dns.py"
         "nixos/modules/work-tailnet/netns.sh"
         "home/dot_local/share/homelab-dns/dnsdist.conf"
@@ -54,6 +54,7 @@ pkgs.runCommand "tooling-unit-checks"
       pkgs.util-linux
       pkgs.sox
       pkgs.jq
+      pkgs.gawk
     ];
   }
   ''

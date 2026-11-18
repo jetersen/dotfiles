@@ -10,7 +10,6 @@
     ../../modules/pc2mqtt.nix
     ../../modules/work-tailnet.nix
     inputs.self.nixosModules.workstation
-    inputs.self.nixosModules.company-vpn
     inputs.self.nixosModules.gaming
     ./hardware-configuration.nix
     ./filesystems.nix

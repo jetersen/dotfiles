@@ -22,8 +22,7 @@ let
       (import ./dms-settings.nix {
         enableFprint = osConfig.services.fprintd.enable;
         extraRightWidgets =
-          lib.optional osConfig.programs.openvpn3.enable "openvpn3"
-          ++ lib.optional osConfig.dotfiles.workTailnet.enable "workTailnet"
+          lib.optional osConfig.dotfiles.workTailnet.enable "workTailnet"
           ++ lib.optional osConfig.dotfiles.work.enable "storageMonitor";
       })
       // {
@@ -93,7 +92,6 @@ let
       defaultAction = "paste";
     };
   }
-  // lib.optionalAttrs osConfig.programs.openvpn3.enable { openvpn3.enabled = true; }
   // lib.optionalAttrs osConfig.dotfiles.work.enable { storageMonitor.enabled = true; }
   // lib.optionalAttrs osConfig.dotfiles.workTailnet.enable { workTailnet.enabled = true; };
   pluginSettings = pkgs.writeText "dms-plugins.json" (builtins.toJSON plugins);
@@ -110,7 +108,7 @@ let
       if [[ -s "$settings" ]]; then current="$settings"; fi
       temporary=$(mktemp "$(dirname "$settings")/.plugins.XXXXXX")
       trap 'rm -f "$temporary"' EXIT
-      jq --slurpfile overlay ${pluginSettings} '. * $overlay[0]' "$current" <<< '{}' > "$temporary"
+      jq --slurpfile overlay ${pluginSettings} 'del(.openvpn3) * $overlay[0]' "$current" <<< '{}' > "$temporary"
       if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
     '';
   };
