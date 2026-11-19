@@ -242,6 +242,10 @@ let
         in
         lib.hasInfix "--experimental-multi-profile --encrypt-state=false" daemon.serviceConfig.ExecStart
         && daemon.wantedBy == [ ]
+        && (framework.systemd.services.nixos-upgrade.serviceConfig.ExecStartPre or [ ]) == [ ]
+        && framework.dotfiles.gitops.prepareSwitch != null
+        && rocket.dotfiles.gitops.prepareSwitch == null
+        && lib.hasInfix "--prepare-switch" framework.systemd.services.nixos-upgrade.script
         && !(framework.systemd.services ? tailscaled-autoconnect)
         && daemon.serviceConfig.Restart == "no"
         && daemon.unitConfig.OnFailure == "tailscale-multinet-recover.service"

@@ -203,8 +203,9 @@ To stay in native mode, stop `tailscale-multinet-portal-mode.service`, then star
 `tailscale-multinet-recover.service` and verify it succeeds. Recovery never
 restores older credentials or flushes unknown kernel state. Residual experimental
 routes or firewall rules require inspection before another daemon may start.
-Upgrades recover native ownership before activation and resume monitoring
-afterward. Actual captive sign-in, roaming, suspend and hard-crash cleanup still
+Upgrades recover native ownership only when a different cached system is ready
+for activation, then resume monitoring afterward. Connectivity notifications for
+the running system leave tailnet ownership unchanged. Actual captive sign-in, roaming, suspend and hard-crash cleanup still
 need separate validation.
 
 ### Rocket dictation

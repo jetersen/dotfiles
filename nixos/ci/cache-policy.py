@@ -252,7 +252,13 @@ def upgrade(args, caches):
     "nix", "eval", "--raw", "--no-write-lock-file",
     f"{flake}#nixosConfigurations.{args.host}.config.system.build.toplevel",
   ], text=True).strip()
+  prepare = getattr(args, "prepare_switch", None)
+  if prepare and str(Path("/run/current-system").resolve()) == target:
+    print("Selected system is already running; leaving network ownership unchanged.", flush=True)
+    return
   verify([target], caches)
+  if prepare:
+    subprocess.run([prepare], check=True)
   # Verification and activation must select the same commit even if main moves.
   signal.alarm(0)
   subprocess.run([
@@ -287,6 +293,7 @@ def main():
   parser.add_argument("--flake")
   parser.add_argument("--host", choices=["framework", "rocket"])
   parser.add_argument("--rebuild")
+  parser.add_argument("--prepare-switch")
   parser.add_argument("paths", nargs="*")
   args = parser.parse_args()
   if args.timeout <= 0 or args.max_mib < 0:

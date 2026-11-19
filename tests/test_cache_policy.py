@@ -269,6 +269,45 @@ class UpgradeTests(unittest.TestCase):
         policy.upgrade(args, [cache({})])
       run.assert_not_called()
 
+  def test_network_notification_for_current_system_does_not_disturb_ownership(self):
+    args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
+                              rebuild="rebuild", prepare_switch="prepare")
+    with patch.object(policy.subprocess, "check_output", side_effect=[json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM]), \
+         patch.object(policy.Path, "resolve", return_value=Path(SYSTEM)), \
+         patch.object(policy, "verify") as verify, patch.object(policy.subprocess, "run") as run, \
+         redirect_stdout(io.StringIO()):
+      policy.upgrade(args, [])
+    verify.assert_not_called()
+    run.assert_not_called()
+
+  def test_changed_system_prepares_only_after_cache_verification(self):
+    args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
+                              rebuild="rebuild", prepare_switch="prepare")
+    events = []
+    with patch.object(policy.subprocess, "check_output", side_effect=[json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM]), \
+         patch.object(policy.Path, "resolve", return_value=Path(CODEX)), \
+         patch.object(policy, "verify", side_effect=lambda *a: events.append("cached")), \
+         patch.object(policy.subprocess, "run", side_effect=lambda args, **kw: events.append(args[0])), \
+         patch.object(policy.signal, "alarm"):
+      policy.upgrade(args, [])
+    self.assertEqual(events, ["cached", "prepare", "rebuild"])
+
+  def test_missing_cache_or_failed_preparation_never_switches(self):
+    args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
+                              rebuild="rebuild", prepare_switch="prepare")
+    for failure in ("cache", "prepare"):
+      with self.subTest(failure=failure), \
+           patch.object(policy.subprocess, "check_output", side_effect=[json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM]), \
+           patch.object(policy.Path, "resolve", return_value=Path(CODEX)), \
+           patch.object(policy, "verify", side_effect=RuntimeError("cache") if failure == "cache" else None), \
+           patch.object(policy.subprocess, "run", side_effect=RuntimeError("prepare")) as run:
+        with self.assertRaises(RuntimeError):
+          policy.upgrade(args, [])
+        if failure == "cache":
+          run.assert_not_called()
+        else:
+          run.assert_called_once_with(["prepare"], check=True)
+
   def test_existing_revision_is_replaced(self):
     result = policy.pinned_flake("git+https://example.test/repo?ref=main&rev=" + "a" * 40, "b" * 40)
     self.assertEqual(result.count("rev="), 1)

@@ -119,15 +119,36 @@ in
           Restart = "no";
         };
       };
-      nixos-upgrade.serviceConfig.ExecStartPre = lib.mkBefore [
-        "${pkgs.systemd}/bin/systemctl stop tailscale-multinet-portal-mode.service"
-        "${pkgs.systemd}/bin/systemctl start tailscale-multinet-recover.service"
-      ];
-      # Re-arm monitoring even when an upgrade has no changed system to activate.
       nixos-upgrade.serviceConfig.ExecStopPost = lib.mkAfter [
-        "${pkgs.systemd}/bin/systemctl --no-block start tailscale-multinet-portal-mode.service"
+        (lib.getExe (
+          pkgs.writeShellApplication {
+            name = "multinet-finish-upgrade";
+            runtimeInputs = [
+              pkgs.systemd
+              pkgs.coreutils
+            ];
+            text = ''
+              if [[ -e /run/tailscale-multinet/upgrade-paused ]]; then
+                rm /run/tailscale-multinet/upgrade-paused
+                systemctl --no-block start tailscale-multinet-portal-mode.service
+              fi
+            '';
+          }
+        ))
       ];
     };
+  dotfiles.gitops.prepareSwitch = pkgs.writeShellApplication {
+    name = "multinet-prepare-upgrade";
+    runtimeInputs = [
+      pkgs.systemd
+      pkgs.coreutils
+    ];
+    text = ''
+      touch /run/tailscale-multinet/upgrade-paused
+      systemctl stop tailscale-multinet-portal-mode.service
+      systemctl start tailscale-multinet-recover.service
+    '';
+  };
   systemd.paths.homelab-dns-resolv.unitConfig.ConditionPathExists = "!${marker}";
   systemd.timers.tailscale-multinet-deadline.timerConfig = {
     OnActiveSec = "12min";
