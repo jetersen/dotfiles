@@ -406,5 +406,12 @@ pkgs.runCommand "module-contract-checks"
     };
   }
   ''
+    ${pkgs.coreutils}/bin/env -i ${
+      lib.getExe (
+        lib.findFirst (
+          p: p.name == "tailscale-multinet"
+        ) (throw "multinet controller package missing") framework.environment.systemPackages
+      )
+    } --check-runtime
     printf '%s\n' "$contracts" > "$out"
   ''

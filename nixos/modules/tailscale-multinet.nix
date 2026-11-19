@@ -26,9 +26,15 @@ let
       pkgs.systemd
       pkgs.iproute2
       pkgs.iptables
-      pkgs.bind
+      pkgs.dig
     ];
     text = ''
+      if [[ "''${1-}" == --check-runtime ]]; then
+        for executable in python3 systemctl busctl ip iptables-save ip6tables-save dig; do
+          command -v "$executable" >/dev/null
+        done
+        exit 0
+      fi
       export MULTINET_PACKAGE=${package}
       exec python3 ${./tailscale-multinet/control.py} "$@"
     '';
