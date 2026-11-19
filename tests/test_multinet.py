@@ -95,7 +95,8 @@ class MultinetTests(unittest.TestCase):
       with patch.multiple(m, MARKER=marker, VERIFIED=verified, CONFIRMED=confirmed, NM_DNS=nm), \
            patch.object(m, 'selection', return_value={'primary': '2ac3'}), \
            patch.object(m, 'ctl', side_effect=control), patch.object(m, 'active', return_value='active'), \
-           patch.object(m, 'replace_link'), patch.object(m, 'wait_healthy', side_effect=RuntimeError('failed health')):
+           patch.object(m, 'replace_link'), patch.object(m, 'stop_native'), \
+           patch.object(m, 'wait_healthy', side_effect=RuntimeError('failed health')):
         # Fail before touching any real /etc object, after the deadline is armed.
         with patch.object(Path, 'exists', autospec=True, side_effect=lambda path: path == verified):
           with patch.object(Path, 'write_text', side_effect=RuntimeError('resolver write failed')):
@@ -106,6 +107,13 @@ class MultinetTests(unittest.TestCase):
       self.assertIn(('restart', 'tailscale-multinet-deadline.timer'), events)
       self.assertNotIn(('stop', 'tailscale-multinet-deadline.timer'), events)
       self.assertNotIn(('start', m.DAEMON), events)
+
+  def test_optional_unconfigured_native_units_do_not_break_startup(self):
+    with patch.object(m, 'GUARDS', ('present', 'optional')), \
+         patch.object(m, 'command', side_effect=['not-found\n', 'loaded\n']), \
+         patch.object(m, 'ctl') as ctl:
+      m.stop_native()
+    ctl.assert_called_once_with('stop', 'present.service')
 
   def test_underlay_does_not_trust_vpn_or_changed_primary(self):
     with patch.object(m, 'prop', side_effect=[True, '/one', 'vpn']):

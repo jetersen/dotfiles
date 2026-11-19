@@ -150,6 +150,13 @@ def wait_healthy(expected):
       time.sleep(3)
 
 
+def stop_native():
+  for unit in reversed(GUARDS):
+    unit = unit if '.' in unit else unit + '.service'
+    if command('systemctl', 'show', unit, '-p', 'LoadState', '--value').strip() != 'not-found':
+      ctl('stop', unit)
+
+
 def start():
   require(VERIFIED.exists() and not MARKER.exists(), 'native recovery not verified')
   expected = selection()
@@ -163,8 +170,7 @@ def start():
   require(active('tailscale-multinet-deadline.timer') == 'active', 'independent deadline not armed')
   MARKER.touch()
   VERIFIED.unlink()
-  for unit in reversed(GUARDS):
-    ctl('stop', unit if '.' in unit else unit + '.service')
+  stop_native()
   require(not Path('/run/netns/work-tailnet').exists(), 'native namespace remains')
   replace_link(Path('/etc/resolv.pre-tailscale-backup.conf'), NM_DNS)
   temp = Path('/etc/resolv.conf.multinet')
