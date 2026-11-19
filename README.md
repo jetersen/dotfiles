@@ -172,6 +172,41 @@ T3 uses the upstream renderer from each release. For agent automation on a conne
 environment, choose "Open in [environment]'s browser" from the browser tab's menu.
 Desktop tabs have separate login state and cannot be automated remotely.
 
+### Framework simultaneous tailnets
+
+Framework uses the experimental Linux multi-profile build at
+`3dc0f9b6f29f47c61a348d13857096e48b6e516a`, compiled with
+`ts_experimental_multi_profile`. This is a host-specific experiment, not an
+upstream supported release. The package contains the exact static CLI and daemon;
+its recursive hash pins both. It is substituted from the private workstation
+cache, without publishing the unpublished source through the GitHub mirror.
+A cache miss fails closed. Before changing the package pin, verify both binaries,
+seed the matching fixed-output store path in Attic, and test a fresh download.
+Keep the corresponding source archive and build toolchain with private backups.
+
+`tailscale-multinet-portal-mode.service` starts in the native DNS baseline. After
+20 seconds of FULL connectivity on a stable NetworkManager underlay, it starts
+the selected profiles, checks DNS and home filtering, restarts the daemon, and
+checks again. An independent 12-minute deadline and failure service restore
+native ownership if startup fails. Twenty seconds of blocked connectivity hands
+DNS back to the native portal services; verified recovery precedes any resume.
+Unexpected controller failures leave recovery to the independent service.
+
+The experiment retains its current credentials and explicit attached selection
+in `/var/lib/tailscale-multi-profile-test`; saved-only profiles stay disconnected.
+Both selected profiles require `accept-dns=true` and `operator=joseph`. Only the
+primary owns OS DNS. The private transport backup follows NetworkManager's live
+DHCP resolver file. Native DNS keeps home filtering, work/private routing and its
+health-checked DoH fallback; private names never use portal DNS.
+
+To stay in native mode, stop `tailscale-multinet-portal-mode.service`, then start
+`tailscale-multinet-recover.service` and verify it succeeds. Recovery never
+restores older credentials or flushes unknown kernel state. Residual experimental
+routes or firewall rules require inspection before another daemon may start.
+Upgrades recover native ownership before activation and resume monitoring
+afterward. Actual captive sign-in, roaming, suspend and hard-crash cleanup still
+need separate validation.
+
 ### Rocket dictation
 
 Press `Super+T` in Niri to start microphone recording. Speak when the Listening

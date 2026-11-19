@@ -128,9 +128,9 @@ try:
     root = str(Path.cwd())
     for port, ip, magic in [(15354, "100.64.0.7", True), (15355, "192.0.2.1", False),
                              (15356, "192.0.2.2", False), (15357, "192.0.2.3", False),
-                             (15360, "192.0.2.5", False)]:
+                             (15360, "192.0.2.5", False), (15361, "192.0.2.6", False)]:
         backends.append(Backend(port, ip, magic))
-    magic, cluster, nas, public, work = backends
+    magic, cluster, nas, public, work, underlay = backends
     assert query(PEER, 15354).rcode() == 0
     assert query(SUFFIX, 15354).rcode() == dns.rcode.SERVFAIL
     spawn("doh", f'''
@@ -147,6 +147,7 @@ setSecurityPollSuffix("")
 homelabDnsEndpoints = {{listen="127.0.0.1:15353", magic="127.0.0.1:15354",
 cluster="127.0.0.1:15355", nas="127.0.0.1:15356", fallback={{"127.0.0.1:15443"}},
 fallbackName="fallback.test", caStore="{root}/cert.pem",
+portal="127.0.0.1:15361", portalLease="{root}/portal-lease",
 work="127.0.0.1:15360", workDomains="{root}/work-tailnet-domains"}}
 dofile("{sys.argv[1]}")
 ''')
@@ -174,6 +175,31 @@ dofile("{sys.argv[1]}")
     assert address(query("public.example.")) in {cluster.answer, nas.answer}
     write("work-tailnet-domains", "")
     wait("second tailnet DNS removed", lambda: address(query("peer.work.ts.net.")) in {cluster.answer, nas.answer})
+    # Network DNS serves only NM's probe until a fresh portal lease is published.
+    assert address(query("nmcheck.gnome.org.")) == underlay.answer
+    write("work-tailnet-domains", "work.ts.net\ncorp.example\n")
+    wait("work route ready for portal", lambda: address(query("peer.work.ts.net.")) == work.answer)
+    write("portal-lease", str(int(time.time()) + 5))
+    assert address(query("login.hotel.")) == underlay.answer
+    assert query("nx.example.").rcode() == dns.rcode.NXDOMAIN
+    assert address(query(PEER)) == magic.answer
+    assert address(query("peer.work.ts.net.")) == work.answer
+    assert address(query("host.corp.example.")) == work.answer
+    for name in ["private.jetersen.dev.", "www.ts.net.", "1.0.0.10.in-addr.arpa.", "0.ip6.arpa."]:
+        query(name)
+        assert underlay.count(name) == 0, f"private name leaked to hotel: {name}"
+    assert underlay.count(PEER) == 0
+    assert underlay.count("host.corp.example.") == 0
+    write("portal-lease", "0")
+    assert address(query("signed-in.example.")) in {cluster.answer, nas.answer}
+    assert underlay.count("signed-in.example.") == 0
+    write("portal-lease", str(int(time.time()) - 1))
+    assert address(query("expired.example.")) in {cluster.answer, nas.answer}
+    write("portal-lease", str(int(time.time()) + 5))
+    assert address(query("recurrent.hotel.")) == underlay.answer
+    Path("portal-lease").unlink()
+    assert address(query("disconnected.example.")) in {cluster.answer, nas.answer}
+    write("work-tailnet-domains", "")
     cluster.stop()
     wait_for_consistent_answers("remaining home backend consistently serves after cluster stops",
                                 "single.example.", nas.answer)

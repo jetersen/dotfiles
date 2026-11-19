@@ -15,6 +15,7 @@
     inputs.self.nixosModules.secure-boot
     inputs.nixos-hardware.nixosModules.framework-intel-core-ultra-series3
     ./hardware-configuration.nix
+    ../../modules/tailscale-multinet.nix
     ../../modules/roaming-dns.nix
     ./disk.nix
   ];

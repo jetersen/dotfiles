@@ -13,6 +13,10 @@ let
     search rockhopper-bleak.ts.net
     options timeout:2 attempts:2
   '';
+  portalPython = pkgs.python3.withPackages (ps: [
+    ps.dbus-python
+    ps.dnspython
+  ]);
   publishResolver = pkgs.writeShellApplication {
     name = "homelab-dns-resolv";
     runtimeInputs = [
@@ -34,6 +38,15 @@ in
   services.resolved.enable = lib.mkForce false;
   networking.networkmanager.dns = lib.mkForce "none";
   networking.resolvconf.enable = false;
+  # NM validates the expected body/header and binds HTTP to the underlay device.
+  # The probe's DNS alone always goes through the underlay bridge below.
+  networking.networkmanager.settings.connectivity = {
+    enabled = true;
+    uri = "http://nmcheck.gnome.org/check_network_status.txt";
+    response = "NetworkManager is online";
+    interval = 15;
+    timeout = 5;
+  };
   # Add the connected work MagicDNS suffix without changing DNS servers.
   environment.etc."resolv.conf".source = "/run/homelab-dns/resolv.conf";
   services.tailscale.extraSetFlags = [ "--accept-dns=false" ];
@@ -46,7 +59,10 @@ in
   services.dnsdist = {
     enable = true;
     listenAddress = "127.0.0.2";
-    extraConfig = builtins.replaceStrings [ ''setLocal(endpoints.listen or "127.0.0.2:53")'' ] [ "" ] (
+    extraConfig = ''
+      homelabDnsEndpoints = {portalLease="/run/homelab-portal/lease"}
+    ''
+    + builtins.replaceStrings [ ''setLocal(endpoints.listen or "127.0.0.2:53")'' ] [ "" ] (
       builtins.readFile (source + "/dnsdist.conf")
     );
   };
@@ -61,6 +77,31 @@ in
       ];
       CapabilityBoundingSet = [
         "CAP_NET_BIND_SERVICE"
+      ];
+    };
+  };
+
+  systemd.services.homelab-portal-dns = {
+    description = "Current-network DNS for captive portal discovery and sign-in";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "NetworkManager.service" ];
+    after = [ "NetworkManager.service" ];
+    serviceConfig = {
+      ExecStart = "${portalPython}/bin/python ${./portal-dns.py}";
+      Restart = "always";
+      RestartSec = 1;
+      RuntimeDirectory = "homelab-portal";
+      RuntimeDirectoryMode = "0755";
+      # SO_BINDTODEVICE prevents VPN routes from capturing underlay DNS.
+      CapabilityBoundingSet = [ "CAP_NET_RAW" ];
+      NoNewPrivileges = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateTmp = true;
+      RestrictAddressFamilies = [
+        "AF_INET"
+        "AF_INET6"
+        "AF_UNIX"
       ];
     };
   };

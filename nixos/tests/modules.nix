@@ -235,6 +235,22 @@ let
       message = "Rocket: request-only audio must retain the narrow PipeWire socket bind and session restart watcher";
     }
     {
+      assertion =
+        let
+          services = framework.systemd.services;
+          daemon = services.tailscale-multi-profile;
+        in
+        lib.hasInfix "--experimental-multi-profile --encrypt-state=false" daemon.serviceConfig.ExecStart
+        && daemon.wantedBy == [ ]
+        && daemon.serviceConfig.Restart == "no"
+        && daemon.unitConfig.OnFailure == "tailscale-multinet-recover.service"
+        && services.tailscale-multinet-recover.serviceConfig.Restart == "on-failure"
+        && framework.systemd.timers.tailscale-multinet-deadline.timerConfig.OnActiveSec == "12min"
+        && services.tailscaled.unitConfig.ConditionPathExists == "!/run/tailscale-multinet/owns-dns"
+        && services.dnsdist.unitConfig.ConditionPathExists == "!/run/tailscale-multinet/owns-dns";
+      message = "Framework experimental DNS must retain exclusive ownership and independent native recovery";
+    }
+    {
       assertion = configurations.framework.pkgs.dnsdist.drvPath == pkgsUnstable.dnsdist.drvPath;
       message = "DNS tests and service must use the selected DNS package";
     }
@@ -255,10 +271,12 @@ let
     }
     {
       assertion =
-        framework.environment.etc."resolv.conf".source == "/run/homelab-dns/resolv.conf"
+        lib.hasSuffix "framework-native-resolv.conf" (
+          toString framework.environment.etc."resolv.conf".source
+        )
         && resolver.serviceConfig.RuntimeDirectory == "homelab-dns"
         && resolver.serviceConfig.RuntimeDirectoryMode == "0755";
-      message = "Framework must publish dynamic search domains through the local split DNS resolver";
+      message = "Framework must retain an immutable native resolver object for recovery";
     }
   ]
   ++
@@ -349,7 +367,7 @@ let
               && !c.upgrade.restartIfChanged
               && !c.upgrade.stopOnRemoval
               && c.upgrade.flake == "git+https://forgejo.jetersen.dev/jetersen/dotfiles.git?ref=main#${host}"
-              && lib.hasSuffix "pc2mqtt --report-update-result" c.upgrade.post
+              && lib.any (lib.hasSuffix "pc2mqtt --report-update-result") (lib.toList c.upgrade.post)
               && c.upgrade.resultDirectory == "pc2mqtt"
               && c.upgrade.retiredComin.Type == "oneshot"
               && c.upgrade.retiredComin.Restart == "no"
