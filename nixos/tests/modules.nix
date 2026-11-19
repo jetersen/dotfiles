@@ -242,6 +242,7 @@ let
         in
         lib.hasInfix "--experimental-multi-profile --encrypt-state=false" daemon.serviceConfig.ExecStart
         && daemon.wantedBy == [ ]
+        && !(framework.systemd.services ? tailscaled-autoconnect)
         && daemon.serviceConfig.Restart == "no"
         && daemon.unitConfig.OnFailure == "tailscale-multinet-recover.service"
         && services.tailscale-multinet-recover.serviceConfig.Restart == "on-failure"

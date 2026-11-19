@@ -18,7 +18,6 @@ let
     "homelab-portal-dns"
     "dnsdist"
     "tailscaled-set"
-    "tailscaled-autoconnect"
   ];
   control = pkgs.writeShellApplication {
     name = "tailscale-multinet";
@@ -57,8 +56,10 @@ in
     );
   };
   environment.systemPackages = [ control ];
-  home-manager.users.joseph.home.file.".local/bin/tailscale-experimental".source =
-    "${package}/bin/tailscale";
+  home-manager.users.joseph.home.file.".local/bin/tailscale-experimental" = {
+    source = "${package}/bin/tailscale";
+    force = true;
+  };
   systemd.tmpfiles.rules = [ "d /run/tailscale-multinet 0700 root root -" ];
   systemd.services =
     (lib.genAttrs native (_: {
