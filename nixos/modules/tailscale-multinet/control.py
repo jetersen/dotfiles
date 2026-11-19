@@ -110,7 +110,13 @@ def recover():
     MARKER.unlink()
   for unit in NATIVE:
     ctl('start', unit if '.' in unit else unit + '.service')
-  dns_health('127.0.0.2')
+  try:
+    dns_health('127.0.0.2')
+  except (RuntimeError, subprocess.SubprocessError):
+    # Connected backend sockets can retain an underlay source address across
+    # tailnet route restoration even while fresh health-check sockets succeed.
+    ctl('restart', 'dnsdist.service')
+    dns_health('127.0.0.2')
   VERIFIED.touch()
   ctl('stop', 'tailscale-multinet-deadline.timer')
 

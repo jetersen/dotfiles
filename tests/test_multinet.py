@@ -1,6 +1,7 @@
 import base64
 import importlib.util
 import json
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -75,6 +76,31 @@ class MultinetTests(unittest.TestCase):
       self.assertTrue(verified.exists())
       self.assertEqual(events[-2], ('health', '127.0.0.2'))
       self.assertEqual(events[-1], ('stop', 'tailscale-multinet-deadline.timer'))
+
+  def test_native_recovery_reopens_stale_dns_sockets_before_verifying(self):
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      marker, verified, confirmed = (root / name for name in ('marker', 'verified', 'confirmed'))
+      with patch.multiple(m, MARKER=marker, VERIFIED=verified, CONFIRMED=confirmed), \
+           patch.object(m, 'ctl') as ctl, patch.object(m, 'active', return_value='inactive'), \
+           patch.object(m, 'no_experiment_routes'), \
+           patch.object(m, 'dns_health', side_effect=[subprocess.CalledProcessError(9, 'dig'), None]) as health:
+        m.recover()
+      ctl.assert_any_call('restart', 'dnsdist.service')
+      self.assertEqual(health.call_count, 2)
+      self.assertTrue(verified.exists())
+
+  def test_failed_dns_retry_does_not_claim_native_verification(self):
+    with tempfile.TemporaryDirectory() as directory:
+      root = Path(directory)
+      marker, verified, confirmed = (root / name for name in ('marker', 'verified', 'confirmed'))
+      with patch.multiple(m, MARKER=marker, VERIFIED=verified, CONFIRMED=confirmed), \
+           patch.object(m, 'ctl'), patch.object(m, 'active', return_value='inactive'), \
+           patch.object(m, 'no_experiment_routes'), \
+           patch.object(m, 'dns_health', side_effect=RuntimeError('still unavailable')):
+        with self.assertRaisesRegex(RuntimeError, 'still unavailable'):
+          m.recover()
+      self.assertFalse(verified.exists())
 
   def test_unverified_native_never_arms_or_stops_services(self):
     with tempfile.TemporaryDirectory() as directory, patch.object(m, 'VERIFIED', Path(directory) / 'absent'), \
