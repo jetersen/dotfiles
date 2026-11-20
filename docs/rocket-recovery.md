@@ -26,6 +26,14 @@ numbers can change between boots.
 The games filesystem mounts at `/media/games`; its `Steam` directory binds to
 `/home/joseph/.local/share/Steam`. Home data uses UID/GID 1000.
 
+Go's build cache lives at `/media/games/cache/go-build`, bind-mounted at
+`/home/joseph/.cache/go-build` so existing shells use the same location. A required
+service creates the cache directory after the data SSD is mounted and before the
+bind mount. Cache contents are disposable and can be rebuilt. The bind mount
+requires both `/home` and `/media/games`; a missing data SSD must not silently put
+new cache data on the OS disk. To undo the relocation, remove the bind mount and
+its directory-preparation service, then let Go recreate the default cache.
+
 CachyOS roots, snapshots, boot files, migration archives, installer cache, and
 temporary VM recovery copies are retired. Recovery uses NixOS generations or
 live media and independently maintained backups. Snapshots on the same disk do

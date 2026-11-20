@@ -100,6 +100,26 @@ let
   runner = rocket.systemd.services.forgejo-runner;
   assertions = [
     {
+      assertion =
+        rocket.fileSystems."/home/joseph/.cache/go-build".device == "/media/games/cache/go-build"
+        && builtins.elem "bind" rocket.fileSystems."/home/joseph/.cache/go-build".options
+        && !(builtins.elem "nofail" rocket.fileSystems."/home/joseph/.cache/go-build".options)
+        &&
+          rocket.fileSystems."/home/joseph/.cache/go-build".depends == [
+            "/home"
+            "/media/games"
+          ]
+        && builtins.elem "home-joseph-.cache-go\\x2dbuild.mount" rocket.systemd.services.go-build-cache-directory.requiredBy
+        && builtins.elem "home-joseph-.cache-go\\x2dbuild.mount" rocket.systemd.services.go-build-cache-directory.before
+        &&
+          rocket.systemd.services.go-build-cache-directory.unitConfig.RequiresMountsFor == [
+            "/media/games"
+            "/nix"
+          ]
+        && !rocket.systemd.services.go-build-cache-directory.unitConfig.DefaultDependencies;
+      message = "Rocket: prepare the Go cache on the mounted SSD before binding its existing path";
+    }
+    {
       assertion = lib.all (
         host:
         host.gc.automatic
