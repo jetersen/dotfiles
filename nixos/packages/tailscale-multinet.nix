@@ -1,11 +1,11 @@
 { runCommand }:
 # Private, content-addressed static build. Seed this exact output in the private
 # workstation cache before changing the pin; no unpublished source is mirrored.
-runCommand "tailscale-multinet-3dc0f9b6f"
+runCommand "tailscale-multinet-37f739c58"
   {
     outputHashMode = "recursive";
     outputHashAlgo = "sha256";
-    outputHash = "sha256-ZuV3vjcRB8+mxci3jxT4fU4NYkwZxHllPTNM9yZElZE=";
+    outputHash = "sha256-H+FAL/chrYqmbtOuiBkgOJpH7l9RNW9w38aVY3qZmAw=";
     preferLocalBuild = false;
     allowSubstitutes = true;
     meta.mainProgram = "tailscale";

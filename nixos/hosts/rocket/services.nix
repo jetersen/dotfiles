@@ -16,9 +16,9 @@
   systemd.slices.system.sliceConfig.MemoryMin = "1G";
   imports = [
     {
-      systemd.services = lib.genAttrs [ "sshd" "tailscaled" "NetworkManager" "systemd-resolved" ] (name: {
+      systemd.services = lib.genAttrs [ "sshd" "tailscale-multi-profile" "NetworkManager" ] (name: {
         serviceConfig = {
-          MemoryMin = if name == "tailscaled" then "512M" else "128M";
+          MemoryMin = if name == "tailscale-multi-profile" then "512M" else "128M";
           OOMScoreAdjust = -1000;
           ManagedOOMPreference = "omit";
         };
@@ -35,35 +35,6 @@
     autoPrune.enable = false;
   };
   users.users.joseph.extraGroups = [ "docker" ];
-
-  environment.etc."homelab-dns/config.json".text = builtins.toJSON {
-    mode = "magic-only";
-  };
-  systemd.services.homelab-dns-reconcile = {
-    description = "Maintain homelab MagicDNS and VPN DNS routing";
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "systemd-resolved.service" ];
-    after = [
-      "systemd-resolved.service"
-      "tailscaled.service"
-    ];
-    path = [
-      pkgs.systemd
-      config.services.tailscale.package
-    ];
-    serviceConfig = {
-      ExecStart = "${pkgs.python3}/bin/python3 ${../../../home/dot_local/share/homelab-dns/reconcile.py}";
-      Restart = "always";
-      RestartSec = 3;
-      StateDirectory = "homelab-dns";
-      StateDirectoryMode = "0755";
-      NoNewPrivileges = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      ReadWritePaths = [ "/var/lib/homelab-dns" ];
-    };
-  };
 
   # Retain the current cleanup policy; do not create periodic or boot snapshots.
   # Root snapshots live in the separate @nixos-snapshots subvolume.

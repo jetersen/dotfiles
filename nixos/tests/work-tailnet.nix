@@ -1,8 +1,5 @@
-{ pkgs, configurations }:
+{ pkgs }:
 let
-  control = pkgs.lib.findFirst (
-    p: (p.name or "") == "work-tailnet"
-  ) (throw "missing work-tailnet CLI") configurations.rocket.config.environment.systemPackages;
   resolver = pkgs.writeText "work-dns-fixture.py" ''
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     import socket
@@ -80,7 +77,6 @@ pkgs.testers.runNixOSTest {
         pkgs.curl
         pkgs.python3
         pkgs.dnsutils
-        control
       ];
       virtualisation.memorySize = 1024;
     };

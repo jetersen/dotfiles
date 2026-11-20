@@ -221,13 +221,12 @@ let
               in
               service.OOMScoreAdjust == -1000
               && service.ManagedOOMPreference == "omit"
-              && service.MemoryMin == (if name == "tailscaled" then "512M" else "128M")
+              && service.MemoryMin == (if name == "tailscale-multi-profile" then "512M" else "128M")
             )
             [
               "sshd"
-              "tailscaled"
+              "tailscale-multi-profile"
               "NetworkManager"
-              "systemd-resolved"
             ];
       message = "Rocket: reserve memory throughout the remote-access hierarchy and protect its services from OOM selection";
     }
@@ -291,8 +290,51 @@ let
         && !(services ? homelab-portal-dns)
         && !(services ? tailscale-multinet-recover)
         && framework.dotfiles.gitops.prepareSwitch != null
-        && rocket.dotfiles.gitops.prepareSwitch == null;
-      message = "Framework must use one multinet daemon, live DHCP fallback DNS and Tailscale portal detection";
+        && rocket.dotfiles.gitops.prepareSwitch != null;
+      message = "Framework must retain its authenticated multinet state and simple DNS ownership";
+    }
+    {
+      assertion =
+        lib.all
+          (
+            host:
+            let
+              c = configurations.${host}.config;
+              daemon = c.systemd.services.tailscale-multi-profile;
+              stateFile = "/var/lib/${c.dotfiles.tailscaleMultinet.stateDirectory}/tailscaled.state";
+            in
+            c.dotfiles.tailscaleMultinet.enable
+            && !c.dotfiles.workTailnet.enable
+            && !c.services.tailscale.enable
+            && !c.services.resolved.enable
+            && !(c.systemd.services ? tailscaled)
+            && !(c.systemd.services ? tailscaled-work)
+            && !(c.systemd.services ? homelab-dns-reconcile)
+            && builtins.elem "tailscaled.service" daemon.aliases
+            && builtins.elem "tailscaled-work.service" daemon.conflicts
+          && builtins.elem "tailscaled-work.service" daemon.after
+            && lib.hasSuffix "/bin/test -s ${stateFile}" daemon.serviceConfig.ExecStartPre
+            && lib.hasInfix "--state=${stateFile}" daemon.serviceConfig.ExecStart
+            && lib.hasInfix "--tun=${c.dotfiles.tailscaleMultinet.interfaceName}" daemon.serviceConfig.ExecStart
+            && c.systemd.services.NetworkManager-wait-online.enable
+            && c.networking.networkmanager.dns == "none"
+            && !c.networking.networkmanager.settings.connectivity.enabled
+            && c.environment.etc."resolv.conf".source == "/run/NetworkManager/no-stub-resolv.conf"
+            && toString c.services.tailscale.package == toString framework.services.tailscale.package
+          )
+          [
+            "rocket"
+            "framework"
+          ];
+      message = "Both hosts must use one pinned daemon, existing provisioned state, compatible unit alias and native DNS handover";
+    }
+    {
+      assertion =
+        rocket.dotfiles.tailscaleMultinet.stateDirectory == "tailscale-multi-profile"
+        && rocket.dotfiles.tailscaleMultinet.interfaceName == "tailscale0"
+        && framework.dotfiles.tailscaleMultinet.stateDirectory == "tailscale-multi-profile-test"
+        && framework.dotfiles.tailscaleMultinet.interfaceName == "tailscale-mp";
+      message = "Rocket must import into separate state while preserving its T3 firewall interface; Framework must retain its current state and tunnel";
     }
   ]
   ++

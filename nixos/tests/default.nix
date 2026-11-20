@@ -43,7 +43,7 @@ in
   tooling-unit = import ./tooling.nix { inherit pkgs; };
   dotnet-sdk = import ./dotnet.nix { inherit pkgs inputs configurations; };
   rider = import ./rider.nix { inherit pkgs configurations; };
-  work-tailnet-isolation = import ./work-tailnet.nix { inherit pkgs configurations; };
+  work-tailnet-isolation = import ./work-tailnet.nix { inherit pkgs; };
   keyring-unlock = import ./keyring.nix { inherit pkgs; };
   module-contracts = import ./modules.nix {
     inherit pkgs pkgsUnstable configurations;

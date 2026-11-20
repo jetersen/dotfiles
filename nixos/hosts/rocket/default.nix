@@ -9,6 +9,7 @@
   imports = [
     ../../modules/pc2mqtt.nix
     ../../modules/work-tailnet.nix
+    ../../modules/tailscale-multinet.nix
     inputs.self.nixosModules.workstation
     inputs.self.nixosModules.gaming
     ./hardware-configuration.nix
@@ -31,7 +32,7 @@
         '';
   };
   networking.hostName = "rocket";
-  dotfiles.workTailnet.enable = true;
+  dotfiles.tailscaleMultinet.enable = true;
   # Keep the login keyring encrypted; unlock it separately after desktop login.
   services.displayManager.autoLogin = {
     enable = true;
@@ -52,8 +53,6 @@
   boot.loader.efi.canTouchEfiVariables = true;
   # Hide the menu; hold Space at startup to select an older NixOS generation.
   boot.loader.timeout = 0;
-  # Desktop startup does not require an established network connection.
-  systemd.services.NetworkManager-wait-online.enable = false;
 
   # Match the preserved home/data ownership rather than NixOS's default primary group.
   users.groups.joseph.gid = 1000;

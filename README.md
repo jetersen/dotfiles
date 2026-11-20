@@ -172,37 +172,49 @@ T3 uses the upstream renderer from each release. For agent automation on a conne
 environment, choose "Open in [environment]'s browser" from the browser tab's menu.
 Desktop tabs have separate login state and cannot be automated remotely.
 
-### Framework simultaneous tailnets
+### Shared simultaneous tailnets
 
-Framework uses the experimental Linux multi-profile build at
-`3dc0f9b6f29f47c61a348d13857096e48b6e516a`, compiled with
-`ts_experimental_multi_profile`. This is a host-specific experiment, not an
-upstream supported release. The package contains the exact static CLI and daemon;
-its recursive hash pins both. It is substituted from the private workstation
-cache, without publishing the unpublished source through the GitHub mirror.
-A cache miss fails closed. Before changing the package pin, verify both binaries,
-seed the matching fixed-output store path in Attic, and test a fresh download.
-Keep the corresponding source archive and build toolchain with private backups.
+Rocket and Framework use `nixos/modules/tailscale-multinet.nix` and the same
+private experimental Tailscale package, pinned in
+`nixos/packages/tailscale-multinet.nix`. The build requires
+`ts_experimental_multi_profile`; this is not an upstream supported release.
+The package pins the exact static CLI and daemon by recursive hash. CI substitutes
+it from the private workstation cache without publishing unpublished source
+through the GitHub mirror. A cache miss fails closed. Before replacing the pin,
+verify both binaries, seed the fixed-output store path in Attic, and test a fresh
+download. Retain the source archive and build toolchain privately.
 
-`tailscale-multi-profile.service` runs one daemon for the personal and work
-tailnets. Tailscale handles their DNS, with the primary profile's configured DNS
-preferred while connected. NetworkManager maintains ordinary network DNS in its
-live resolver file; Tailscale restores that link when stopped. No dnsdist,
-separate work daemon, custom portal checker or automatic DNS ownership handover
-runs on Framework. Captive portal detection uses Tailscale's built-in,
-connectivity-triggered behavior.
+`tailscale-multi-profile.service` runs one daemon for both tailnets;
+`tailscaled.service` aliases that same unit for existing integrations. Tailscale
+handles DNS, preferring the primary profile's configured DNS while connected.
+NetworkManager maintains ordinary DHCP DNS in its live resolver file, and
+Tailscale restores that link when stopped. Neither host runs a separate work
+daemon, dnsdist, a custom portal checker or a DNS ownership controller. Captive
+portal detection uses Tailscale's built-in, connectivity-triggered behavior.
+The direct DNS manager uses `/run/NetworkManager/no-stub-resolv.conf` as its
+baseline; `dns=none` prevents competing writes to Tailscale's resolver file.
+Systemd-resolved and NetworkManager's own HTTP connectivity checking are disabled.
 
-The pinned experimental build supports direct DNS management but cannot capture
-base DNS through systemd-resolved, so the disconnected baseline uses
-NetworkManager's live DHCP DNS directly. `dns=none` prevents competing writes to
-Tailscale's managed resolver file while NM continues publishing DHCP information.
+Each host keeps its private credentials and explicit attachment selection.
+Framework retains `/var/lib/tailscale-multi-profile-test` and `tailscale-mp`.
+Rocket uses `/var/lib/tailscale-multi-profile` and retains `tailscale0` for its
+existing firewall rules. Its personal and work states originate from
+`/var/lib/tailscale` and `/var/lib/tailscale-work`; these have independent machine
+keys. Import them only with the validated migration tool for the pinned build.
+Preserve both original node identities, per-profile machine keys and personal
+Serve configuration, including its certificate directory. Map SSH keys, profile
+data and other var-root dependencies explicitly; reject unmapped credential
+directories. Do not merge state catalogs by hand or enroll a replacement
+work device. Keep private rollback snapshots outside the Nix store, stop original
+writers before cutover, and use the matching export procedure to retain current
+credentials if rolling back after the new daemon has written state.
 
-The existing credentials and explicit attached selection stay in
-`/var/lib/tailscale-multi-profile-test`; saved-only profiles remain disconnected.
-Use `tailscale network status` to inspect the active profiles. Stop or start
-`tailscale-multi-profile.service` to disconnect or reconnect both. Updates stop
-the daemon only before activating a different cached system, then restart it if
-it was running. The experimental pin has no supported hard-crash repair path.
+Startup requires a pre-existing nonempty state file; no enrollment command or
+auth key is configured. Saved-only profiles remain disconnected. Use `tailscale network status`
+to inspect active profiles and `tailscale switch --list --json` to discover IDs.
+Stop/start `tailscale-multi-profile.service` to disconnect/reconnect both tailnets.
+Updates cache the target system before stopping the daemon, then restart it if it
+was running. Restarts remain explicit for this experimental deployment.
 
 ### Rocket dictation
 
@@ -239,73 +251,17 @@ System and nested layouts remain monitor-only.
 Confirmed USB removal unmounts the device's filesystems and physical siblings before
 powering it off. Failed unmounts or changed device identities prevent power-off.
 
-Rocket uses LAN routes and the normal systemd-resolved setup; it does not accept
-Tailscale subnet routes. Framework accepts those routes for access away from home.
-SSH aliases use Tailscale names; additional aliases belong in `~/.ssh/local.config`.
+Rocket keeps its personal LAN route preference; Framework accepts personal subnet
+routes for access away from home. Both use Tailscale's advertised work DNS and
+routes. SSH aliases use Tailscale names; additional aliases belong in
+`~/.ssh/local.config`.
 
-Framework uses its shared multinet daemon for both tailnets, described above.
-On Framework, use `tailscale network connect PROFILE` or
-`tailscale network disconnect PROFILE` for the selected work profile; discover
-the exact ID with `tailscale switch --list --json`. The `work-tailnet` skill
-routes commands to the appropriate interface for each machine.
+On either host, use `tailscale network connect PROFILE` or
+`tailscale network disconnect PROFILE` for the saved work profile. Preserve the
+personal primary/preferred selection and leave other saved profiles detached.
+The retired namespace widget and office/presence controller are disabled. The
+`work-tailnet` skill uses the shared daemon's CLI on both hosts.
 
-Rocket keeps the Dux Work Tailnet widget and isolated work instance. On connects,
-Off disconnects, and Auto follows configured office Wi-Fi or fresh Home Assistant
-presence. Rocket defaults to Off; mode choices survive reboot. Sign in with
-`work-tailnet login`, choosing the work tailnet. The CLI also supports
-`work-tailnet on`, `off`, `auto`, and `status`. The following isolation and
-presence settings apply to Rocket's optional work instance.
-
-The first successful connection records its stable tailnet ID and local profile
-in `/var/lib/work-tailnet/tailnet.json`. Subsequent connections must match that
-identity; the personal tailnet is always rejected. No expected company name needs
-to be configured. An optional root-owned `/var/lib/work-tailnet/hostname` file sets the work device's
-name at daemon startup. Keep the name in that machine-local file rather than Nix
-or plugin settings. Without the file, an existing profile keeps its saved name.
-Sign in uses the name prepared by the daemon.
-
-The work daemon has separate account state, socket, network namespace and firewall.
-Apps use normal IPv4/IPv6 connections and fully qualified work DNS names without
-a proxy. Only accepted work routes and work DNS suffixes reach that namespace;
-homelab destinations and directly connected networks take precedence when ranges
-overlap. Linux installs the same generic Tailscale IPv6 `/48` for both instances. The
-controller expands that catch-all into explicit work peer and Service destinations
-from the work daemon's netmap, covered by accepted namespace routes. Personal
-netmap destinations, local routes and homelab subnets remain protected. Table 53
-runs before personal table 52, after Tailscale's marked transport bypass rules;
-unclaimed IPv6 destinations stay personal. Work exit-node/default routes are not exported. Work peers cannot initiate
-connections to host services through this setup. Office detection uses the active
-Wi-Fi connection, not nearby access points, and checks every ten seconds.
-The personal `100.99.0.0/16` IP pool is always excluded from work routes, including
-addresses not currently assigned to a homelab peer. Keeping work node allocations
-outside that pool in the company policy prevents address conflicts; setting an
-IP pool does not renumber existing nodes.
-
-Work split DNS supports both IP resolvers and app-connector HTTP DNS URLs.
-An isolated loopback bridge sends app queries to the advertised peer endpoint,
-preserving connector route discovery. Failed peer lookups return DNS failure
-without falling back to public DNS. DNS replies wait for the corresponding work
-routes to be installed on the host, including newly rotated S3/CDN addresses.
-Application routes use MTU 1280; the namespace transport link uses MTU 1500 so
-encrypted Tailscale packets have room for their tunnel overhead. The transit
-link uses `192.168.77.0/30`; keep that subnet free on Rocket. Link-local
-IPv4 addresses prevent Tailscale from recognizing usable IPv4 for UDP discovery.
-Connected work routes refresh every second; office Wi-Fi detection remains on
-a ten-second interval. While connected, the work MagicDNS suffix is also a
-search domain in systemd-resolved, so short
-names such as `teamcity` resolve alongside personal
-MagicDNS names. Application split-DNS zones remain route-only. Use a full
-MagicDNS name when the same short name exists in both tailnets. Personal DNS
-configuration remains separate.
-
-Home Assistant can optionally deliver location over an existing SSH connection
-as `joseph`: run `work-tailnet presence work --ttl 120` on Rocket every minute
-while the chosen person or phone tracker is at work, and `work-tailnet presence
-away` when it leaves. Presence expires after 120 seconds without a refresh and is
-discarded on controller restart. It affects Auto mode only; no HA token or MQTT
-credential is needed. Use a laptop tracker or office Wi-Fi when the laptop's own
-location matters, rather than the person's location. pc2mqtt remains independent
-of the work connection so homelab monitoring continues.
 `remote-clip framework` transfers a clipboard image or text. From a work-enabled
 machine, `argocd-remote-sso framework` uses its
 browser for SSO and copies only the selected Argo CD context.

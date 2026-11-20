@@ -26,6 +26,11 @@
   };
 
   networking.hostName = "framework";
+  dotfiles.tailscaleMultinet = {
+    enable = true;
+    stateDirectory = "tailscale-multi-profile-test";
+    interfaceName = "tailscale-mp";
+  };
   users.users.joseph.uid = 1000;
   # Authenticate relay connections through the existing tailnet SSH policy.
   services.tailscale.extraSetFlags = [
