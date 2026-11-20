@@ -1,10 +1,10 @@
 # Homelab DNS
 
-NixOS configures these services through `nixos/modules/roaming-dns.nix` and
-`nixos/hosts/rocket/services.nix`. See the root [README](../../../../README.md#work-access-and-dns)
-for DNS routing behavior. NixOS updates the resolver's search domains when the
-work tailnet connects or disconnects. The installer below is for other Linux
-systems; copying dotfiles alone does not configure DNS.
+These files provide an optional, manually installed DNS setup for other Linux
+systems. Copying dotfiles alone does not configure DNS. Framework's NixOS setup
+uses its shared Tailscale daemon for DNS and NetworkManager DNS when stopped;
+it does not install these services. See the root
+[README](../../../../README.md#work-access-and-dns) for NixOS networking.
 
 ## Manual installation
 
