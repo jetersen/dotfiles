@@ -15,6 +15,7 @@ import signal
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
@@ -257,13 +258,20 @@ def upgrade(args, caches):
     print("Selected system is already running; leaving network ownership unchanged.", flush=True)
     return
   verify([target], caches)
-  if prepare:
-    subprocess.run([prepare], check=True)
-  # Verification and activation must select the same commit even if main moves.
-  signal.alarm(0)
-  subprocess.run([
-    args.rebuild, "switch", "--no-write-lock-file", "--flake", f"{flake}#{args.host}",
-  ], check=True)
+  # Keep the downloaded closure rooted until switch creates its generation.
+  with tempfile.TemporaryDirectory(prefix="nixos-upgrade-") as staging:
+    if prepare:
+      # Preparation may stop the connection carrying the private cache.
+      subprocess.run([
+        "nix", "build", "--out-link", str(Path(staging) / "system"), "--no-write-lock-file",
+        f"{flake}#nixosConfigurations.{args.host}.config.system.build.toplevel",
+      ], check=True)
+      subprocess.run([prepare], check=True)
+    # Verification, download and activation select the same immutable commit.
+    signal.alarm(0)
+    subprocess.run([
+      args.rebuild, "switch", "--no-write-lock-file", "--flake", f"{flake}#{args.host}",
+    ], check=True)
 
 
 def refresh(private, public, max_bytes):

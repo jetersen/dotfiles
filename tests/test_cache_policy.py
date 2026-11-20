@@ -283,30 +283,45 @@ class UpgradeTests(unittest.TestCase):
   def test_changed_system_prepares_only_after_cache_verification(self):
     args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
                               rebuild="rebuild", prepare_switch="prepare")
-    events = []
+    events, roots = [], []
+    def execute(argv, **kwargs):
+      events.append(argv[0])
+      if argv[0] == "nix":
+        root = Path(argv[argv.index("--out-link") + 1])
+        root.symlink_to(SYSTEM)
+        roots.append(root)
+      else:
+        self.assertTrue(roots[0].is_symlink(), "download must remain rooted through activation")
     with patch.object(policy.subprocess, "check_output", side_effect=[json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM]), \
          patch.object(policy.Path, "resolve", return_value=Path(CODEX)), \
          patch.object(policy, "verify", side_effect=lambda *a: events.append("cached")), \
-         patch.object(policy.subprocess, "run", side_effect=lambda args, **kw: events.append(args[0])), \
+         patch.object(policy.subprocess, "run", side_effect=execute), \
          patch.object(policy.signal, "alarm"):
       policy.upgrade(args, [])
-    self.assertEqual(events, ["cached", "prepare", "rebuild"])
+    self.assertEqual(events, ["cached", "nix", "prepare", "rebuild"])
+    self.assertFalse(roots[0].parent.exists(), "temporary root must be released afterward")
 
   def test_missing_cache_or_failed_preparation_never_switches(self):
     args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
                               rebuild="rebuild", prepare_switch="prepare")
-    for failure in ("cache", "prepare"):
+    for failure in ("cache", "download", "prepare"):
+      def execute(argv, **kwargs):
+        if argv[0] == ("nix" if failure == "download" else "prepare"):
+          raise RuntimeError(failure)
       with self.subTest(failure=failure), \
            patch.object(policy.subprocess, "check_output", side_effect=[json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM]), \
            patch.object(policy.Path, "resolve", return_value=Path(CODEX)), \
            patch.object(policy, "verify", side_effect=RuntimeError("cache") if failure == "cache" else None), \
-           patch.object(policy.subprocess, "run", side_effect=RuntimeError("prepare")) as run:
+           patch.object(policy.subprocess, "run", side_effect=execute) as run:
         with self.assertRaises(RuntimeError):
           policy.upgrade(args, [])
         if failure == "cache":
           run.assert_not_called()
         else:
-          run.assert_called_once_with(["prepare"], check=True)
+          self.assertEqual(run.call_args_list[0].args[0][0], "nix")
+          self.assertEqual(run.call_count, 1 if failure == "download" else 2)
+          if failure == "prepare":
+            self.assertEqual(run.call_args.args[0], ["prepare"])
 
   def test_existing_revision_is_replaced(self):
     result = policy.pinned_flake("git+https://example.test/repo?ref=main&rev=" + "a" * 40, "b" * 40)
