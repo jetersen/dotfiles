@@ -243,6 +243,7 @@ let
         && daemon.serviceConfig.StateDirectory == "tailscale-multi-profile-test"
         && daemon.serviceConfig.RuntimeDirectory == "tailscale"
         && daemon.serviceConfig.Restart == "no"
+        && builtins.elem (toString configurations.framework.pkgs.getent) (map toString daemon.path)
         && !framework.services.tailscale.enable
         && !framework.services.resolved.enable
         && framework.networking.networkmanager.dns == "none"

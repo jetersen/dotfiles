@@ -38,6 +38,7 @@ in
       pkgs.iproute2
       pkgs.iptables
       pkgs.kmod
+      pkgs.getent
     ];
     # Keep the existing authenticated state and saved explicit attachment set.
     serviceConfig = {
