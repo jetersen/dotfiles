@@ -1,157 +1,87 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+# One daemon owns both tailnets and their DNS. NetworkManager supplies ordinary
+# DHCP DNS while it is stopped; captive portal detection belongs to Tailscale.
+{ lib, pkgs, ... }:
 let
   package = pkgs.callPackage ../packages/tailscale-multinet.nix { };
-  marker = "/run/tailscale-multinet/owns-dns";
-  native = [
-    "work-tailnet-netns"
-    "tailscaled"
-    "tailscaled-work"
-    "work-tailnet-peer-dns"
-    "work-tailnet-dns"
-    "work-tailnet"
-    "homelab-dns-resolv"
-    "homelab-portal-dns"
-    "dnsdist"
-    "tailscaled-set"
-  ];
-  control = pkgs.writeShellApplication {
-    name = "tailscale-multinet";
-    runtimeInputs = [
-      pkgs.python3
-      pkgs.systemd
-      pkgs.iproute2
-      pkgs.iptables
-      pkgs.dig
-    ];
-    text = ''
-      if [[ "''${1-}" == --check-runtime ]]; then
-        for executable in python3 systemctl busctl ip iptables-save ip6tables-save dig; do
-          command -v "$executable" >/dev/null
-        done
-        exit 0
-      fi
-      export MULTINET_PACKAGE=${package}
-      exec python3 ${./tailscale-multinet/control.py} "$@"
-    '';
-  };
-  job = action: {
-    path = [ pkgs.systemd ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${lib.getExe control} ${action}";
-      TimeoutStartSec = "8min";
-      UMask = "0077";
-    };
-  };
+  upgradeMarker = "/run/tailscale-multinet-upgrade";
 in
 {
-  # The native DNS object is immutable and can be restored atomically. Tailscale
-  # replaces the /etc link, never its store target, only while it owns DNS.
-  environment.etc."resolv.conf" = {
-    source = lib.mkForce (
-      pkgs.writeText "framework-native-resolv.conf" ''
-        nameserver 127.0.0.2
-        search rockhopper-bleak.ts.net
-        options timeout:2 attempts:2
-      ''
-    );
+  # The pinned experimental build supports the direct DNS manager, but cannot
+  # capture base DNS through systemd-resolved. NM still updates its live file
+  # with dns=none; this link avoids competing writes to Tailscale's resolv.conf.
+  services.resolved.enable = lib.mkForce false;
+  networking.networkmanager.dns = lib.mkForce "none";
+  networking.resolvconf.enable = false;
+  environment.etc."resolv.conf".source = "/run/NetworkManager/no-stub-resolv.conf";
+  networking.networkmanager.settings.connectivity.enabled = false;
+
+  services.tailscale = {
+    enable = lib.mkForce false;
+    package = lib.mkForce package;
   };
-  environment.systemPackages = [ control ];
+  networking.firewall.allowedUDPPorts = [ 41641 ];
+  environment.systemPackages = [ package ];
   home-manager.users.joseph.home.file.".local/bin/tailscale-experimental" = {
     source = "${package}/bin/tailscale";
     force = true;
   };
-  systemd.tmpfiles.rules = [ "d /run/tailscale-multinet 0700 root root -" ];
-  systemd.services =
-    (lib.genAttrs native (_: {
-      unitConfig.ConditionPathExists = "!${marker}";
-    }))
-    // {
-      tailscale-multi-profile = {
-        description = "Experimental simultaneous Linux tailnets (3dc0f9b6f)";
-        unitConfig = {
-          ConditionPathExists = marker;
-          OnFailure = "tailscale-multinet-recover.service";
-        };
-        environment = {
-          TS_NO_LOGS_NO_SUPPORT = "true";
-          TS_DISABLE_UPNP = "true";
-        };
-        path = [
-          pkgs.iproute2
-          pkgs.iptables
-          pkgs.kmod
-        ];
-        serviceConfig = {
-          ExecStart = "${package}/bin/tailscaled --experimental-multi-profile --encrypt-state=false --state=/var/lib/tailscale-multi-profile-test/tailscaled.state --statedir=/var/lib/tailscale-multi-profile-test --socket=/run/tailscale/tailscaled.sock --tun=tailscale-mp --port=41641";
-          Restart = "no";
-          TimeoutStopSec = "60s";
-          KillMode = "control-group";
-          UMask = "0077";
-        };
-      };
-      tailscale-multinet-start = lib.recursiveUpdate (job "start") {
-        unitConfig.OnFailure = "tailscale-multinet-recover.service";
-      };
-      tailscale-multinet-recover = lib.recursiveUpdate (job "recover") {
-        unitConfig.StartLimitIntervalSec = 0;
-        serviceConfig = {
-          Restart = "on-failure";
-          RestartSec = "20s";
-        };
-      };
-      tailscale-multinet-portal-mode = {
-        description = "Guarded native portal and simultaneous-tailnet ownership";
-        wantedBy = [ "multi-user.target" ];
-        after = [
-          "NetworkManager.service"
-          "network-online.target"
-        ];
-        wants = [ "network-online.target" ];
-        unitConfig.OnFailure = "tailscale-multinet-recover.service";
-        serviceConfig = {
-          ExecStart = "${lib.getExe control} monitor";
-          Restart = "no";
-        };
-      };
-      nixos-upgrade.serviceConfig.ExecStopPost = lib.mkAfter [
-        (lib.getExe (
-          pkgs.writeShellApplication {
-            name = "multinet-finish-upgrade";
-            runtimeInputs = [
-              pkgs.systemd
-              pkgs.coreutils
-            ];
-            text = ''
-              if [[ -e /run/tailscale-multinet/upgrade-paused ]]; then
-                rm /run/tailscale-multinet/upgrade-paused
-                systemctl --no-block start tailscale-multinet-portal-mode.service
-              fi
-            '';
-          }
-        ))
-      ];
+  systemd.services.tailscale-multi-profile = {
+    description = "Experimental simultaneous Tailscale profiles";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "NetworkManager-wait-online.service" ];
+    wants = [ "NetworkManager-wait-online.service" ];
+    environment = {
+      TS_NO_LOGS_NO_SUPPORT = "true";
+      TS_DISABLE_UPNP = "true";
     };
+    path = [
+      pkgs.iproute2
+      pkgs.iptables
+      pkgs.kmod
+    ];
+    # Keep the existing authenticated state and saved explicit attachment set.
+    serviceConfig = {
+      ExecStart = "${package}/bin/tailscaled --experimental-multi-profile --encrypt-state=false --state=/var/lib/tailscale-multi-profile-test/tailscaled.state --statedir=/var/lib/tailscale-multi-profile-test --socket=/run/tailscale/tailscaled.sock --tun=tailscale-mp --port=41641";
+      StateDirectory = "tailscale-multi-profile-test";
+      StateDirectoryMode = "0700";
+      RuntimeDirectory = "tailscale";
+      RuntimeDirectoryMode = "0755";
+      # This experimental pin has no supported hard-crash repair path.
+      Restart = "no";
+      TimeoutStopSec = "60s";
+    };
+  };
+
+  # Let Tailscale restore ordinary DNS before activation replaces /etc. Run only
+  # for a different cached system; same-revision notifications leave it alone.
   dotfiles.gitops.prepareSwitch = pkgs.writeShellApplication {
-    name = "multinet-prepare-upgrade";
+    name = "tailscale-prepare-upgrade";
     runtimeInputs = [
       pkgs.systemd
       pkgs.coreutils
     ];
     text = ''
-      touch /run/tailscale-multinet/upgrade-paused
-      systemctl stop tailscale-multinet-portal-mode.service
-      systemctl start tailscale-multinet-recover.service
+      if systemctl --quiet is-active tailscale-multi-profile.service; then
+        touch ${upgradeMarker}
+        systemctl stop tailscale-multi-profile.service
+      fi
     '';
   };
-  systemd.paths.homelab-dns-resolv.unitConfig.ConditionPathExists = "!${marker}";
-  systemd.timers.tailscale-multinet-deadline.timerConfig = {
-    OnActiveSec = "12min";
-    Unit = "tailscale-multinet-recover.service";
-  };
+  systemd.services.nixos-upgrade.serviceConfig.ExecStopPost = lib.mkAfter [
+    (lib.getExe (
+      pkgs.writeShellApplication {
+        name = "tailscale-finish-upgrade";
+        runtimeInputs = [
+          pkgs.systemd
+          pkgs.coreutils
+        ];
+        text = ''
+          if [[ -e ${upgradeMarker} ]]; then
+            rm ${upgradeMarker}
+            systemctl --no-block start tailscale-multi-profile.service
+          fi
+        '';
+      }
+    ))
+  ];
 }

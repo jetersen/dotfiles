@@ -16,7 +16,6 @@
     inputs.nixos-hardware.nixosModules.framework-intel-core-ultra-series3
     ./hardware-configuration.nix
     ../../modules/tailscale-multinet.nix
-    ../../modules/roaming-dns.nix
     ./disk.nix
   ];
 
@@ -27,11 +26,6 @@
   };
 
   networking.hostName = "framework";
-  dotfiles.workTailnet = {
-    enable = true;
-    defaultMode = "auto";
-    officeSsids = [ "MSP" ];
-  };
   users.users.joseph.uid = 1000;
   # Authenticate relay connections through the existing tailnet SSH policy.
   services.tailscale.extraSetFlags = [

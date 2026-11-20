@@ -90,8 +90,6 @@ let
     }
   );
   framework = configurations.framework.config;
-  dns = framework.systemd.services.dnsdist;
-  resolver = framework.systemd.services.homelab-dns-resolv;
   rocket = configurations.rocket.config;
   runner = rocket.systemd.services.forgejo-runner;
   assertions = [
@@ -241,47 +239,23 @@ let
           daemon = services.tailscale-multi-profile;
         in
         lib.hasInfix "--experimental-multi-profile --encrypt-state=false" daemon.serviceConfig.ExecStart
-        && daemon.wantedBy == [ ]
-        && (framework.systemd.services.nixos-upgrade.serviceConfig.ExecStartPre or [ ]) == [ ]
-        && framework.dotfiles.gitops.prepareSwitch != null
-        && rocket.dotfiles.gitops.prepareSwitch == null
-        && lib.hasInfix "--prepare-switch" framework.systemd.services.nixos-upgrade.script
-        && !(framework.systemd.services ? tailscaled-autoconnect)
+        && daemon.wantedBy == [ "multi-user.target" ]
+        && daemon.serviceConfig.StateDirectory == "tailscale-multi-profile-test"
+        && daemon.serviceConfig.RuntimeDirectory == "tailscale"
         && daemon.serviceConfig.Restart == "no"
-        && daemon.unitConfig.OnFailure == "tailscale-multinet-recover.service"
-        && services.tailscale-multinet-recover.serviceConfig.Restart == "on-failure"
-        && framework.systemd.timers.tailscale-multinet-deadline.timerConfig.OnActiveSec == "12min"
-        && services.tailscaled.unitConfig.ConditionPathExists == "!/run/tailscale-multinet/owns-dns"
-        && services.dnsdist.unitConfig.ConditionPathExists == "!/run/tailscale-multinet/owns-dns";
-      message = "Framework experimental DNS must retain exclusive ownership and independent native recovery";
-    }
-    {
-      assertion = configurations.framework.pkgs.dnsdist.drvPath == pkgsUnstable.dnsdist.drvPath;
-      message = "DNS tests and service must use the selected DNS package";
-    }
-    {
-      assertion =
-        builtins.elem "homelab-dns-resolv.service" dns.requires
-        && builtins.elem "homelab-dns-resolv.service" dns.after;
-      message = "DNS must require the published resolver file";
-    }
-    {
-      assertion =
-        resolver.serviceConfig.Type == "oneshot"
-        && resolver.serviceConfig.RuntimeDirectoryPreserve == "yes"
-        &&
-          framework.systemd.paths.homelab-dns-resolv.pathConfig.PathChanged
-          == "/run/work-tailnet/search-domain.json";
-      message = "Work search-domain changes must refresh the persistent runtime resolver file";
-    }
-    {
-      assertion =
-        lib.hasSuffix "framework-native-resolv.conf" (
-          toString framework.environment.etc."resolv.conf".source
-        )
-        && resolver.serviceConfig.RuntimeDirectory == "homelab-dns"
-        && resolver.serviceConfig.RuntimeDirectoryMode == "0755";
-      message = "Framework must retain an immutable native resolver object for recovery";
+        && !framework.services.tailscale.enable
+        && !framework.services.resolved.enable
+        && framework.networking.networkmanager.dns == "none"
+        && !framework.networking.networkmanager.settings.connectivity.enabled
+        && framework.environment.etc."resolv.conf".source == "/run/NetworkManager/no-stub-resolv.conf"
+        && !(services ? tailscale-multinet-portal-mode)
+        && !(services ? tailscaled-work)
+        && !(services ? dnsdist)
+        && !(services ? homelab-portal-dns)
+        && !(services ? tailscale-multinet-recover)
+        && framework.dotfiles.gitops.prepareSwitch != null
+        && rocket.dotfiles.gitops.prepareSwitch == null;
+      message = "Framework must use one multinet daemon, live DHCP fallback DNS and Tailscale portal detection";
     }
   ]
   ++
@@ -410,12 +384,5 @@ pkgs.runCommand "module-contract-checks"
     };
   }
   ''
-    ${pkgs.coreutils}/bin/env -i ${
-      lib.getExe (
-        lib.findFirst (
-          p: p.name == "tailscale-multinet"
-        ) (throw "multinet controller package missing") framework.environment.systemPackages
-      )
-    } --check-runtime
     printf '%s\n' "$contracts" > "$out"
   ''
