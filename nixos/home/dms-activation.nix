@@ -87,13 +87,13 @@ let
     '';
   };
   plugins = {
+    workTailnet.enabled = osConfig.dotfiles.workTailnet.enable;
     emojiPicker = {
       enabled = true;
       defaultAction = "paste";
     };
   }
-  // lib.optionalAttrs osConfig.dotfiles.work.enable { storageMonitor.enabled = true; }
-  // lib.optionalAttrs osConfig.dotfiles.workTailnet.enable { workTailnet.enabled = true; };
+  // lib.optionalAttrs osConfig.dotfiles.work.enable { storageMonitor.enabled = true; };
   pluginSettings = pkgs.writeText "dms-plugins.json" (builtins.toJSON plugins);
   configurePlugins = pkgs.writeShellApplication {
     name = "configure-dms-plugins";
