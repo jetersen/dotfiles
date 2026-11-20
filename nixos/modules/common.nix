@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [
@@ -6,12 +6,15 @@
     "flakes"
   ];
   nix.optimise.automatic = true;
-  # Comin retains rollback generations; collect only paths no longer rooted.
+  # Bound system history while retaining recent rollbacks and the booted system.
   nix.gc = {
     automatic = true;
     dates = "weekly";
     randomizedDelaySec = "1h";
   };
+  systemd.services.nix-gc.preStart = ''
+    ${pkgs.python3}/bin/python3 ${./prune-system-generations.py} --nix-env ${config.nix.package}/bin/nix-env
+  '';
 
   time.timeZone = "Europe/Copenhagen";
   i18n.defaultLocale = "en_DK.UTF-8";

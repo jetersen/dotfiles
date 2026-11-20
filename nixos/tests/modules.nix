@@ -75,6 +75,12 @@ let
         retireDesktop = c.systemd.services.retire-comin-desktop.serviceConfig.ExecStart;
         compatMachineId = c.services.comin.machineId;
       };
+      gc = {
+        automatic = c.nix.gc.automatic;
+        dates = c.nix.gc.dates;
+        options = c.nix.gc.options;
+        preStart = c.systemd.services.nix-gc.preStart;
+      };
       mqtt = {
         credential = c.systemd.services.pc2mqtt.serviceConfig.LoadCredential;
         config = c.systemd.services.pc2mqtt.environment.PC2MQTT_CONFIG;
@@ -93,6 +99,16 @@ let
   rocket = configurations.rocket.config;
   runner = rocket.systemd.services.forgejo-runner;
   assertions = [
+    {
+      assertion = lib.all (
+        host:
+        host.gc.automatic
+        && host.gc.dates == [ "weekly" ]
+        && host.gc.options == ""
+        && lib.hasInfix "prune-system-generations.py" host.gc.preStart
+      ) (builtins.attrValues hosts);
+      message = "Weekly GC must prune only system history before collecting unrooted paths";
+    }
     {
       assertion = lib.all (c: !c.programs.openvpn3.enable && !(c.systemd.services ? homelab-dns-vpn)) [
         rocket

@@ -5,7 +5,8 @@
 }:
 let
   configurations = inputs.self.nixosConfigurations;
-  sharedUiDependency = name: source:
+  sharedUiDependency =
+    name: source:
     let
       releaseLock = builtins.fromJSON (builtins.readFile "${source}/flake.lock");
     in
@@ -48,6 +49,13 @@ in
     inherit pkgs pkgsUnstable configurations;
     pc2mqtt = inputs.self.packages.x86_64-linux.pc2mqtt;
   };
+  system-generation-retention = pkgs.runCommand "system-generation-retention" { } ''
+    mkdir -p modules tests
+    cp ${../modules/prune-system-generations.py} modules/prune-system-generations.py
+    cp ${./prune-system-generations.py} tests/prune-system-generations.py
+    ${pkgs.python3}/bin/python3 tests/prune-system-generations.py
+    touch "$out"
+  '';
   # These exact packages already run their native suites during system builds.
   # Referencing them here also makes a standalone flake check execute the tests,
   # with Nix sharing/substituting the same outputs rather than running them twice.

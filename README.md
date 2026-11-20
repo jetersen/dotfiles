@@ -356,6 +356,10 @@ binary becomes available upstream, allowing those duplicates to expire too. Host
 offline for more than the retention period can lose remote cache entries; their
 installed generations remain in the local store.
 
+Weekly Nix GC prunes the system profile to seven days of history, keeping at least
+the newest five generations and every generation matching the booted, running or
+selected system. User profiles and development GC roots are left intact.
+
 CI plans Framework, dynamically discovered checks, Rust dependencies, development
 shells and both Proton outputs alongside a separate Rocket planner. The two native
 planners use separate persistent evaluation caches. Once both succeed, CI roots
