@@ -20,12 +20,25 @@
       "customType": "jsonata",
       "fileFormat": "json",
       "managerFilePatterns": [
-        "/^nixos/packages/claude-code-manifest\\.json$/",
-        "/^nixos/packages/workstation-manifest\\.json$/"
+        "/^nixos/packages/claude-code-manifest\\.json$/"
       ],
       "matchStrings": [
-        "[{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}, {\"depName\": t3code.repo, \"currentValue\": t3code.version}][currentValue]"
+        "[{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}][currentValue]"
       ],
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Update the T3 Code CLI and AppImage from the same tag",
+      "managerFilePatterns": [
+        "/^flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "t3code-cli = \\{\\s+url = \"file\\+https://github\\.com/pingdotgg/t3code/releases/download/v(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)/t3-[0-9.]+-linux-x64\\.tar\\.gz\";\\s+flake = false;\\s+\\};\\s+t3code-desktop = \\{\\s+url = \"file\\+https://github\\.com/pingdotgg/t3code/releases/download/v[0-9.]+/T3-Code-x86_64\\.AppImage\""
+      ],
+      "depNameTemplate": "pingdotgg/t3code",
       "datasourceTemplate": "github-releases",
       "extractVersionTemplate": "^v(?<version>.*)$",
       "versioningTemplate": "semver"
@@ -107,20 +120,6 @@
     },
     {
       "matchPackageNames": [
-        "pingdotgg/t3code"
-      ],
-      "postUpgradeTasks": {
-        "commands": [
-          "nixos/packages/update-t3code.sh {{newVersion}}"
-        ],
-        "fileFilters": [
-          "nixos/packages/workstation-manifest.json"
-        ],
-        "executionMode": "update"
-      }
-    },
-    {
-      "matchPackageNames": [
         "anthropics/claude-code"
       ],
       "postUpgradeTasks": {
@@ -137,7 +136,11 @@
       "matchManagers": [
         "custom.regex"
       ],
+      "matchFileNames": [
+        "flake.nix"
+      ],
       "matchDatasources": [
+        "github-releases",
         "github-tags",
         "nuget"
       ],

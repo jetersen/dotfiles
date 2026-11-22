@@ -23,11 +23,5 @@
     "repo": "GloriousEggroll/proton-ge-custom",
     "version": "GE-Proton11-12",
     "sha512": "2e37447902529c9fc39138dc0b3f24aed3513b59a190b825e6b4a668e49e2033bdf6b8a7998e8686e067bbb3f61f3a6633e2408f0cc96f6dad983bd18e2db31e"
-  },
-  "t3code": {
-    "repo": "pingdotgg/t3code",
-    "version": "v0.1.9",
-    "cliSha256": "0141025335da334759cecd8db3483e09772f3600ca03674698524e7d94291362",
-    "desktopSha256": "d0ab56df3e338f242848435621297fd963a33715b0d8208dbf08399659572d81"
   }
 }

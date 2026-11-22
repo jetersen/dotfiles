@@ -75,8 +75,7 @@ For a single remote command, use `ssh -t HOST unlock-keyring`, then run
 `gh auth status`. Avoid `gnome-keyring-daemon --unlock`, which can start a second
 daemon. NixOS supplies the helper's Python and D-Bus dependencies; other Linux
 installations need Python 3 and `dbus-python`.
-T3's background GitHub token lookup fails promptly while the login keyring is
-locked. Unlock it once after automatic login to enable GitHub access in T3.
+Unlock the keyring after automatic login if T3 needs stored GitHub credentials.
 
 Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select
 monitor and workspace preferences. DMS-generated bindings and display settings
@@ -132,11 +131,11 @@ The gaming profile provides Steam, GE-Proton, Protontricks, and Lutris. Select
 GE-Proton per game in Steam. Local VMs use unprivileged QEMU through libvirt and
 virt-manager; the standard NAT network autostarts.
 
-Claude, Codex, and T3 Code update through Nix. Renovate updates Claude and T3's
-upstream versions and Linux artifact hashes; Claude's manifest stores only the
-version and x86_64 Linux checksum. Codex and Zed use the pinned master package set.
-For manual updates, run `nixos/packages/update-claude-code.sh [VERSION]` or
-`nixos/packages/update-t3code.sh VERSION`, then push for CI deployment.
+Renovate updates the T3 Code CLI and AppImage together. Nix locks both release
+files in `flake.lock`. Codex and Zed follow nixpkgs master. Renovate updates
+Claude's version and x86_64 Linux checksum.
+For a manual Claude update, run `nixos/packages/update-claude-code.sh [VERSION]`
+and push for CI deployment.
 Credentials and sessions remain local.
 
 Agent skills live under `home/dot_agents/skills/`, shared by Codex and Claude

@@ -1,8 +1,6 @@
 {
   lib,
-  stdenvNoCC,
   stdenv,
-  fetchurl,
   appimageTools,
   autoPatchelfHook,
   musl,
@@ -14,40 +12,29 @@
   fish,
   codex,
   claude-code,
-  python3,
-  writeShellScriptBin,
+  cliArchive,
+  cliUrl,
+  desktopImage,
+  desktopUrl,
 }:
 let
-  manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).t3code;
-  version = lib.removePrefix "v" manifest.version;
-  backgroundGh = writeShellScriptBin "gh" ''
-    exec ${python3.withPackages (ps: [ ps.dbus-python ])}/bin/python3 ${./t3-gh.py} ${gh}/bin/gh "$@"
-  '';
+  releaseUrl = "https://github.com/pingdotgg/t3code/releases/download";
+  cliVersions = builtins.match "${releaseUrl}/v([0-9]+[.][0-9]+[.][0-9]+)/t3-([0-9]+[.][0-9]+[.][0-9]+)-linux-x64[.]tar[.]gz" cliUrl;
+  version = builtins.head cliVersions;
   runtimePackages = [
     git
-    backgroundGh
+    gh
     fish
     codex
     claude-code
   ];
-  cliSource = stdenvNoCC.mkDerivation {
-    pname = "t3code-cli-source";
-    inherit version;
-    src = fetchurl {
-      url = "https://github.com/${manifest.repo}/releases/download/v${version}/t3-${version}-linux-x64.tar.gz";
-      sha256 = manifest.cliSha256;
-    };
-    dontBuild = true;
-    installPhase = ''
-      mkdir -p "$out"
-      cp -r . "$out/"
-    '';
-  };
   cli = stdenv.mkDerivation {
     pname = "t3";
     inherit version;
-    src = cliSource;
-    dontUnpack = true;
+    src = cliArchive;
+    # Non-flake file inputs have no filename extension in the store.
+    unpackCmd = ''mkdir source; tar -xzf "$curSrc" -C source --strip-components=1'';
+    sourceRoot = "source";
     dontBuild = true;
     # The standalone executable contains its JavaScript payload after the ELF data.
     dontStrip = true;
@@ -64,7 +51,7 @@ let
     installPhase = ''
       runHook preInstall
       mkdir -p "$out/lib/t3" "$out/bin"
-      cp -r "$src/"* "$out/lib/t3/"
+      cp -r . "$out/lib/t3/"
       chmod -R u+w "$out/lib/t3"
       makeWrapper "$out/lib/t3/t3" "$out/bin/t3" \
         --set T3CODE_DISABLE_AUTO_UPDATE 1 \
@@ -74,13 +61,9 @@ let
     doInstallCheck = true;
     installCheckPhase = ''
       runHook preInstallCheck
-      "$out/bin/t3" --version
+      test "$("$out/bin/t3" --version)" = "t3 v${version}"
       runHook postInstallCheck
     '';
-  };
-  desktopImage = fetchurl {
-    url = "https://github.com/${manifest.repo}/releases/download/v${version}/T3-Code-${version}-x86_64.AppImage";
-    sha256 = manifest.desktopSha256;
   };
   desktopContents = appimageTools.extract {
     pname = "t3code-desktop";
@@ -98,6 +81,11 @@ let
     '';
   };
 in
+assert lib.assertMsg (
+  cliVersions != null
+  && version == builtins.elemAt cliVersions 1
+  && desktopUrl == "${releaseUrl}/v${version}/T3-Code-x86_64.AppImage"
+) "The T3 Code CLI and desktop inputs must select the same release.";
 symlinkJoin {
   name = "t3code-${version}";
   inherit version;
@@ -116,7 +104,6 @@ symlinkJoin {
       --replace-fail 'Exec=AppRun %U' "Exec=$out/bin/t3code-desktop %U"
     install -Dm644 ${desktopContents}/t3code.png "$out/share/pixmaps/t3code.png"
   '';
-  passthru = { inherit cliSource; };
   meta = {
     description = "T3 Code desktop and CLI from the same upstream release";
     homepage = "https://github.com/pingdotgg/t3code";

@@ -623,6 +623,8 @@
         "skill-finder": "skill-finder",
         "snitch-source": "snitch-source",
         "sops-nix": "sops-nix",
+        "t3code-cli": "t3code-cli",
+        "t3code-desktop": "t3code-desktop",
         "zen-browser": "zen-browser"
       }
     },
@@ -704,6 +706,30 @@
         "shallow": true,
         "type": "git",
         "url": "https://github.com/Mic92/sops-nix.git"
+      }
+    },
+    "t3code-cli": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-gWpW2zRaE3IyTGHhVxxUng6T+J2Zdgq/t7ts2oYfc4U=",
+        "type": "file",
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.11/t3-0.1.11-linux-x64.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.11/t3-0.1.11-linux-x64.tar.gz"
+      }
+    },
+    "t3code-desktop": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-NcIXLq3nVjKtz3PrIrclYGmKAQEIvfjAC2wLKPoWPIA=",
+        "type": "file",
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.11/T3-Code-x86_64.AppImage"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.11/T3-Code-x86_64.AppImage"
       }
     },
     "zen-browser": {

@@ -15,12 +15,7 @@ class PackageUpdates(unittest.TestCase):
     self.temporary = tempfile.TemporaryDirectory()
     self.addCleanup(self.temporary.cleanup)
     self.directory = Path(self.temporary.name)
-    for name in (
-      "update-claude-code.sh",
-      "update-t3code.sh",
-      "claude-code-manifest.json",
-      "workstation-manifest.json",
-    ):
+    for name in ("update-claude-code.sh", "claude-code-manifest.json"):
       shutil.copy2(PACKAGES / name, self.directory / name)
     self.fixture = self.directory / "response.json"
     curl = self.directory / "curl"
@@ -82,32 +77,6 @@ class PackageUpdates(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(output.read_bytes(), before)
-
-  def test_t3_updates_both_hashes_and_preserves_other_packages(self):
-    output = self.directory / "workstation-manifest.json"
-    before = json.loads(output.read_text())
-    response = {
-      "assets": [
-        {"name": "t3-9.8.7-linux-x64.tar.gz", "digest": "sha256:" + "a" * 64},
-        {"name": "T3-Code-9.8.7-x86_64.AppImage", "digest": "sha256:" + "b" * 64},
-      ]
-    }
-    result = self.run_update("update-t3code.sh", response, "9.8.7")
-    self.assertEqual(result.returncode, 0, result.stderr)
-    before["t3code"] = {
-      "repo": "pingdotgg/t3code",
-      "version": "v9.8.7",
-      "cliSha256": "a" * 64,
-      "desktopSha256": "b" * 64,
-    }
-    self.assertEqual(json.loads(output.read_text()), before)
-
-  def test_t3_missing_artifact_preserves_pin(self):
-    output = self.directory / "workstation-manifest.json"
-    before = output.read_bytes()
-    result = self.run_update("update-t3code.sh", {"assets": []}, "9.8.7")
-    self.assertNotEqual(result.returncode, 0)
-    self.assertEqual(output.read_bytes(), before)
 
 
 if __name__ == "__main__":

@@ -40,9 +40,7 @@ let
         "nixos/hosts/rocket/t3code-idle-update.py"
         "nixos/home/wayland-clipboard.py"
         "nixos/packages/update-claude-code.sh"
-        "nixos/packages/update-t3code.sh"
         "nixos/packages/claude-code-manifest.json"
-        "nixos/packages/workstation-manifest.json"
       ]
   );
 in

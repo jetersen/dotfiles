@@ -42,7 +42,6 @@ let
   };
 in
 {
-  # Claude and T3 use upstream release pins; Codex uses nixpkgs master.
   home.packages = [
     claudeCode
     dotfilesPackages.codex

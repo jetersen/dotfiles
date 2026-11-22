@@ -8,8 +8,7 @@ pkgs.runCommand "keyring-unlock-checks"
     ];
   }
   ''
-    mkdir -p source/home/dot_local/bin source/tests source/nixos/packages
-    cp ${../packages/t3-gh.py} source/nixos/packages/t3-gh.py
+    mkdir -p source/home/dot_local/bin source/tests
     cp ${../../home/dot_local/bin/executable_unlock-keyring} source/home/dot_local/bin/executable_unlock-keyring
     cp ${../../tests/test_keyring_unlock.py} source/tests/test_keyring_unlock.py
     cd source

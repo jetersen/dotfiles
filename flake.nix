@@ -13,6 +13,14 @@
       url = "file+https://github.com/microsoft/aspire/releases/download/v13.6.2/aspire-cli-linux-x64-13.6.2.tar.gz";
       flake = false;
     };
+    t3code-cli = {
+      url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.11/t3-0.1.11-linux-x64.tar.gz";
+      flake = false;
+    };
+    t3code-desktop = {
+      url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.11/T3-Code-x86_64.AppImage";
+      flake = false;
+    };
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -230,6 +238,10 @@
         );
       };
       packages.x86_64-linux.t3code = pkgs.callPackage ./nixos/packages/t3code.nix {
+        cliArchive = inputs.t3code-cli;
+        desktopImage = inputs.t3code-desktop;
+        cliUrl = locked.nodes.t3code-cli.locked.url;
+        desktopUrl = locked.nodes.t3code-desktop.locked.url;
         codex = inputs.self.packages.x86_64-linux.codex;
         claude-code = pkgsAi.claude-code.override {
           manifest = builtins.fromJSON (builtins.readFile ./nixos/packages/claude-code-manifest.json);
