@@ -40,7 +40,7 @@ let
         "tests/test_wayland_clipboard.py"
         "tests/test_t3code_idle_update.py"
         "nixos/hosts/rocket/t3code-idle-update.py"
-        "nixos/home/wayland-clipboard.py"
+        "nixos/home/wayland-clipboard.sh"
       ]
   );
 in

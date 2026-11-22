@@ -1,16 +1,31 @@
-{ lib, pkgs, osConfig, ... }:
+{
+  lib,
+  pkgs,
+  osConfig,
+  ...
+}:
+let
+  clipboardWrapper =
+    name:
+    lib.hiPrio (
+      pkgs.writeShellApplication {
+        inherit name;
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.jq
+          pkgs.systemd
+        ];
+        text = ''
+          exec ${pkgs.bash}/bin/bash ${./wayland-clipboard.sh} ${pkgs.wl-clipboard}/bin/${name} "$@"
+        '';
+      }
+    );
+in
 {
   home.packages = [
-    # Keep the standard command names available to clipboard-detecting apps.
-    # Absolute paths avoid recursion through these wrappers.
-    (lib.hiPrio (pkgs.writeShellScriptBin "wl-copy" ''
-      export PATH="${lib.makeBinPath [ pkgs.systemd ]}:$PATH"
-      exec ${pkgs.python3}/bin/python3 ${./wayland-clipboard.py} ${pkgs.wl-clipboard}/bin/wl-copy "$@"
-    ''))
-    (lib.hiPrio (pkgs.writeShellScriptBin "wl-paste" ''
-      export PATH="${lib.makeBinPath [ pkgs.systemd ]}:$PATH"
-      exec ${pkgs.python3}/bin/python3 ${./wayland-clipboard.py} ${pkgs.wl-clipboard}/bin/wl-paste "$@"
-    ''))
+    # Keep standard command names available to clipboard-detecting apps.
+    (clipboardWrapper "wl-copy")
+    (clipboardWrapper "wl-paste")
     (pkgs.writeShellApplication {
       name = "remote-clip";
       runtimeInputs = [
