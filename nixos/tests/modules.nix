@@ -211,6 +211,15 @@ let
     }
     {
       assertion =
+        rocket.systemd.slices.user.sliceConfig.MemoryLow == "2G"
+        && rocket.systemd.slices."user-1000".sliceConfig.MemoryLow == "2G"
+        && rocket.systemd.services."user@1000".serviceConfig.MemoryLow == "2G"
+        && rocket.systemd.user.slices.app.sliceConfig.MemoryLow == "1536M"
+        && rocket.home-manager.users.joseph.systemd.user.services.t3code.Service.MemoryLow == "1536M";
+      message = "Rocket: protect T3 from reclaim at each level of its cgroup hierarchy";
+    }
+    {
+      assertion =
         rocket.systemd.slices.system.sliceConfig.MemoryMin == "1G"
         &&
           lib.all

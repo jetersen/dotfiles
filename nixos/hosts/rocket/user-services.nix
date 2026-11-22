@@ -1,6 +1,8 @@
 { pkgs, ... }:
 let
   t3Port = 3773;
+  userMemoryLow = "2G";
+  t3MemoryLow = "1536M";
 in
 {
   # Preserve localhost clients while admitting remote T3 traffic only over Tailscale.
@@ -9,12 +11,28 @@ in
   # Keep the remote server available before desktop login.
   users.users.joseph.linger = true;
 
+  # Reclaim protection is bounded by every ancestor of the T3 service.
+  systemd.slices = {
+    user = {
+      overrideStrategy = "asDropin";
+      sliceConfig.MemoryLow = userMemoryLow;
+    };
+    "user-1000" = {
+      overrideStrategy = "asDropin";
+      sliceConfig.MemoryLow = userMemoryLow;
+    };
+  };
+  systemd.user.slices.app.sliceConfig.MemoryLow = t3MemoryLow;
+
   # A user manager can only lower a child's OOM score to the floor granted by
   # root. Keep ordinary user services killable; only T3 opts into immunity.
   systemd.services."user@1000" = {
     overrideStrategy = "asDropin";
     restartIfChanged = false;
-    serviceConfig.OOMScoreAdjust = -1000;
+    serviceConfig = {
+      MemoryLow = userMemoryLow;
+      OOMScoreAdjust = -1000;
+    };
   };
   systemd.user.extraConfig = "DefaultOOMScoreAdjust=200";
 
@@ -83,6 +101,7 @@ in
           ExecStart = "${t3code}/bin/t3 serve --no-browser --tailscale-serve --host 0.0.0.0 --port ${toString t3Port}";
           KillMode = "mixed";
           OOMPolicy = "continue";
+          MemoryLow = t3MemoryLow;
           OOMScoreAdjust = -1000;
           ManagedOOMPreference = "omit";
           Restart = "always";
