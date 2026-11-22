@@ -64,6 +64,7 @@ in
   # Referencing them here also makes a standalone flake check execute the tests,
   # with Nix sharing/substituting the same outputs rather than running them twice.
   native-lanzaboote = configurations.framework.config.boot.lanzaboote.package;
+  native-t3code-idle-update = inputs.self.packages.x86_64-linux.t3code-idle-update;
   native-pc2mqtt = inputs.self.packages.x86_64-linux.pc2mqtt;
   native-music-assistant-frontend = inputs.self.packages.x86_64-linux.music-assistant-frontend;
 }

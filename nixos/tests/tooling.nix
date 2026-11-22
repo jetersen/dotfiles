@@ -38,8 +38,6 @@ let
         "nixos/ci/build-graph.py"
         "nixos/ci/build-systems.sh"
         "tests/test_wayland_clipboard.py"
-        "tests/test_t3code_idle_update.py"
-        "nixos/hosts/rocket/t3code-idle-update.py"
         "nixos/home/wayland-clipboard.sh"
       ]
   );

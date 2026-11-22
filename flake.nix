@@ -316,6 +316,9 @@
         codex = inputs.self.packages.x86_64-linux.codex;
         claude-code = inputs.self.packages.x86_64-linux.claude-code;
       };
+      packages.x86_64-linux.t3code-idle-update =
+        pkgs.callPackage ./nixos/packages/t3code-idle-update.nix
+          { };
       packages.x86_64-linux.pulumi-schema-tools =
         pkgs.callPackage ./nixos/packages/pulumi-schema-tools.nix
           {

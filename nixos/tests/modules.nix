@@ -144,7 +144,7 @@ let
           rocket.home-manager.users.joseph.systemd.user.services.t3code-idle-update.Service.Type == "oneshot"
         &&
           rocket.home-manager.users.joseph.systemd.user.timers.t3code-idle-update.Timer.OnUnitActiveSec
-          == "1min";
+          == "5min";
       message = "Rocket: stage T3 server updates and retry when agents are idle";
     }
     {

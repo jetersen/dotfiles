@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   t3Port = 3773;
   userMemoryLow = "2G";
@@ -70,6 +70,74 @@ in
     { config, dotfilesPackages, ... }:
     let
       t3code = dotfilesPackages.t3code;
+      serviceUnit = {
+        Description = "T3 Code server";
+        # Home Manager leaves the current invocation alone while agents work.
+        X-SwitchMethod = "keep-old";
+        After = [ "network.target" ];
+        StartLimitIntervalSec = 300;
+        StartLimitBurst = 5;
+      };
+      serviceConfig = {
+        Type = "simple";
+        WorkingDirectory = "%h";
+        Environment = [
+          "T3CODE_HOME=${config.home.homeDirectory}/.t3"
+          "T3CODE_DISABLE_AUTO_UPDATE=1"
+        ];
+        ExecStart = "${t3code}/bin/t3 serve --no-browser --tailscale-serve --host 0.0.0.0 --port ${toString t3Port}";
+        KillMode = "mixed";
+        OOMPolicy = "continue";
+        MemoryLow = t3MemoryLow;
+        OOMScoreAdjust = -1000;
+        ManagedOOMPreference = "omit";
+        Restart = "always";
+        RestartSec = 5;
+        CPUWeight = 1000;
+        IOWeight = 1000;
+      };
+      # systemd exposes the loaded configuration even while an older invocation
+      # is running. Give each invocation its own copy of the unit revision.
+      serviceRevision = builtins.hashString "sha256" (
+        builtins.toJSON { inherit serviceUnit serviceConfig; }
+      );
+      applyIdleUpdate = pkgs.writeShellApplication {
+        name = "t3code-apply-idle-update";
+        runtimeInputs = [
+          pkgs.systemd
+          pkgs.gnugrep
+        ];
+        text = ''
+          unit=t3code.service
+          state=$(systemctl --user show --all \
+            --property=MainPID,SubState,Job,NeedDaemonReload,Environment,ExecStart "$unit")
+          grep -qx 'SubState=running' <<< "$state" || exit 0
+          grep -qx 'Job=' <<< "$state" || exit 0
+          grep -qx 'NeedDaemonReload=no' <<< "$state" || exit 0
+          expected_start="ExecStart={ path=${t3code}/bin/t3 ; argv[]=${serviceConfig.ExecStart} ; ignore_errors=no ; "
+          grep -qF "$expected_start" <<< "$state" || exit 0
+          revision=T3CODE_NIX_UNIT_REVISION=${serviceRevision}
+          environment=$(grep '^Environment=' <<< "$state")
+          [[ " ''${environment#Environment=} " == *" $revision "* ]] || exit 0
+          pid=''${state#*MainPID=}
+          pid=''${pid%%$'\n'*}
+          [[ $pid =~ ^[1-9][0-9]*$ && -r /proc/$pid/environ ]] || exit 0
+          if grep -zqxF "$revision" "/proc/$pid/environ"; then
+            exit 0
+          elif [[ $? != 1 ]]; then
+            exit 1
+          fi
+
+          if ${lib.getExe dotfilesPackages.t3code-idle-update}; then
+            systemctl --user try-restart "$unit"
+          else
+            status=$?
+            if [[ $status != 1 ]]; then
+              exit "$status"
+            fi
+          fi
+        '';
+      };
       desktop = {
         name = "T3 Code";
         exec = "${pkgs.coreutils}/bin/env T3CODE_DISABLE_AUTO_UPDATE=1 ${t3code}/bin/t3code-desktop %U";
@@ -82,32 +150,9 @@ in
     in
     {
       systemd.user.services.t3code = {
-        Unit = {
-          Description = "T3 Code server";
-          # Home Manager must not interrupt agents when the package or unit changes.
-          # The idle-update timer applies staged packages after agents finish.
-          X-SwitchMethod = "keep-old";
-          After = [ "network.target" ];
-          StartLimitIntervalSec = 300;
-          StartLimitBurst = 5;
-        };
-        Service = {
-          Type = "simple";
-          WorkingDirectory = "%h";
-          Environment = [
-            "T3CODE_HOME=${config.home.homeDirectory}/.t3"
-            "T3CODE_DISABLE_AUTO_UPDATE=1"
-          ];
-          ExecStart = "${t3code}/bin/t3 serve --no-browser --tailscale-serve --host 0.0.0.0 --port ${toString t3Port}";
-          KillMode = "mixed";
-          OOMPolicy = "continue";
-          MemoryLow = t3MemoryLow;
-          OOMScoreAdjust = -1000;
-          ManagedOOMPreference = "omit";
-          Restart = "always";
-          RestartSec = 5;
-          CPUWeight = 1000;
-          IOWeight = 1000;
+        Unit = serviceUnit;
+        Service = serviceConfig // {
+          Environment = serviceConfig.Environment ++ [ "T3CODE_NIX_UNIT_REVISION=${serviceRevision}" ];
         };
         Install.WantedBy = [ "default.target" ];
       };
@@ -116,17 +161,15 @@ in
         Unit.Description = "Apply staged T3 Code updates when agents are idle";
         Service = {
           Type = "oneshot";
-          ExecStart = "${pkgs.python3}/bin/python3 ${./t3code-idle-update.py} --package ${t3code} --database %h/.t3/userdata/statev2.sqlite --state %t/t3code-idle-update.json --systemctl ${pkgs.systemd}/bin/systemctl";
-          # Also resume T3 if this helper is terminated during its final check.
-          ExecStopPost = "-${pkgs.systemd}/bin/systemctl --user kill --kill-whom=main --signal=CONT t3code.service";
-          TimeoutStartSec = 30;
+          ExecStart = lib.getExe applyIdleUpdate;
+          Environment = [ "T3_IDLE_UPDATE_DATABASE=%h/.t3/userdata/statev2.sqlite" ];
         };
       };
       systemd.user.timers.t3code-idle-update = {
         Unit.Description = "Check for idle T3 Code server updates";
         Timer = {
           OnBootSec = "1min";
-          OnUnitActiveSec = "1min";
+          OnUnitActiveSec = "5min";
         };
         Install.WantedBy = [ "timers.target" ];
       };
