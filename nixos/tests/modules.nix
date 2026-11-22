@@ -312,7 +312,7 @@ let
             && !(c.systemd.services ? homelab-dns-reconcile)
             && builtins.elem "tailscaled.service" daemon.aliases
             && builtins.elem "tailscaled-work.service" daemon.conflicts
-          && builtins.elem "tailscaled-work.service" daemon.after
+            && builtins.elem "tailscaled-work.service" daemon.after
             && lib.hasSuffix "/bin/test -s ${stateFile}" daemon.serviceConfig.ExecStartPre
             && lib.hasInfix "--state=${stateFile}" daemon.serviceConfig.ExecStart
             && lib.hasInfix "--tun=${c.dotfiles.tailscaleMultinet.interfaceName}" daemon.serviceConfig.ExecStart
@@ -450,7 +450,47 @@ let
         "framework"
         "rocket"
       ];
-  failed = map (a: a.message) (builtins.filter (a: !a.assertion) assertions);
+  agentHome = configurations.rocket.config.home-manager.users.joseph;
+  agentUnits = agentHome.systemd.user.services;
+  agentAssertions = [
+    {
+      assertion = builtins.all (name: !(builtins.hasAttr "CPUQuota" agentUnits.${name}.Service)) [
+        "agentsview"
+        "agent-embeddings"
+        "agent-backup"
+        "t3-search"
+      ];
+      message = "Agent workloads must retain CPU overcommit without quotas.";
+    }
+    {
+      assertion =
+        builtins.all (name: agentUnits.${name}.Unit.ConditionPathIsMountPoint == "/media/games")
+          [
+            "agentsview"
+            "agent-backup"
+            "t3-search"
+          ];
+      message = "Agent state services must not write to the root filesystem when the data SSD is absent.";
+    }
+    {
+      assertion =
+        lib.hasInfix "/nix/store/" (builtins.head agentUnits.agentsview.Service.ExecStart)
+        && lib.hasInfix "/nix/store/" (builtins.head agentUnits.agent-embeddings.Service.ExecStart)
+        && lib.hasInfix "/nix/store/" (builtins.head agentUnits.t3-search.Service.ExecStart)
+        && lib.hasInfix "/nix/store/" (builtins.head agentUnits.agent-backup.Service.ExecStart)
+        && !(lib.hasInfix "npm exec" (builtins.head agentUnits.agent-backup.Service.ExecStart));
+      message = "Agent services must use declarative executables and script paths.";
+    }
+    {
+      assertion =
+        agentUnits.agent-session-route.Unit.PartOf == [ "t3code.service" ]
+        && agentHome.systemd.user.timers.t3-search.Timer.OnUnitInactiveSec == "5min"
+        && agentHome.systemd.user.timers.agent-backup.Timer.OnUnitInactiveSec == "6h"
+        && !(configurations.framework.config.home-manager.users.joseph.systemd.user.services ? agentsview);
+      message = "Agent routes and timers belong to Rocket and must preserve T3 restart coordination.";
+    }
+  ];
+  failed = map (a: a.message) (builtins.filter (a: !a.assertion) (assertions ++ agentAssertions));
 in
 assert lib.assertMsg (failed == [ ]) (lib.concatStringsSep "\n" failed);
 pkgs.runCommand "module-contract-checks"

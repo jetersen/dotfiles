@@ -20,6 +20,7 @@
     ./services.nix
     ./runner.nix
     ./user-services.nix
+    ./agent-observability.nix
     ./metrics.nix
   ];
   home-manager.backupFileExtension = "pre-nixos";

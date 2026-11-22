@@ -40,6 +40,10 @@ in
   t3-browser-libraries = import ./browser.nix { inherit pkgs configurations; };
   desktop-activation = import ./desktop.nix { inherit pkgs inputs configurations; };
   dns-routing = import ./dns.nix { inherit pkgs pkgsUnstable; };
+  agent-session-runtime = import ./agent-session-runtime.nix {
+    inherit pkgs;
+    packages = inputs.self.packages.x86_64-linux;
+  };
   tooling-unit = import ./tooling.nix { inherit pkgs; };
   dotnet-sdk = import ./dotnet.nix { inherit pkgs inputs configurations; };
   rider = import ./rider.nix { inherit pkgs configurations; };

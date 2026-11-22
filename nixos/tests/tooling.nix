@@ -10,6 +10,10 @@ let
       [
         "nixos/assets/skills/t3-completion-notifier/scripts"
         "nixos/assets/skills/t3-remote-thread/scripts"
+        "tests/test_agent_backup.py"
+        "tests/test_agent_search.py"
+        "tests/test_agent_config.py"
+        "nixos/hosts/rocket/agent-observability"
         "tests/test_dictation.py"
         "tests/test_emoji_expansion.py"
         "nixos/home/espanso-layout.py"
@@ -45,6 +49,7 @@ pkgs.runCommand "tooling-unit-checks"
   {
     nativeBuildInputs = [
       (pkgs.python3.withPackages (p: [
+        p.tomlkit
         p.websocket-client
         p.dnspython
       ]))

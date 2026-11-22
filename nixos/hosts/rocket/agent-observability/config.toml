@@ -1,0 +1,23 @@
+archive_content = "transcripts"
+disable_update_check = true
+
+[vector]
+enabled = true
+
+[vector.embeddings]
+model = "nomic-embed-text"
+dimension = 768
+max_input_chars = 4000
+model_context_tokens = 2048
+query_prefix = "search_query: "
+document_prefix = "search_document: "
+default_server = "shared"
+
+[vector.embeddings.servers.shared]
+endpoint = "http://127.0.0.1:18121/v1"
+concurrency = 1
+batch_size = 4
+timeout = "120s"
+
+[vector.embed]
+run_after_sync = true

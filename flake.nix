@@ -41,6 +41,22 @@
       url = "file+https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz";
       flake = false;
     };
+    agentsview-source = {
+      url = "file+https://github.com/kenn-io/agentsview/releases/download/v0.47.0/agentsview_0.47.0_linux_amd64.tar.gz";
+      flake = false;
+    };
+    kennembed-source = {
+      url = "file+https://github.com/kenn-io/kit/releases/download/v0.48.2-face.6/kennembed_0.48.2-face.6_linux_amd64.tar.gz";
+      flake = false;
+    };
+    nomic-model-source = {
+      url = "file+https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/e9b6763023c676ca8431644204f50c2b100d9aab/onnx/model_fp16.onnx";
+      flake = false;
+    };
+    nomic-tokenizer-source = {
+      url = "file+https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/e9b6763023c676ca8431644204f50c2b100d9aab/tokenizer.json";
+      flake = false;
+    };
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -176,6 +192,17 @@
         inherit (pkgs.stdenv.hostPlatform) system;
         config.allowUnfree = true;
       };
+      agentSearchPackages = pkgs.callPackage ./nixos/packages/agent-session-search.nix {
+        agentsviewArchive = inputs.agentsview-source;
+        agentsviewVersion = pkgs.lib.removePrefix "v" (githubReleaseTag "agentsview-source");
+        kennembedArchive = inputs.kennembed-source;
+        kennembedVersion = pkgs.lib.removePrefix "v" (githubReleaseTag "kennembed-source");
+        modelFile = inputs.nomic-model-source;
+        tokenizerFile = inputs.nomic-tokenizer-source;
+        modelRevision = builtins.head (
+          builtins.match ".*/resolve/([^/]+)/.*" locked.nodes.nomic-model-source.locked.url
+        );
+      };
       locked = builtins.fromJSON (builtins.readFile ./flake.lock);
       githubReleaseTag =
         input:
@@ -232,6 +259,9 @@
       packages.x86_64-linux.pc2mqtt = pkgs.callPackage ./nixos/packages/pc2mqtt.nix {
         craneLib = inputs.crane.mkLib pkgs;
       };
+      packages.x86_64-linux.agentsview = agentSearchPackages.agentsview;
+      packages.x86_64-linux.kennembed = agentSearchPackages.kennembed;
+      packages.x86_64-linux.nomic-embed-text = agentSearchPackages.nomic-embed-text;
       packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix {
         src = inputs.topf-source;
         version = pkgs.lib.removePrefix "v" (githubReleaseTag "topf-source");

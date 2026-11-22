@@ -1,5 +1,17 @@
 {
   "nodes": {
+    "agentsview-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-k/6sFXGC1EXMDL836bAgAVIvTo1wZE1kmbtDZaFJ9gQ=",
+        "type": "file",
+        "url": "https://github.com/kenn-io/agentsview/releases/download/v0.47.0/agentsview_0.47.0_linux_amd64.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/kenn-io/agentsview/releases/download/v0.47.0/agentsview_0.47.0_linux_amd64.tar.gz"
+      }
+    },
     "apicompat-source": {
       "flake": false,
       "locked": {
@@ -349,6 +361,18 @@
         "url": "https://github.com/nix-community/home-manager.git"
       }
     },
+    "kennembed-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-q8VILiS+aVzxb9MJYrieqVloQAKRYXSMfWXnw+1vCB4=",
+        "type": "file",
+        "url": "https://github.com/kenn-io/kit/releases/download/v0.48.2-face.6/kennembed_0.48.2-face.6_linux_amd64.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/kenn-io/kit/releases/download/v0.48.2-face.6/kennembed_0.48.2-face.6_linux_amd64.tar.gz"
+      }
+    },
     "lambda-tools-source": {
       "flake": false,
       "locked": {
@@ -470,6 +494,30 @@
       "original": {
         "type": "tarball",
         "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
+      }
+    },
+    "nomic-model-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-Z7goqR+EAe69h4tafFw4MltbDZPCoRSRlRpmHOaH1J0=",
+        "type": "file",
+        "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/e9b6763023c676ca8431644204f50c2b100d9aab/onnx/model_fp16.onnx"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/e9b6763023c676ca8431644204f50c2b100d9aab/onnx/model_fp16.onnx"
+      }
+    },
+    "nomic-tokenizer-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-3Ys2611hdMSgTmt3g51ehBWXIrCaBjmzUv9aQlfZOXI=",
+        "type": "file",
+        "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/e9b6763023c676ca8431644204f50c2b100d9aab/tokenizer.json"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/resolve/e9b6763023c676ca8431644204f50c2b100d9aab/tokenizer.json"
       }
     },
     "powershell-cd-extras": {
@@ -616,6 +664,7 @@
     },
     "root": {
       "inputs": {
+        "agentsview-source": "agentsview-source",
         "apicompat-source": "apicompat-source",
         "aspire": "aspire",
         "aspire-cli-source": "aspire-cli-source",
@@ -632,6 +681,7 @@
         "dux-files": "dux-files",
         "freelens-source": "freelens-source",
         "home-manager": "home-manager",
+        "kennembed-source": "kennembed-source",
         "lambda-tools-source": "lambda-tools-source",
         "lanzaboote": "lanzaboote",
         "nix-index-database": "nix-index-database",
@@ -639,6 +689,8 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "nomic-model-source": "nomic-model-source",
+        "nomic-tokenizer-source": "nomic-tokenizer-source",
         "powershell-cd-extras": "powershell-cd-extras",
         "powershell-childitemcolor": "powershell-childitemcolor",
         "powershell-posh-git": "powershell-posh-git",
