@@ -255,6 +255,15 @@ def upgrade(args, caches):
   ], text=True).strip()
   prepare = getattr(args, "prepare_switch", None)
   if prepare and str(Path("/run/current-system").resolve()) == target:
+    # A switch can select this system before Home Manager activation fails.
+    # Retry only explicitly declared failed activations, without transferring
+    # network ownership or restarting healthy services on every notification.
+    for unit in getattr(args, "retry_failed_unit", []):
+      state = subprocess.check_output([
+        "systemctl", "show", unit, "--property=ActiveState", "--value",
+      ], text=True).strip()
+      if state == "failed":
+        subprocess.run(["systemctl", "start", unit], check=True)
     print("Selected system is already running; leaving network ownership unchanged.", flush=True)
     return
   verify([target], caches)
@@ -302,6 +311,7 @@ def main():
   parser.add_argument("--host", choices=["framework", "rocket"])
   parser.add_argument("--rebuild")
   parser.add_argument("--prepare-switch")
+  parser.add_argument("--retry-failed-unit", action="append", default=[])
   parser.add_argument("paths", nargs="*")
   args = parser.parse_args()
   if args.timeout <= 0 or args.max_mib < 0:

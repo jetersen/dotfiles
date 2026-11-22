@@ -280,6 +280,37 @@ class UpgradeTests(unittest.TestCase):
     verify.assert_not_called()
     run.assert_not_called()
 
+  def test_current_system_retries_only_declared_failed_activation(self):
+    unit = "home-manager-fixture.service"
+    args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
+                              rebuild="rebuild", prepare_switch="prepare", retry_failed_unit=[unit])
+    for state in ("active", "inactive", "activating", "failed"):
+      outputs = [json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM, state + "\n"]
+      with self.subTest(state=state), \
+           patch.object(policy.subprocess, "check_output", side_effect=outputs) as output, \
+           patch.object(policy.Path, "resolve", return_value=Path(SYSTEM)), \
+           patch.object(policy, "verify") as verify, patch.object(policy.subprocess, "run") as run, \
+           redirect_stdout(io.StringIO()):
+        policy.upgrade(args, [])
+        self.assertEqual(output.call_args.args[0], ["systemctl", "show", unit, "--property=ActiveState", "--value"])
+        verify.assert_not_called()
+        if state == "failed":
+          run.assert_called_once_with(["systemctl", "start", unit], check=True)
+        else:
+          run.assert_not_called()
+
+  def test_failed_activation_retry_cannot_report_success(self):
+    unit = "home-manager-fixture.service"
+    args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
+                              rebuild="rebuild", prepare_switch="prepare", retry_failed_unit=[unit])
+    outputs = [json.dumps({"locked": {"rev": "a" * 40}}).encode(), SYSTEM, "failed\n"]
+    with patch.object(policy.subprocess, "check_output", side_effect=outputs), \
+         patch.object(policy.Path, "resolve", return_value=Path(SYSTEM)), \
+         patch.object(policy.subprocess, "run", side_effect=subprocess.CalledProcessError(1, "systemctl")), \
+         redirect_stdout(io.StringIO()):
+      with self.assertRaises(subprocess.CalledProcessError):
+        policy.upgrade(args, [])
+
   def test_changed_system_prepares_only_after_cache_verification(self):
     args = argparse.Namespace(flake="git+https://example.test/repo?ref=main", host="framework",
                               rebuild="rebuild", prepare_switch="prepare")

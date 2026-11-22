@@ -67,7 +67,12 @@ in
           --netrc ${lib.escapeShellArg cacheNetrc} \
           --flake ${lib.escapeShellArg "git+https://forgejo.jetersen.dev/jetersen/dotfiles.git?ref=main"} \
           --host ${lib.escapeShellArg config.networking.hostName} \
-          --rebuild ${config.system.build.nixos-rebuild}/bin/nixos-rebuild ${
+          --rebuild ${config.system.build.nixos-rebuild}/bin/nixos-rebuild \
+          ${
+            lib.concatMapStringsSep " " (
+              name: "--retry-failed-unit ${lib.escapeShellArg "home-manager-${name}.service"}"
+            ) (builtins.attrNames config.home-manager.users)
+          } ${
             lib.optionalString (
               config.dotfiles.gitops.prepareSwitch != null
             ) "--prepare-switch ${lib.getExe config.dotfiles.gitops.prepareSwitch}"

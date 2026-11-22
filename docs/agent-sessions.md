@@ -7,9 +7,11 @@ needed. Deploy through the normal NixOS cache and upgrade pipeline.
 
 Keep the data filesystem mounted before activation. Application state remains
 outside the Nix store. Activation merges declared search settings while
-preserving other private settings. Existing units stay running across ownership
-changes; restart the search services after activation to select new executable
-paths. T3 retains its separate idle-update policy.
+preserving other private settings. Before adopting manually installed units,
+disable their enable symlinks without stopping the services. Home Manager backs
+up the unit files and takes ownership during activation. Subsequent updates keep
+the running search services; restart them after activation to select new
+executable paths. T3 retains its separate idle-update policy.
 
 The T3 adapter reads its database without modifying it. T3 conversations use
 AgentsView's ChatGPT exchange format, with a T3 title prefix and source link.
