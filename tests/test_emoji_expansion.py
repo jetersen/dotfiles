@@ -13,23 +13,45 @@ ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('layout', ROOT / 'nixos/home/espanso-layout.py')
 layout = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(layout)
-generator_spec = importlib.util.spec_from_file_location(
-    'shortcodes', ROOT / 'nixos/packages/generate-emoji-shortcodes.py')
-generator = importlib.util.module_from_spec(generator_spec)
-generator_spec.loader.exec_module(generator)
+
+def generate_shortcodes(entries, custom):
+    with tempfile.TemporaryDirectory() as directory:
+        overrides = Path(directory) / "custom.json"
+        overrides.write_text(json.dumps(custom))
+        program = ROOT / "nixos/packages/emoji-shortcodes.jq"
+        return subprocess.run(
+            ["jq", "--slurpfile", "custom", overrides, "-f", program],
+            input=json.dumps(entries), text=True, capture_output=True,
+        )
 
 
 class EmojiExpansionTests(unittest.TestCase):
     def test_custom_sequences_and_alias_overrides(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            generator.generate([{'emoji': '👏', 'aliases': ['clap']}],
-                               {'ship_it': '🚢🚀', 'clap': '👏🎉'}, root)
-            matches = json.loads((root / 'emoji.yml').read_text())['matches']
-            self.assertEqual({item['trigger']: item['replace'] for item in matches},
-                             {':clap:': '👏🎉', ':ship_it:': '🚢🚀'})
-            self.assertEqual(len(matches), 2, 'custom overrides must not create duplicate triggers')
-            self.assertNotIn('shipit', json.loads((root / 'shortcodes.json').read_text()))
+        result = generate_shortcodes(
+            [{"emoji": "👏", "aliases": ["clap"]}, {"emoji": "✈️", "aliases": ["airplane"]}],
+            {"ship_it": "🚢🚀", "clap": "👏🎉", "flight": "✈"},
+        )
+        result.check_returncode()
+        output = json.loads(result.stdout)
+        self.assertEqual(output["matches"], [
+            {"trigger": ":airplane:", "replace": "✈️"},
+            {"trigger": ":clap:", "replace": "👏🎉"},
+            {"trigger": ":flight:", "replace": "✈"},
+            {"trigger": ":ship_it:", "replace": "🚢🚀"},
+        ])
+        self.assertEqual(output["byEmoji"]["✈"], ["airplane", "flight"])
+        self.assertEqual(output["customEntries"][-1], {
+            "emoji": "✈", "name": "airplane", "keywords": ["airplane", "flight"], "category": "custom",
+        })
+        self.assertNotIn("shipit", output["shortcodes"])
+
+    def test_invalid_aliases_and_conflicts_fail(self):
+        self.assertNotEqual(generate_shortcodes([], {":bad:": "🙂"}).returncode, 0)
+        self.assertNotEqual(generate_shortcodes([], {"bad": " "}).returncode, 0)
+        self.assertNotEqual(generate_shortcodes([
+            {"emoji": "👏", "aliases": ["duplicate"]},
+            {"emoji": "✈️", "aliases": ["duplicate"]},
+        ], {}).returncode, 0)
 
     def test_layout_snapshot_switch_and_unrelated_events(self):
         codes = layout.layout_codes((ROOT / 'nixos/assets/config/niri/cfg/input.kdl').read_text())

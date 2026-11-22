@@ -17,7 +17,7 @@ let
         "tests/test_emoji_expansion.py"
         "nixos/home/espanso-layout.py"
         "nixos/home/emoji-expansion-control.sh"
-        "nixos/packages/generate-emoji-shortcodes.py"
+        "nixos/packages/emoji-shortcodes.jq"
         "nixos/assets/config/niri/cfg/input.kdl"
         "tests/test_work_tailnet.py"
         "tests/test_dns_resolver.py"
