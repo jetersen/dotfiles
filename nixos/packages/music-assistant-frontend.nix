@@ -9,15 +9,14 @@
 }:
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "music-assistant-frontend";
-  # Matches homelab's Music Assistant 2.10.6 (API schema 65).
-  version = "2.17.297";
+  # Matches the frontend bundled with server nightly 2.11.0.dev2026112203.
+  version = "2.17.378";
   src = fetchurl {
     name = "music-assistant-frontend-${finalAttrs.version}.tar.gz";
-    url = "https://codeload.github.com/music-assistant/frontend/tar.gz/e779b9d359e47cd210c2801f16a0ce6263571903";
-    hash = "sha256-C83T+UkVHqJD25YvzvTY0Iso4GFTRPHOZSqQWuF9Pws=";
+    url = "https://codeload.github.com/music-assistant/frontend/tar.gz/refs/tags/${finalAttrs.version}";
+    hash = "sha256-pxP4kIkc81U+dhBny8epXZCIWf0wgt6MdMQC5sBBiFc=";
   };
   patches = [
-    ../patches/music-assistant/provider-links.patch
     ../patches/music-assistant/offline-fonts.patch
   ];
   nativeBuildInputs = [
@@ -28,7 +27,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     fetcherVersion = 4;
-    hash = "sha256-Es4R4/gyWuA848cgLnbN0HiONWmovrQe2mEtRCzU4O4=";
+    hash = "sha256-Dgml6+0lA09Dw4ztZiE42NUBB+RiXwKeFIdxncna/ZI=";
   };
   env.HUSKY = "0";
   buildPhase = ''
