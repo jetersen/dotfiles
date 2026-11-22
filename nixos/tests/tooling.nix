@@ -9,7 +9,6 @@ let
       })
       [
         "nixos/assets/skills/t3-completion-notifier/scripts"
-        "nixos/assets/skills/t3-remote-thread/scripts"
         "tests/test_agent_backup.py"
         "tests/test_agent_search.py"
         "tests/test_agent_config.py"
@@ -67,6 +66,5 @@ pkgs.runCommand "tooling-unit-checks"
     cd source
     python3 -m unittest discover -s tests -p 'test_*.py' -v
     python3 -B -m unittest discover -s nixos/assets/skills/t3-completion-notifier/scripts -p 'test_poll.py' -v
-    python3 -B -m unittest discover -s nixos/assets/skills/t3-remote-thread/scripts -p 'test_t3_remote.py' -v
     touch "$out"
   ''

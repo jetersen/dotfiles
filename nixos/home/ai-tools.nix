@@ -102,7 +102,6 @@ in
         agentSkillSources
         // {
           gh-stack = pkgsUnstable.gh-stack.src + "/skills/gh-stack";
-          t3-remote-thread = ../assets/skills/t3-remote-thread;
           t3-completion-notifier = ../assets/skills/t3-completion-notifier;
           work-tailnet = ../assets/skills/work-tailnet;
           full-send = ../assets/skills/full-send;
