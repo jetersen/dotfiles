@@ -93,9 +93,9 @@ in
       }
     ''
   );
-  xdg.configFile."shell/clone.bash".source = ../../home/dot_config/shell/clone.bash;
-  xdg.configFile."shell/clone.fish".source = ../../home/dot_config/shell/clone.fish;
-  xdg.configFile."shell/clone.ps1".source = ../../home/dot_config/shell/clone.ps1;
+  xdg.configFile."shell/clone.bash".source = ./shell/clone.bash;
+  xdg.configFile."shell/clone.fish".source = ./shell/clone.fish;
+  xdg.configFile."shell/clone.ps1".source = ./shell/clone.ps1;
   xdg.dataFile = lib.mapAttrs' (
     name: source: lib.nameValuePair "powershell/Modules/${name}" { inherit source; }
   ) powershellModules;

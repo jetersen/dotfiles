@@ -28,10 +28,7 @@ in
     tiny-rdm
     rustdesk-flutter
     (callPackage ../packages/rider.nix { })
-    # Match the preserved Discord profile until nixpkgs catches up.
-    (pkgsMaster.discord.override {
-      source = builtins.fromJSON (builtins.readFile ../packages/discord-source.json);
-    })
+    pkgsMaster.discord
     dotfilesPackages.dotnet-sdk
     (symlinkJoin {
       name = "${pkgsUnstable.proton-pass-cli.name}-desktop";
@@ -69,7 +66,7 @@ in
     ];
     userSettings =
       lib.recursiveUpdate
-        (builtins.fromJSON (builtins.readFile ../../home/dot_config/zed/private_settings.json))
+        (builtins.fromJSON (builtins.readFile ../assets/config/zed/private_settings.json))
         {
           auto_update = false;
           ui_font_size = 16;

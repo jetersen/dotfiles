@@ -1,8 +1,0 @@
-{{- $personal := .personalEmail -}}
-{{- $work := .workEmail -}}
-{{- range (gitHubKeys "jetersen") }}
-{{ $personal }} {{ .Key }}
-{{- if ne $work $personal }}
-{{ $work }} {{ .Key }}
-{{- end }}
-{{- end }}

@@ -21,6 +21,6 @@ in
     mode = "0600";
     content =
       lib.replaceStrings [ "@AI_WORK_INSTRUCTIONS@" ] [ config.sops.placeholder.ai-work-instructions ]
-        (builtins.readFile ../../home/.chezmoitemplates/ai-instructions.md);
+        (builtins.readFile ../assets/ai-instructions.md);
   };
 }

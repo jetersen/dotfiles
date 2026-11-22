@@ -21,6 +21,26 @@
       url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.11/T3-Code-x86_64.AppImage";
       flake = false;
     };
+    freelens-source = {
+      url = "file+https://github.com/freelensapp/freelens/releases/download/v2.1.0/Freelens-2.1.0-linux-amd64.AppImage";
+      flake = false;
+    };
+    proton-ge-source = {
+      url = "file+https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-12/GE-Proton11-12-x86_64.tar.gz";
+      flake = false;
+    };
+    topf-source = {
+      url = "file+https://github.com/postfinance/topf/releases/download/v0.6.2/topf_linux_amd64.tar.gz";
+      flake = false;
+    };
+    varlock-source = {
+      url = "file+https://github.com/dmno-dev/varlock/releases/download/varlock@1.25.0/varlock-linux-x64.tar.gz";
+      flake = false;
+    };
+    vite-plus-source = {
+      url = "file+https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz";
+      flake = false;
+    };
     home-manager = {
       url = "git+https://github.com/nix-community/home-manager.git?ref=release-26.05&shallow=1";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -152,11 +172,16 @@
         inherit inputs pkgs;
       };
       pkgsUnstable = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
-      pkgsAi = import nixpkgs {
-        system = "x86_64-linux";
-        config.allowUnfreePredicate = pkg: nixpkgs.lib.getName pkg == "claude-code";
+      pkgsMaster = import inputs.nixpkgs-master {
+        inherit (pkgs.stdenv.hostPlatform) system;
+        config.allowUnfree = true;
       };
       locked = builtins.fromJSON (builtins.readFile ./flake.lock);
+      githubReleaseTag =
+        input:
+        builtins.head (
+          builtins.match ".*/releases/download/([^/]+)/[^/]+" locked.nodes.${input}.locked.url
+        );
       nugetTool =
         inputName: pname: nugetName:
         pkgs.callPackage ./nixos/packages/nuget-tool.nix {
@@ -192,8 +217,14 @@
       packages.x86_64-linux.lanzaboote-protected-system-vm =
         lanzabooteSystemProfiles.checks.tests.protected-system;
       packages.x86_64-linux.ssh-to-age = pkgs.ssh-to-age;
-      packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix { };
-      packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix { };
+      packages.x86_64-linux.vite-plus = pkgs.callPackage ./nixos/packages/vite-plus.nix {
+        src = inputs.vite-plus-source;
+        version = pkgs.lib.removePrefix "v" (githubReleaseTag "vite-plus-source");
+      };
+      packages.x86_64-linux.proton-ge = pkgs.callPackage ./nixos/packages/proton-ge.nix {
+        src = inputs.proton-ge-source;
+        version = githubReleaseTag "proton-ge-source";
+      };
       packages.x86_64-linux.microfetch = pkgs.callPackage ./nixos/packages/microfetch.nix { };
       packages.x86_64-linux.music-assistant-frontend =
         pkgs.callPackage ./nixos/packages/music-assistant-frontend.nix
@@ -201,9 +232,15 @@
       packages.x86_64-linux.pc2mqtt = pkgs.callPackage ./nixos/packages/pc2mqtt.nix {
         craneLib = inputs.crane.mkLib pkgs;
       };
-      packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix { };
+      packages.x86_64-linux.topf = pkgs.callPackage ./nixos/packages/topf.nix {
+        src = inputs.topf-source;
+        version = pkgs.lib.removePrefix "v" (githubReleaseTag "topf-source");
+      };
       packages.x86_64-linux.unlock-keyring = pkgs.callPackage ./nixos/packages/unlock-keyring.nix { };
-      packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix { };
+      packages.x86_64-linux.freelens = pkgs.callPackage ./nixos/packages/freelens.nix {
+        src = inputs.freelens-source;
+        version = pkgs.lib.removePrefix "v" (githubReleaseTag "freelens-source");
+      };
       packages.x86_64-linux.dotnet-lambda =
         nugetTool "lambda-tools-source" "dotnet-lambda"
           "Amazon.Lambda.Tools";
@@ -224,8 +261,12 @@
       packages.x86_64-linux.snitch = pkgs.callPackage ./nixos/packages/snitch.nix {
         source = inputs.snitch-source;
       };
-      packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix { };
-      packages.x86_64-linux.codex = inputs.nixpkgs-master.legacyPackages.x86_64-linux.codex;
+      packages.x86_64-linux.varlock = pkgs.callPackage ./nixos/packages/varlock.nix {
+        src = inputs.varlock-source;
+        version = pkgs.lib.removePrefix "varlock@" (githubReleaseTag "varlock-source");
+      };
+      packages.x86_64-linux.claude-code = pkgsMaster.claude-code;
+      packages.x86_64-linux.codex = pkgsMaster.codex;
       # Upstream's Nix manifest can lag behind its published CLI release.
       packages.x86_64-linux.aspire-cli = inputs.aspire.packages.x86_64-linux.aspire-cli.overrideAttrs {
         src = inputs.aspire-cli-source;
@@ -243,9 +284,7 @@
         cliUrl = locked.nodes.t3code-cli.locked.url;
         desktopUrl = locked.nodes.t3code-desktop.locked.url;
         codex = inputs.self.packages.x86_64-linux.codex;
-        claude-code = pkgsAi.claude-code.override {
-          manifest = builtins.fromJSON (builtins.readFile ./nixos/packages/claude-code-manifest.json);
-        };
+        claude-code = inputs.self.packages.x86_64-linux.claude-code;
       };
       packages.x86_64-linux.pulumi-schema-tools =
         pkgs.callPackage ./nixos/packages/pulumi-schema-tools.nix
@@ -272,7 +311,7 @@
         paths = [
           (pkgs.python3.withPackages (python: [ python.paho-mqtt ]))
           pkgs.attic-client
-          inputs.nixpkgs-master.legacyPackages.x86_64-linux.nixVersions.latest
+          pkgsMaster.nixVersions.latest
         ];
         pathsToLink = [ "/bin" ];
       };
@@ -342,10 +381,7 @@
               sharedModules = [ inputs.nix-index-database.homeModules.default ];
               extraSpecialArgs = {
                 nixIndexPackages = inputs.nix-index-database.packages.${pkgs.stdenv.hostPlatform.system};
-                pkgsMaster = import inputs.nixpkgs-master {
-                  inherit (pkgs.stdenv.hostPlatform) system;
-                  config.allowUnfree = true;
-                };
+                inherit pkgsMaster;
                 pkgsUnstable = import inputs.nixpkgs-unstable {
                   inherit (pkgs.stdenv.hostPlatform) system;
                   config.allowUnfree = true;

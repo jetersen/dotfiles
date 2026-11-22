@@ -23,13 +23,13 @@ in
     };
   };
   config.xdg.configFile = {
-    "niri/cfg/music.kdl".source = ../../home/dot_config/niri/cfg/music.kdl;
-    "niri/cfg/input.kdl".source = ../../home/dot_config/niri/cfg/input.kdl;
-    "niri/cfg/misc.kdl".source = ../../home/dot_config/niri/cfg/misc.kdl;
-    "niri/cfg/keybinds.kdl".source = ../../home/dot_config/niri/cfg/keybinds.kdl;
-    "niri/cfg/animation.kdl".source = ../../home/dot_config/niri/cfg/animation.kdl;
-    "niri/cfg/decorations.kdl".source = ../../home/dot_config/niri/cfg/decorations.kdl;
-    "niri/cfg/shared-rules.kdl".source = ../../home/dot_config/niri/cfg/shared-rules.kdl;
+    "niri/cfg/music.kdl".source = ../assets/config/niri/cfg/music.kdl;
+    "niri/cfg/input.kdl".source = ../assets/config/niri/cfg/input.kdl;
+    "niri/cfg/misc.kdl".source = ../assets/config/niri/cfg/misc.kdl;
+    "niri/cfg/keybinds.kdl".source = ../assets/config/niri/cfg/keybinds.kdl;
+    "niri/cfg/animation.kdl".source = ../assets/config/niri/cfg/animation.kdl;
+    "niri/cfg/decorations.kdl".source = ../assets/config/niri/cfg/decorations.kdl;
+    "niri/cfg/shared-rules.kdl".source = ../assets/config/niri/cfg/shared-rules.kdl;
     "niri/config.kdl".text = ''
       include "cfg/input.kdl"
       include "cfg/misc.kdl"

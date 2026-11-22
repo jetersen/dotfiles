@@ -315,6 +315,18 @@
         "type": "github"
       }
     },
+    "freelens-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-Bii+WvPRygMGoQm+GTJ+/E+Do92y6AD5+putyJe/DOo=",
+        "type": "file",
+        "url": "https://github.com/freelensapp/freelens/releases/download/v2.1.0/Freelens-2.1.0-linux-amd64.AppImage"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/freelensapp/freelens/releases/download/v2.1.0/Freelens-2.1.0-linux-amd64.AppImage"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -433,11 +445,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1795151758,
-        "narHash": "sha256-NQf7s9E7rEm32XUD3MhrFLYDU+WiCXZ3mrXHbcHaF+M=",
+        "lastModified": 1795340689,
+        "narHash": "sha256-d8fmR5oX8Bf5UaQrkdcLHmKEUw46p6UE35KxzPbqKvc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "947082204ad0afce61bcaf87e40a467d23368cfa",
+        "rev": "dfa9ec7f60381a98538a8b24c441517cabb11c78",
         "type": "github"
       },
       "original": {
@@ -536,6 +548,18 @@
         "type": "github"
       }
     },
+    "proton-ge-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-EiPn2NsKM/4kYTbBHkwLYNrOvoTBOPpEppQEg3gdPMA=",
+        "type": "file",
+        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-12/GE-Proton11-12-x86_64.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-12/GE-Proton11-12-x86_64.tar.gz"
+      }
+    },
     "pulumi-packages": {
       "flake": false,
       "locked": {
@@ -606,6 +630,7 @@
         "dotnet-stack-source": "dotnet-stack-source",
         "dotnet-trace-source": "dotnet-trace-source",
         "dux-files": "dux-files",
+        "freelens-source": "freelens-source",
         "home-manager": "home-manager",
         "lambda-tools-source": "lambda-tools-source",
         "lanzaboote": "lanzaboote",
@@ -617,6 +642,7 @@
         "powershell-cd-extras": "powershell-cd-extras",
         "powershell-childitemcolor": "powershell-childitemcolor",
         "powershell-posh-git": "powershell-posh-git",
+        "proton-ge-source": "proton-ge-source",
         "pulumi-packages": "pulumi-packages",
         "pulumi-schema-tools-source": "pulumi-schema-tools-source",
         "pulumi-upgrade-provider-source": "pulumi-upgrade-provider-source",
@@ -625,6 +651,9 @@
         "sops-nix": "sops-nix",
         "t3code-cli": "t3code-cli",
         "t3code-desktop": "t3code-desktop",
+        "topf-source": "topf-source",
+        "varlock-source": "varlock-source",
+        "vite-plus-source": "vite-plus-source",
         "zen-browser": "zen-browser"
       }
     },
@@ -730,6 +759,42 @@
       "original": {
         "type": "file",
         "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.11/T3-Code-x86_64.AppImage"
+      }
+    },
+    "topf-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-9Wp4FIJW6ENaUDuIj067f7uOeDRWl2qyEpc1FiysTlQ=",
+        "type": "file",
+        "url": "https://github.com/postfinance/topf/releases/download/v0.6.2/topf_linux_amd64.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/postfinance/topf/releases/download/v0.6.2/topf_linux_amd64.tar.gz"
+      }
+    },
+    "varlock-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-l27EVwjkeOHU/c9UwvoK4NVkf2ShLZ2f8Rm6vSsTsGk=",
+        "type": "file",
+        "url": "https://github.com/dmno-dev/varlock/releases/download/varlock@1.25.0/varlock-linux-x64.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/dmno-dev/varlock/releases/download/varlock@1.25.0/varlock-linux-x64.tar.gz"
+      }
+    },
+    "vite-plus-source": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-65Fv6ppOf5RQkeB9Y8pXSuXtSfZU0stZ1h7ehqv2MCU=",
+        "type": "file",
+        "url": "https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz"
       }
     },
     "zen-browser": {

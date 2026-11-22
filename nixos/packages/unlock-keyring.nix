@@ -5,6 +5,6 @@ in
 writeShellApplication {
   name = "unlock-keyring";
   text = ''
-    exec ${python}/bin/python3 ${../../home/dot_local/bin/executable_unlock-keyring} "$@"
+    exec ${python}/bin/python3 ${../assets/scripts/unlock-keyring.py} "$@"
   '';
 }

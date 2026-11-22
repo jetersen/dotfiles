@@ -59,7 +59,7 @@ let
       if [[ -e "$settings" ]]; then current="$settings"; fi
       temporary=$(mktemp "$(dirname "$settings")/.settings.XXXXXX")
       trap 'rm -f "$temporary"' EXIT
-      ${pkgs.bash}/bin/bash ${../../home/dot_config/music-assistant-companion/modify_settings.json} \
+      ${pkgs.bash}/bin/bash ${../assets/scripts/music-assistant-settings.sh} \
         < "$current" > "$temporary"
       if ! cmp -s "$temporary" "$settings"; then mv "$temporary" "$settings"; fi
     '';
@@ -84,7 +84,7 @@ in
         (pkgs.callPackage ../packages/music-assistant-desktop.nix { })
       ];
       text = ''
-        exec ${pkgs.bash}/bin/bash ${../../home/dot_local/bin/executable_focus-music-assistant} "$@"
+        exec ${pkgs.bash}/bin/bash ${../assets/scripts/focus-music-assistant.sh} "$@"
       '';
     })
   ];

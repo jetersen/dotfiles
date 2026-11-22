@@ -84,7 +84,7 @@
         gnused
       ];
       text = ''
-        exec ${bash}/bin/bash ${../../home/dot_local/bin/executable_git-dirty} "$@"
+        exec ${bash}/bin/bash ${../assets/scripts/git-dirty.sh} "$@"
       '';
     })
   ];

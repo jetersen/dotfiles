@@ -1,3 +1,0 @@
-{{ if .isWork -}}
-{{ includeTemplate "work-secret" (dict "root" .chezmoi.sourceDir "key" "kube-config") -}}
-{{ end -}}

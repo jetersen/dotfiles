@@ -23,34 +23,30 @@ def write_private(path, content):
             os.unlink(temporary)
 
 
-managed = {}
-if len(sys.argv) > 1:
-    managed["victorialogs"] = {"type": "http", "url": Path(sys.argv[1]).read_text().strip()}
+policy = json.loads(sys.argv[1])
+managed = {
+    name: {"type": server["type"], "url": Path(server["urlFile"]).read_text().strip()}
+    for name, server in policy["servers"].items()
+}
+
+
+def reconcile(servers, new_table, *, include_type):
+    for name in policy["remove"]:
+        servers.pop(name, None)
+    for name, server in managed.items():
+        entry = servers.setdefault(name, new_table())
+        for key in ("command", "args", "cwd"):
+            entry.pop(key, None)
+        entry.update({key: value for key, value in server.items() if include_type or key != "type"})
+
+
 home = Path.home()
 codex = Path(os.environ.get("CODEX_HOME", home / ".codex")) / "config.toml"
 settings = tomlkit.parse(codex.read_text()) if codex.exists() else tomlkit.document()
-servers = settings.setdefault("mcp_servers", tomlkit.table())
-for retired in ("rea", "codegraph"):
-    servers.pop(retired, None)
-if "victorialogs" not in managed:
-    servers.pop("victorialogs", None)
-for name, server in managed.items():
-    entry = servers.setdefault(name, tomlkit.table())
-    for key in (["command", "args", "cwd"] if "url" in server else ["url"]):
-        entry.pop(key, None)
-    entry.update({key: value for key, value in server.items() if key != "type"})
+reconcile(settings.setdefault("mcp_servers", tomlkit.table()), tomlkit.table, include_type=False)
 write_private(codex, tomlkit.dumps(settings))
 
 claude = home / ".claude.json"
 settings = json.loads(claude.read_text()) if claude.exists() else {}
-servers = settings.setdefault("mcpServers", {})
-for retired in ("rea", "codegraph"):
-    servers.pop(retired, None)
-if "victorialogs" not in managed:
-    servers.pop("victorialogs", None)
-for name, server in managed.items():
-    entry = servers.setdefault(name, {})
-    for key in (["command", "args", "cwd"] if "url" in server else ["url"]):
-        entry.pop(key, None)
-    entry.update(server)
+reconcile(settings.setdefault("mcpServers", {}), dict, include_type=True)
 write_private(claude, json.dumps(settings, indent=2) + "\n")

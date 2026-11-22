@@ -108,6 +108,6 @@
   };
 
   xdg.configFile = {
-    "alacritty/alacritty.toml".source = ../../home/dot_config/alacritty/alacritty.toml;
+    "alacritty/alacritty.toml".source = ../assets/config/alacritty/alacritty.toml;
   };
 }

@@ -1,7 +1,7 @@
 {
   pkgs,
   pkgsUnstable,
-  productionConfig ? ../../home/dot_local/share/homelab-dns/dnsdist.conf,
+  productionConfig ? ../assets/homelab-dns/dnsdist.conf,
 }:
 let
   python = pkgs.python3.withPackages (ps: [ ps.dnspython ]);

@@ -1,17 +1,12 @@
 {
   lib,
-  fetchurl,
+  src,
+  version,
   appimageTools,
   makeWrapper,
 }:
 let
-  manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).freelens;
   pname = "freelens";
-  version = lib.removePrefix "v" manifest.version;
-  src = fetchurl {
-    url = "https://github.com/freelensapp/freelens/releases/download/v${version}/Freelens-${version}-linux-amd64.AppImage";
-    sha256 = manifest.sha256;
-  };
   contents = appimageTools.extractType2 { inherit pname version src; };
 in
 appimageTools.wrapType2 {

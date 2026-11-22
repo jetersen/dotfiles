@@ -1,5 +1,5 @@
 # Optional system integration for Steam, including 32-bit graphics and controllers.
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 {
   nixpkgs.overlays = [
     (final: prev: {
@@ -26,14 +26,14 @@
   ];
   programs.steam = {
     enable = true;
-    extraCompatPackages = [ (pkgs.callPackage ../packages/proton-ge.nix { }) ];
+    extraCompatPackages = [ inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.proton-ge ];
     protontricks.enable = true;
   };
   home-manager.users.joseph = {
     home.packages = with pkgs; [
       lutris
     ];
-    xdg.configFile."niri/cfg/gaming-rules.kdl".source = ../../home/dot_config/niri/cfg/gaming-rules.kdl;
+    xdg.configFile."niri/cfg/gaming-rules.kdl".source = ../assets/config/niri/cfg/gaming-rules.kdl;
     dotfiles.niri.extraConfig = ''
       include "cfg/gaming-rules.kdl"
     '';

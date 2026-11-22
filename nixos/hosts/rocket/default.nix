@@ -22,15 +22,7 @@
     ./user-services.nix
     ./metrics.nix
   ];
-  # Back up managed collisions, and retire legacy files that HM does not own.
   home-manager.backupFileExtension = "pre-nixos";
-  home-manager.users.joseph = { lib, ... }: {
-    home.activation.retireChezmoiStartup =
-      lib.hm.dag.entryBetween [ "linkGeneration" ] [ "writeBoundary" ]
-        ''
-          run ${pkgs.bash}/bin/bash ${./retire-chezmoi-startup.sh} /home/joseph
-        '';
-  };
   networking.hostName = "rocket";
   dotfiles.tailscaleMultinet.enable = true;
   # Keep the login keyring encrypted; unlock it separately after desktop login.

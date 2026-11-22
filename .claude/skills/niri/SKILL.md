@@ -1,6 +1,6 @@
 ---
 name: niri
-description: Guidance for editing niri window manager configuration files under home/dot_config/niri/. Use when the task involves niri config, keybinds, gestures, hot corners, layout, window rules, animations, input, displays, or autostart.
+description: Guidance for editing niri window manager configuration files under nixos/assets/config/niri/. Use when the task involves niri config, keybinds, gestures, hot corners, layout, window rules, animations, input, displays, or autostart.
 user-invocable: false
 ---
 
@@ -10,21 +10,10 @@ This skill provides domain knowledge for editing the niri tiling Wayland composi
 
 ## Config Structure
 
-The niri config lives in `home/dot_config/niri/` and deploys to `~/.config/niri/`. The main entry point is `config.kdl`, which includes all other files:
-
-| Source file | Deploys as | Purpose |
-|---|---|---|
-| `config.kdl` | `~/.config/niri/config.kdl` | Entry point — only `include` directives |
-| `noctalia.kdl` | `~/.config/niri/noctalia.kdl` | Noctalia theme colors (focus-ring, border, shadow, tab-indicator) |
-| `cfg/animation.kdl` | `~/.config/niri/cfg/animation.kdl` | Animation settings (currently off) |
-| `cfg/autostart.kdl.tmpl` | `~/.config/niri/cfg/autostart.kdl` | Startup applications — **chezmoi template** |
-| `cfg/decorations.kdl` | `~/.config/niri/cfg/decorations.kdl` | Window decorations (focus-ring, border, shadow — all off, overridden by theme) |
-| `cfg/display.kdl` | `~/.config/niri/cfg/display.kdl` | Monitor/output configuration |
-| `cfg/input.kdl` | `~/.config/niri/cfg/input.kdl` | Keyboard layout, touchpad, focus behavior |
-| `cfg/keybinds.kdl` | `~/.config/niri/cfg/keybinds.kdl` | All key bindings inside a `binds {}` block |
-| `cfg/layout.kdl` | `~/.config/niri/cfg/layout.kdl` | Layout gaps, preset column widths, centering |
-| `cfg/misc.kdl` | `~/.config/niri/cfg/misc.kdl` | Environment variables, CSD preference, screenshots, hotkey overlay |
-| `cfg/rules.kdl` | `~/.config/niri/cfg/rules.kdl` | Window and layer rules |
+Home Manager generates `~/.config/niri/config.kdl` from `nixos/home/niri.nix`.
+Shared KDL files in `nixos/assets/config/niri/cfg/` deploy under
+`~/.config/niri/cfg/`. Host modules set preferred workspace outputs and
+additional rules. DMS manages its generated files under `~/.config/niri/dms/`.
 
 ## KDL Format Patterns
 
@@ -43,17 +32,8 @@ Niri uses [KDL](https://kdl.dev/) for configuration. Common patterns in this con
 ### Final newlines are mandatory
 All KDL files **must** end with a final newline. Niri's config parser may fail to process the last line otherwise. Always verify this when creating or editing files.
 
-### chezmoi template: `autostart.kdl.tmpl`
-This file uses Go template syntax (`{{ if .isWork }}...{{ end }}`). The `.tmpl` suffix tells chezmoi to process it. The rendered output drops the `.tmpl` extension. Use chezmoi template variables (e.g. `.isWork`) for conditional blocks.
-
-### Environment variables may need shell config sync
-If you add or change environment variables in `cfg/misc.kdl`'s `environment {}` block that should also be available in shell sessions, you must update all three shell configs per the CLAUDE.md sync rules:
-- `home/dot_bashrc`
-- `home/dot_config/fish/conf.d/config.fish`
-- `home/dot_config/powershell/Microsoft.PowerShell_profile.ps1`
-
-### Platform filtering
-Niri configs only deploy when `.isNiri` is true in chezmoi data (see `home/.chezmoiignore.tmpl`). The entire `dot_config/niri` directory is ignored on non-niri systems.
+### Shell environment
+Put settings needed by shell sessions in `nixos/home/shell.nix` as well.
 
 ## Niri Wiki Reference
 
@@ -71,9 +51,6 @@ For available configuration options, consult the niri wiki:
 After editing niri config files:
 
 ```bash
-# Validate the niri config (checks deployed config at ~/.config/niri/)
-niri validate
-
-# Preview what chezmoi will deploy (useful for template files)
-chezmoi diff
+# Validate the generated configurations for both NixOS hosts
+nix build --no-link .#checks.x86_64-linux.desktop-activation
 ```

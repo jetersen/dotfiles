@@ -18,7 +18,7 @@ class WorkTailnetTests(unittest.TestCase):
   def test_host_dns_backend_matches_the_work_namespace_address(self):
     root = SOURCE.parents[3]
     netns = (SOURCE.parent / "netns.sh").read_text()
-    dnsdist = (root / "home/dot_local/share/homelab-dns/dnsdist.conf").read_text()
+    dnsdist = (root / "nixos/assets/homelab-dns/dnsdist.conf").read_text()
     address = re.search(r"ip -n work-tailnet addr add ([0-9.]+)/", netns).group(1)
     backend = re.search(r'endpoints.work or "([0-9.]+):53"', dnsdist).group(1)
     self.assertEqual(backend, address)

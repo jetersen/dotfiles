@@ -20,7 +20,7 @@ let
   emojiPicker = pkgs.runCommand "dms-emoji-picker" { } ''
     cp -r ${emojiPickerSource}/emojiPicker "$out"
     chmod -R u+w "$out"
-    ${pkgs.patch}/bin/patch -d "$out" -p1 < ${../packages/dms-emoji-search.patch}
+    ${pkgs.patch}/bin/patch -d "$out" -p1 < ${../patches/dms/emoji-search.patch}
     cp ${emojiShortcodes}/EmojiShortcodes.js "$out/EmojiShortcodes.js"
     cp ${emojiShortcodes}/LICENSE-gemoji "$out/LICENSE-gemoji"
     substituteInPlace "$out/EmojiPicker.qml" \
@@ -120,7 +120,7 @@ in
       };
     };
     "DankMaterialShell/themes/catppuccin/theme.json".source =
-      ../../home/dot_config/DankMaterialShell/themes/catppuccin/theme.json;
+      ../assets/config/DankMaterialShell/themes/catppuccin/theme.json;
 
   };
 }

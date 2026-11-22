@@ -32,7 +32,7 @@ class EmojiExpansionTests(unittest.TestCase):
             self.assertNotIn('shipit', json.loads((root / 'shortcodes.json').read_text()))
 
     def test_layout_snapshot_switch_and_unrelated_events(self):
-        codes = layout.layout_codes((ROOT / 'home/dot_config/niri/cfg/input.kdl').read_text())
+        codes = layout.layout_codes((ROOT / 'nixos/assets/config/niri/cfg/input.kdl').read_text())
         self.assertEqual(codes, ['us', 'dk'])
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / 'espanso-niri'

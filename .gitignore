@@ -1,4 +1,2 @@
 *.zwc
 __pycache__/
-!home/dot_config/varlock/work/
-!home/dot_config/varlock/work/private_dot_env.schema.tmpl

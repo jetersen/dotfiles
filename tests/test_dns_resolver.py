@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 
-SOURCE = Path(__file__).resolve().parents[1] / 'home/dot_local/share/homelab-dns/resolv-conf.sh'
+SOURCE = Path(__file__).resolve().parents[1] / 'nixos/assets/homelab-dns/resolv-conf.sh'
 BASE = 'nameserver 127.0.0.2\nsearch personal.ts.net\noptions timeout:2 attempts:2\n'
 
 

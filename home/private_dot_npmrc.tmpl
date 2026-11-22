@@ -1,4 +1,0 @@
-prefix={{ .chezmoi.homeDir }}/.npm-global
-{{ if .isWork -}}
-{{ includeTemplate "work-secret" (dict "root" .chezmoi.sourceDir "key" "npm-config") -}}
-{{ end -}}

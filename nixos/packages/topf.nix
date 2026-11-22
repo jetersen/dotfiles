@@ -1,18 +1,13 @@
 {
   lib,
   stdenvNoCC,
-  fetchurl,
+  src,
+  version,
 }:
-let
-  manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).topf;
-in
-stdenvNoCC.mkDerivation (finalAttrs: {
+stdenvNoCC.mkDerivation {
   pname = "topf";
-  version = lib.removePrefix "v" manifest.version;
-  src = fetchurl {
-    url = "https://github.com/postfinance/topf/releases/download/v${finalAttrs.version}/topf_linux_amd64.tar.gz";
-    sha256 = manifest.sha256;
-  };
+  inherit src version;
+  unpackCmd = ''tar -xzf "$curSrc"'';
   sourceRoot = ".";
   dontBuild = true;
   installPhase = ''
@@ -27,4 +22,4 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     platforms = [ "x86_64-linux" ];
     mainProgram = "topf";
   };
-})
+}

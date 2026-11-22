@@ -1,18 +1,13 @@
 {
   lib,
   stdenvNoCC,
-  fetchurl,
+  src,
+  version,
 }:
-let
-  manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).proton-ge;
-in
 stdenvNoCC.mkDerivation {
   pname = "proton-ge";
-  version = manifest.version;
-  src = fetchurl {
-    url = "https://github.com/${manifest.repo}/releases/download/${manifest.version}/${manifest.version}-x86_64.tar.gz";
-    sha512 = manifest.sha512;
-  };
+  inherit src version;
+  unpackCmd = ''tar -xzf "$curSrc"'';
   outputs = [
     "out"
     "steamcompattool"
@@ -25,7 +20,7 @@ stdenvNoCC.mkDerivation {
     cp -a . "$steamcompattool/"
     # Keep Steam's selected tool name stable across GE release updates.
     substituteInPlace "$steamcompattool/compatibilitytool.vdf" \
-      --replace-fail '${manifest.version}-x86_64' 'GE-Proton'
+      --replace-fail '${version}-x86_64' 'GE-Proton'
     runHook postInstall
   '';
   doInstallCheck = true;

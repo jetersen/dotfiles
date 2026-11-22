@@ -1,443 +1,46 @@
 # Dotfiles
 
-The root Nix flake manages Rocket and Framework. Chezmoi manages other Linux,
-macOS, Windows, and Codespaces installations from `home/`.
+NixOS and Home Manager configuration for my workstations.
 
-## NixOS layout
+## Installation
 
-- `nixos/hosts/<host>/default.nix` selects profiles, hardware, storage, and host settings.
-- `nixos/profiles/` composes the workstation, work, and gaming environments.
-- `nixos/modules/` contains system services and reusable options.
-- `nixos/home/` contains Home Manager settings. Shells, Starship, DMS, media,
-  and desktop defaults have separate modules.
-- `nixos/packages/` contains custom packages and release manifests.
-- `home/` supplies shared plain assets and shell helpers to both managers.
+Use the [host configuration](nixos/hosts/) for hardware and storage settings.
+Verify disk IDs before running Disko. For systems that reuse existing
+partitions, follow the [storage and recovery guide](docs/rocket-recovery.md).
 
-Framework adds work credentials, encrypted storage, Secure Boot,
-fingerprint support, and simultaneous tailnets. Rocket adds gaming, its existing Btrfs
-filesystems, the Windows VM tooling, and Forgejo runner.
-NixOS never runs chezmoi. Application profiles, authentication, projects, VM
-images, game libraries, and other local state remain outside the Nix store.
-
-## Installation and updates
-
-See [Rocket storage and recovery](docs/rocket-recovery.md) for disk identities,
-mounts, and NixOS recovery. Do not use Disko on Rocket.
-
-Framework uses Disko. Generate `nixos/hosts/framework/hardware-configuration.nix`
-on the target with `nixos-generate-config --show-hardware-config --no-filesystems`.
-Verify the disk's persistent ID before setting it in `nixos/hosts/framework/disk.nix`.
-Its layout is a 2 GiB EFI partition and LUKS containing Btrfs and 72 GiB swap.
-The install-time passphrase file is `/tmp/nixos-disk-password` in the live system.
-LUKS permits periodic TRIM; changes to discard passthrough take effect when the
-encrypted device is opened at boot.
-
-Build the SSH-enabled installer with `nix build .#installer-iso`. Boot in UEFI
-mode with Secure Boot disabled and Ethernet connected. It advertises
-`framework-installer.local` and permits the SSH key in `nixos/keys/joseph.pub`.
-For a standard NixOS ISO, use `scripts/nixos-enable-ssh.sh` from its console.
-
-Framework's Lanzaboote key bundle must be staged at `/var/lib/sbctl` before the
-initial bootloader installation, for example with `nixos-anywhere --extra-files`.
-Keep an encrypted off-machine backup. Export `keys/db/db.pem` as DER to the EFI
-partition, then enroll it through the Framework firmware's Secure Boot DB options
-using the owner GUID in `/var/lib/sbctl/GUID`. Retain factory certificates and
-revocations. Enable enforcement only after verifying signed boot files.
-
-Build or apply from the checkout:
+To build a configuration locally, replace `HOST` with its flake configuration name:
 
 ```sh
-nix build .#nixosConfigurations.framework.config.system.build.toplevel
-sudo nixos-rebuild switch --flake .#framework
+nix build .#nixosConfigurations.HOST.config.system.build.toplevel
 ```
-
-Use `rocket` for Rocket. Update inputs with `nix flake update`; do not change
-NixOS or Home Manager state versions when updating packages. Hold Space at boot
-to select an older generation. Kernel changes require a reboot.
-
-Btrfs scrubbing runs monthly on AC power, capped at 100 MiB/s per device.
-Subvolumes sharing a filesystem are scrubbed once. Runs skipped on battery wait
-until the next scheduled occurrence. Inspect results with `sudo btrfs scrub status /`;
-Rocket's games filesystem can be checked with `sudo btrfs scrub status /media/games`.
 
 ## Desktop and development
 
-Both machines use Niri, Dux Shell, Dux Greeter, Alacritty, Zed, and Rider.
-Dux Files handles folders, archives, file-manager shortcuts and portal open/save
-dialogs. Dolphin and Ark remain available as fallbacks.
-Systemd-oomd monitors application memory pressure in `app.slice`; the compositor
-and session services in `session.slice` remain outside that policy.
+The desktop uses Niri and Dux. Shared shortcuts live in the
+[Niri configuration](nixos/assets/config/niri/cfg/keybinds.kdl).
+Run `unlock-keyring` from a terminal if an app needs stored credentials.
 
-Run `unlock-keyring` as your desktop user over SSH when applications such as `gh`
-need credentials from a locked GNOME login keyring. It prompts for the keyring
-password in the terminal and verifies that the existing desktop service unlocked.
-For a single remote command, use `ssh -t HOST unlock-keyring`, then run
-`gh auth status`. Avoid `gnome-keyring-daemon --unlock`, which can start a second
-daemon. NixOS supplies the helper's Python and D-Bus dependencies; other Linux
-installations need Python 3 and `dbus-python`.
-Unlock the keyring after automatic login if T3 needs stored GitHub credentials.
-
-Shared Niri bindings live under `home/dot_config/niri/cfg/`; host files select
-monitor and workspace preferences. DMS-generated bindings and display settings
-remain writable. Super+L locks, Super+D opens the overview, and Super+M focuses
-Music Assistant. Print selects a region with DMS; Ctrl+Print captures the focused
-screen and Alt+Print captures the focused window on both hosts.
-Super+period opens the Dux Emoji Picker. Search and press Enter or click to paste
-at the cursor; Ctrl+Enter or right-click copies instead. Shift+Enter queues emoji.
-The picker accepts shortcodes such as `:clap:` and `:sweat_smile:`. Espanso expands
-the same shortcodes while typing in apps and pauses while the picker is open.
-Its keyboard detector follows Niri's active US/Danish layout. Stop or start
-`espanso.service` with `systemctl --user` to disable or enable automatic expansion.
-Custom text shortcodes live in `nixos/home/emoji-shortcodes.json` and work in both
-flows; `:ship_it:` inserts 🚢🚀, leaving Slack's image-based `:shipit:` untouched.
-T3's interface and prompt use Inter Variable with Noto Color Emoji as their explicit fallback.
-The Music Assistant companion loads its frontend from the selected server.
-`nix build .#music-assistant-frontend` builds the patched frontend separately;
-keep its version compatible with the server when updating the source pin.
-Framework's display idle timer turns screens off after 15
-minutes unless DMS Keep Awake is enabled.
-Framework's DMS profiles match the work monitors by serial number, across USB-C
-ports. The work dock uses both Dell monitors at 2560×1440 and 100 Hz with the
-laptop panel disabled while unlocked. A Framework-only DMS daemon enables the
-panel while locked; the login greeter also keeps it enabled. Undocking restores
-the panel at 150% scale. Other display layouts remain local.
-
-Fish, Bash, Zsh, and PowerShell use Starship and Worktrunk's `wt` shell integration.
-Clone helpers enter the newly cloned checkout without writing sidecar files.
-Bare and mirror clones leave the current directory unchanged.
-`ride` opens a solution or project in Rider. Microfetch runs in interactive
-Alacritty shells. Restart shells after configuration changes.
-
-Global development tools are declared in `nixos/home/development.nix`.
-Aspire uses the official Nix packaging with a separately pinned CLI release archive.
-Its extracted Linux bundles use `nix-ld`; keep `~/.aspire/bin` out of the NixOS
-session PATH so older manual installs cannot mask the managed CLI. Restart the
-desktop session after switching to this setup.
-Use direnv or project development shells for different toolchain versions:
+[Home Manager](nixos/home/development.nix) defines the global development tools.
+Use direnv or a Nix development shell for project-specific toolchains:
 
 ```sh
-nix develop ~/git/dotfiles#python --command fish
+nix develop .#python
 ```
 
-Other shells are `rust`, `go`, `jvm`, `pulumi`, and `dotnet-preview`.
-.NET 11 is the global default, with .NET 10 also available for existing projects.
-The `dotnet-preview` shell uses only .NET 11 and sets its own `DOTNET_ROOT`.
-Temporary tools can use `nix shell nixpkgs#PACKAGE` or comma, for example
-`, dig example.com`. Bash, Zsh, and Fish suggest packages for missing commands.
-The pinned nix-index database covers executables only and needs no local indexing;
-use `nix-locate bin/COMMAND` to search it.
-
-The gaming profile provides Steam, GE-Proton, Protontricks, and Lutris. Select
-GE-Proton per game in Steam. Local VMs use unprivileged QEMU through libvirt and
-virt-manager; the standard NAT network autostarts.
-
-Renovate updates the T3 Code CLI and AppImage together. Nix locks both release
-files in `flake.lock`. Codex and Zed follow nixpkgs master. Renovate updates
-Claude's version and x86_64 Linux checksum.
-For a manual Claude update, run `nixos/packages/update-claude-code.sh [VERSION]`
-and push for CI deployment.
-Credentials and sessions remain local.
-
-Agent skills live under `home/dot_agents/skills/`, shared by Codex and Claude
-through Home Manager on NixOS and chezmoi elsewhere. The `full-send`, `full-stop`,
-`sol-loop`, `file-pr`, `babysit-pr`, and `leaving-pr-comments` skills are vendored
-unchanged from [Theo's tstack](https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af/skills)
-at revision `1085050f3baed1ac724caa4a8166145fb2ac88af`, with their MIT license.
-`full-send` takes work through merge; `full-stop` leaves the PR ready without
-merging; `sol-loop` runs bounded Sol reviews. Their dependencies are included.
-Shared PR writing preferences live in `home/.chezmoitemplates/ai-instructions.md`.
-
-Both hosts let `joseph` manage Tailscale Serve. For direct tailnet access on
-Framework, enable Network access in T3's connection settings and use its Tailscale
-IP endpoint; the desktop app must remain running. Tailscale HTTPS optionally
-provides a MagicDNS HTTPS URL through Serve.
-Rocket runs T3 as a lingering user service using `~/.t3`, with `--tailscale-serve`
-managing its private HTTPS endpoint. It also listens on IPv4 port 3773. Localhost
-remains available; the firewall admits remote access to this port only through
-`tailscale0`. Keep the desktop's separate local server disabled.
-The server runs natively with patched Nix library paths so agent commands inherit
-the host environment. An older client must not open newer databases.
-Rocket protects the T3 server from kernel OOM killing and systemd-oomd. Agents
-remain killable under T3's agent policy; ordinary user services retain their
-normal OOM score. SSH, Tailscale, networking, and DNS have protected memory to
-preserve remote recovery during memory pressure.
-
-Host and process metrics can be enabled with the host's `metrics.nix` module.
-Keep exporter listeners restricted to the scraper. Process groups omit PIDs and
-arguments; proportional memory apportions shared pages, while GPU metrics are
-per-device totals rather than process ownership.
-
-T3 uses the upstream renderer from each release. For agent automation on a connected
-environment, choose "Open in [environment]'s browser" from the browser tab's menu.
-Desktop tabs have separate login state and cannot be automated remotely.
-
-### Shared simultaneous tailnets
-
-Rocket and Framework use `nixos/modules/tailscale-multinet.nix` and the same
-private experimental Tailscale package, pinned in
-`nixos/packages/tailscale-multinet.nix`. The build requires
-`ts_experimental_multi_profile`; this is not an upstream supported release.
-The package pins the exact static CLI and daemon by recursive hash. CI substitutes
-it from the private workstation cache without publishing unpublished source
-through the GitHub mirror. A cache miss fails closed. Before replacing the pin,
-verify both binaries, seed the fixed-output store path in Attic, and test a fresh
-download. Retain the source archive and build toolchain privately.
-
-`tailscale-multi-profile.service` runs one daemon for both tailnets;
-`tailscaled.service` aliases that same unit for existing integrations. Tailscale
-handles DNS, preferring the primary profile's configured DNS while connected.
-NetworkManager maintains ordinary DHCP DNS in its live resolver file, and
-Tailscale restores that link when stopped. Neither host runs a separate work
-daemon, dnsdist, a custom portal checker or a DNS ownership controller. Captive
-portal detection uses Tailscale's built-in, connectivity-triggered behavior.
-The direct DNS manager uses `/run/NetworkManager/no-stub-resolv.conf` as its
-baseline; `dns=none` prevents competing writes to Tailscale's resolver file.
-Systemd-resolved and NetworkManager's own HTTP connectivity checking are disabled.
-
-Each host keeps its private credentials and explicit attachment selection.
-Framework retains `/var/lib/tailscale-multi-profile-test` and `tailscale-mp`.
-Rocket uses `/var/lib/tailscale-multi-profile` and retains `tailscale0` for its
-existing firewall rules. Its personal and work states originate from
-`/var/lib/tailscale` and `/var/lib/tailscale-work`; these have independent machine
-keys. Import them only with the validated migration tool for the pinned build.
-Preserve both original node identities, per-profile machine keys and personal
-Serve configuration, including its certificate directory. Map SSH keys, profile
-data and other var-root dependencies explicitly; reject unmapped credential
-directories. Do not merge state catalogs by hand or enroll a replacement
-work device. Keep private rollback snapshots outside the Nix store, stop original
-writers before cutover, and use the matching export procedure to retain current
-credentials if rolling back after the new daemon has written state.
-
-Startup requires a pre-existing nonempty state file; no enrollment command or
-auth key is configured. Saved-only profiles remain disconnected. Use `tailscale network status`
-to inspect active profiles and `tailscale switch --list --json` to discover IDs.
-Stop/start `tailscale-multi-profile.service` to disconnect/reconnect both tailnets.
-Updates cache the target system before stopping the daemon, then restart it if it
-was running. Restarts remain explicit for this experimental deployment.
-
-### Rocket dictation
-
-Press `Super+T` in Niri to start microphone recording. Speak when the Listening
-notification appears. Recording preserves quiet beginnings and finishes
-automatically after 3.5 seconds of silence, or press the shortcut again to finish
-sooner. Whisper large-v3-turbo transcribes locally using the discrete AMD GPU
-through Vulkan and types the text directly into the focused app with `wtype`.
-If typing fails, focus a text field and dictate again.
-The model detects the spoken language automatically. Active MPRIS players,
-including Zen and Music Assistant, pause during dictation and resume afterwards.
-Players that were already paused stay paused.
-Recording uses the default PipeWire microphone with a 0.5% silence threshold
-and stops after five minutes at most.
-Audio and transcript files are temporary and removed when the session ends.
-
-Run `dictate` to toggle from a terminal, or
-`systemctl --user stop dictation` to cancel. Diagnose failures with
-`journalctl --user -u dictation`.
-
-## Work access and DNS
-
-The work profile provides Storage Monitor, cloud credentials, Varlock, and
-private AI instructions. Shared work secrets are in `nixos/secrets/work.yaml`.
-sops-nix decrypts with the persistent SSH host key. The retired manually managed
-DNS domain list remains encrypted in `nixos/secrets/vpn-domains.yaml` as a
-reference; work DNS routing uses the work tailnet's advertised configuration.
-Never copy private keys or plaintext secrets into Nix expressions.
-
-Storage Monitor includes Python and util-linux for read-only monitoring of mounted
-filesystems, including LUKS and LVM. UDisks metadata uses busctl; udisksctl performs
-guarded disk actions through UDisks and polkit. Python needs no PyGObject/Gio.
-System and nested layouts remain monitor-only.
-Confirmed USB removal unmounts the device's filesystems and physical siblings before
-powering it off. Failed unmounts or changed device identities prevent power-off.
-
-Rocket keeps its personal LAN route preference; Framework accepts personal subnet
-routes for access away from home. Both use Tailscale's advertised work DNS and
-routes. SSH aliases use Tailscale names; additional aliases belong in
-`~/.ssh/local.config`.
-
-On either host, use `tailscale network connect PROFILE` or
-`tailscale network disconnect PROFILE` for the saved work profile. Preserve the
-personal primary/preferred selection and leave other saved profiles detached.
-The retired namespace widget and office/presence controller are disabled. The
-`work-tailnet` skill uses the shared daemon's CLI on both hosts.
-
-`remote-clip framework` transfers a clipboard image or text. From a work-enabled
-machine, `argocd-remote-sso framework` uses its
-browser for SSO and copies only the selected Argo CD context.
-
-On NixOS, `wl-copy` and `wl-paste` use the host's logged-in Wayland desktop,
-including over SSH or mosh. They recover missing display variables from the
-user service manager; a running desktop session is required. They access the
-remote host's clipboard, not the connecting computer's. Run `remote-clip rocket`
-on the connecting Linux desktop to fetch Rocket's clipboard, including images.
-For text sent to the connecting terminal's clipboard, OSC 52 depends on terminal
-and transport support. Terminal paste sends local clipboard text as keyboard
-input; SSH and mosh do not forward a Wayland clipboard.
-
-Both NixOS hosts provide Varlock, the Bitwarden CLI, and the work schema from
-`nixos/secrets/varlock.yaml`, independently of the full work profile.
-Run `bw login` once on each machine, then unlock interactively with
-`varlock load -p ~/.config/varlock/work/.env.schema`. Varlock prompts for the
-Bitwarden master password and caches the session for eight hours, as configured
-by the work schema's `sessionTtl`.
-Use `workenv COMMAND` to inject the resolved variables, including `TEAMCITY_URL`
-and `TEAMCITY_TOKEN`, into a command. Bare `varlock load` uses the current
-directory's schema, so pass the work schema path explicitly.
-Sign in to Proton Pass with `pass-cli login`. Authentication remains local.
+Home Manager shares [agent skills](nixos/assets/skills) between Codex and Claude,
+including vendored skills from
+[Theo's tstack](https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af/skills).
 
 ## Automatic deployment
 
-Forgejo is primary; its native push mirror updates GitHub for existing chezmoi
-installations. All NixOS hosts follow `main` through an on-demand systemd upgrade service. Lightweight Python
-checks run on Kubernetes before full Nix builds run on either Docker pool with
-sandboxing and a persistent store volume. CI builds both systems
-and development shells, then publishes private-cache misses and verifies that both
-system closures and sources needed during evaluation (pc2mqtt and patched Lanzaboote) are available
-from the configured binary caches before notifying
-hosts. The 512 MiB limit applies only to optional development and test outputs;
-required system dependencies are uploaded at any size when unavailable upstream.
-Large packages already available upstream do not need a duplicate in Attic.
+Hosts follow Forgejo's `main` branch. CI tests and builds each revision,
+publishes missing build outputs to Attic, and notifies the hosts once the
+revision is ready.
 
-Automatic upgrades pin the selected Git revision and check every dependency and
-NAR endpoint before invoking `nixos-rebuild` for that same revision. A cache miss
-or a 15-minute readiness timeout leaves the current system running. Local package
-builds and remote builders are disabled for automatic upgrades; a later update
-hint, network event or scheduled run can retry once the cache is ready.
+Each host resolves and pins a revision before upgrading. It switches only when
+the required binaries are available in the configured caches. If they are
+missing, the current system keeps running and a later check can retry. Upgrades
+leave rebooting to the operator and retain local generations for rollback.
 
-Attic expires unused objects after 60 days. A daily host timer refreshes cached
-paths referenced by every retained system generation and the booted system without
-downloading the binaries. Large private copies stop being refreshed when the exact
-binary becomes available upstream, allowing those duplicates to expire too. Hosts
-offline for more than the retention period can lose remote cache entries; their
-installed generations remain in the local store.
-
-Weekly Nix GC prunes the system profile to seven days of history, keeping at least
-the newest five generations and every generation matching the booted, running or
-selected system. User profiles and development GC roots are left intact.
-
-CI plans Framework, dynamically discovered checks, Rust dependencies, development
-shells and both Proton outputs alongside a separate Rocket planner. The two native
-planners use separate persistent evaluation caches. Once both succeed, CI roots
-the selected derivations and realizes their shared graph in one build, then validates
-every selected output before publishing or notifying hosts.
-Compilation is serialized with four cores per build to bound peak memory demand.
-The shared workflow concurrency group permits one Nix CI run across both pools;
-an offline runner does not prevent the other pool from claiming queued builds.
-
-CI runs `checks.x86_64-linux` before publishing or notifying hosts. Run the same
-groups locally with `nix flake check --no-update-lock-file --max-jobs 2 --cores 4`,
-or select one with `nix build .#checks.x86_64-linux.dns-routing`:
-
-- `desktop-activation` exercises both hosts' production DMS configurators, settings
-  and plugin preservation, GTK integration and full Niri configuration validation.
-  The Framework idle check tests state logic in the patched QML source.
-- `dns-routing` runs real dnsdist with loopback DNS and verified TLS DoH fixtures,
-  checking routing, fail-closed behavior, backend restart recovery and fallback TTL.
-- `tooling-unit` runs the CI orchestration, package updater, Wayland clipboard and
-  T3 remote-thread and completion notifier unit suites.
-- `keyring-unlock` exercises remote unlocking against an isolated GNOME keyring,
-  including incorrect passwords and a replaced control socket.
-- `module-contracts` checks selected evaluated service and credential properties.
-- `boot-profile` checks both hosts' bootloader wiring and the Lanzaboote hook's
-  profile discovery, requested default and booted-system protection options.
-- `native-lanzaboote` and `native-pc2mqtt` reuse the tested packages
-  built for the systems. Lanzaboote tests cover profile identity, retention,
-  rollback defaults, signing and malformed generations.
-
-These checks use sandboxed derivations with narrow source inputs. CI roots their
-outputs and publishes eligible paths to Attic; unchanged checks can substitute.
-`nix flake check --no-build` only evaluates and does not execute these tests.
-There are no VM prerequisites. Boot, systemd ordering/credentials/restarts, live
-Wayland/QML behavior and tunnel/interface/source-address transitions remain outside
-this coverage. Backend process restart tests do not cover interface transitions.
-
-CI publishes non-retained MQTT update hints over `wss://mqtt.jetersen.dev/socket`
-with verified TLS. The `NIXOS_DEPLOY_MQTT_PASSWORD` repository secret authenticates
-`nixos-deploy-ci`, which can publish only the two hosts' update topics. Notifications
-use QoS 1 and CI waits for broker acknowledgement. Offline hosts check after their
-MQTT connection returns. Crane caches pc2mqtt's compiled Rust dependencies separately
-from its source. CI retains the latest dependency artifacts and publishes eligible
-outputs to Attic for reuse across source edits; dependency and toolchain changes
-rebuild them.
-
-Both hosts run pc2mqtt with separate SOPS credentials. Each account can publish
-only its own state and discovery records, and read its own command topics.
-A non-retained `PRESS` on `<host>/button/update/command` starts
-`nixos-upgrade.service`. The updater resolves the remote `main` revision, respects
-its lockfile, verifies binary availability, and runs `nixos-rebuild switch` at that
-same revision.
-It never reboots automatically. The job runs independently of pc2mqtt, survives
-service changes during activation, and coalesces concurrent starts. There is no
-persistent Comin process or gRPC connection.
-
-On Rocket, Home Manager stages T3 Code server updates without restarting the
-running server. A user timer checks every minute and applies staged server
-packages after two quiet minutes with no queued/running turns, approvals,
-delegated agents, background tasks or pending effects. Unreadable or unfamiliar
-server state defers the update. The final check reserves SQLite's writer and
-briefly suspends T3 so a new turn cannot start between checking and stopping it.
-If still idle, it kills the server process and lets systemd start the staged
-version; otherwise it resumes the server. It changes no T3 database records.
-Other services update normally. An explicit
-`systemctl --user restart t3code.service` bypasses this idle check.
-
-Hosts check at boot, daily, on resume, NetworkManager events, and MQTT connections.
-To request a check, run `sudo systemctl start nixos-upgrade.service`, or use
-`pc2mqtt --request-update` through the agent. Runtime update commands are not kept
-pending until deployment completes. To disable automatic and requested upgrades,
-mask the upgrade service and timer. Reverting the running generation alone does
-not stop the next upgrade from following `main` again.
-
-The upgrade unit records its completed outcome using
-`pc2mqtt --report-update-result`. The last result survives MQTT/agent downtime in
-`/var/lib/pc2mqtt/update-result.json`. Home Assistant's Deployment sensor receives
-`state`, `result`, `exit_status`, and `completed_at` on `<host>/deployment/state`.
-Use `state: failed` for a phone notification and `completed_at` to deduplicate
-replayed retained results. Detailed logs remain in
-`journalctl -u nixos-upgrade.service`. Startup failures are reported as well.
-The former Comin revision and reboot-required discovery entities are removed.
-
-Cache reads use each host's `nix-cache-netrc` SOPS secret. No decryption or Secure
-Boot private keys are supplied to CI. New deployments use the standard `system`
-profile. Existing Comin profiles and boot entries remain available for rollback;
-the migration does not delete them. An inert compatibility service lets a Comin
-activation finish before its changed-unit handling retires the old daemon.
-
-Framework uses Lanzaboote v1.2.0 with profile support backported from
-[PR #673](https://github.com/nix-community/lanzaboote/pull/673), pinned at
-`4a4bb2a8bcbd5247e41a063abdbd74222621de4b`. It includes
-the booted-system protection prerequisite and a NixOS VM fixture adjustment.
-The hook discovers named profiles and makes the requested `switch` or `boot`
-target the boot default. Test operations leave boot entries unchanged. Limits
-apply per profile, and the booted generation remains protected. Secure Boot
-signing keys stay on Framework. Rocket uses NixOS's normal systemd-boot builder.
-`nix build .#lanzaboote-system-profiles` runs the patched package's native tests.
-The opt-in `lanzaboote-system-profiles-vm`,
-`lanzaboote-system-profiles-boot-counting-vm` and `lanzaboote-protected-system-vm`
-packages run isolated UEFI boot and rollback tests; these require KVM access.
-
-## Chezmoi installation
-
-Install Git, chezmoi, SOPS, age, and Python 3 through the platform package manager.
-Linux setup also needs Fish. Clone this repository to `~/git/dotfiles`, then run
-`chezmoi --source ~/git/dotfiles/home init`. For a work machine, set
-`DOTFILES_WORK=1` before this initialization; personal installations do not
-render work secrets.
-
-Run the platform bootstrap explicitly before applying:
-`bash home/.chezmoiscripts/linux/.init.sh` or the corresponding macOS script. On Windows,
-run `home/.chezmoiscripts/windows/.init.ps1` from built-in Windows PowerShell;
-it installs PowerShell 7 and gsudo before the apply phase needs them.
-
-Restore your age identity separately before rendering work files. SOPS uses its
-standard age key location or `SOPS_AGE_KEY_FILE`. Shared work settings and private
-AI instructions come from `nixos/secrets/work.yaml`; ordinary source reads never
-log in to Proton Pass. Edit encrypted values with SOPS. Enroll an additional
-work host by adding its age recipient and running `sops updatekeys` for that file;
-Rocket is not currently a work-secret recipient.
-
-Restore an SSH key and its matching `.pub` explicitly with
-`python3 home/.chezmoiscripts/.init-ssh.py /path/to/backup-key`. The importer
-refuses to overwrite existing keys. Review `chezmoi diff`, then run `chezmoi apply`.
-Application installation scripts can change system settings. Subsequent updates
-use `chezmoi update`.
+To check for an update manually, run `sudo systemctl start nixos-upgrade.service`.
+View the result with `journalctl -u nixos-upgrade.service`.

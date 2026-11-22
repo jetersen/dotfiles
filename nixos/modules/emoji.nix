@@ -12,7 +12,7 @@ let
       pkgs.systemd
     ];
     text = ''
-      exec python3 ${../home/espanso-layout.py} ${../../home/dot_config/niri/cfg/input.kdl}
+      exec python3 ${../home/espanso-layout.py} ${../assets/config/niri/cfg/input.kdl}
     '';
   };
 in

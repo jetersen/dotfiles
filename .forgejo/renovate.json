@@ -17,17 +17,38 @@
   },
   "customManagers": [
     {
-      "customType": "jsonata",
-      "fileFormat": "json",
+      "customType": "regex",
       "managerFilePatterns": [
-        "/^nixos/packages/claude-code-manifest\\.json$/"
+        "/^flake\\.nix$/"
       ],
       "matchStrings": [
-        "[{\"depName\": \"anthropics/claude-code\", \"currentValue\": version}][currentValue]"
+        "file\\+https://github\\.com/(?<depName>freelensapp/freelens|postfinance/topf|voidzero-dev/vite-plus)/releases/download/v(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)/[^\"\\s]+"
       ],
       "datasourceTemplate": "github-releases",
-      "extractVersionTemplate": "^v(?<version>.*)$",
-      "versioningTemplate": "semver"
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "file\\+https://github\\.com/(?<depName>dmno-dev/varlock)/releases/download/(?<currentValue>varlock@[0-9]+\\.[0-9]+\\.[0-9]+)/varlock-linux-x64\\.tar\\.gz"
+      ],
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "regex:^varlock@(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^flake\\.nix$/"
+      ],
+      "matchStrings": [
+        "file\\+https://github\\.com/(?<depName>GloriousEggroll/proton-ge-custom)/releases/download/(?<currentValue>GE-Proton[0-9]+-[0-9]+)/[^\"\\s]+"
+      ],
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "regex:^GE-Proton(?<major>\\d+)-(?<minor>\\d+)$"
     },
     {
       "customType": "regex",
@@ -57,17 +78,6 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "/^nixos/packages/workstation-manifest\\.json$/"
-      ],
-      "matchStrings": [
-        "\"repo\": \"(?<depName>[^\"]+)\",\\s+\"version\": \"(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)\",\\s+\"sha256\": \"(?<currentDigest>[a-f0-9]{64})\""
-      ],
-      "datasourceTemplate": "github-release-attachments",
-      "versioningTemplate": "semver"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
         "/^flake\\.nix$/"
       ],
       "matchStrings": [
@@ -76,28 +86,6 @@
       "datasourceTemplate": "nuget",
       "versioningTemplate": "nuget",
       "autoReplaceStringTemplate": "file+https://api.nuget.org/v3-flatcontainer/{{{depName}}}/{{{newValue}}}/{{{depName}}}.{{{newValue}}}.nupkg"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^nixos/packages/workstation-manifest\\.json$/"
-      ],
-      "matchStrings": [
-        "\"repo\": \"(?<depName>dmno-dev/varlock)\",\\s+\"version\": \"(?<currentValue>varlock@[0-9]+\\.[0-9]+\\.[0-9]+)\",\\s+\"sha256\": \"(?<currentDigest>[a-f0-9]{64})\""
-      ],
-      "datasourceTemplate": "github-release-attachments",
-      "versioningTemplate": "regex:^varlock@(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
-    },
-    {
-      "customType": "regex",
-      "managerFilePatterns": [
-        "/^nixos/packages/workstation-manifest\\.json$/"
-      ],
-      "matchStrings": [
-        "\"repo\": \"(?<depName>GloriousEggroll/proton-ge-custom)\",\\s+\"version\": \"(?<currentValue>GE-Proton[0-9]+-[0-9]+)\",\\s+\"sha512\": \"(?<currentDigest>[a-f0-9]{128})\""
-      ],
-      "datasourceTemplate": "github-release-attachments",
-      "versioningTemplate": "regex:^GE-Proton(?<major>\\d+)-(?<minor>\\d+)$"
     }
   ],
   "packageRules": [
@@ -117,20 +105,6 @@
         "freelensapp/freelens"
       ],
       "allowedVersions": "<3.0.0"
-    },
-    {
-      "matchPackageNames": [
-        "anthropics/claude-code"
-      ],
-      "postUpgradeTasks": {
-        "commands": [
-          "nixos/packages/update-claude-code.sh {{newVersion}}"
-        ],
-        "fileFilters": [
-          "nixos/packages/claude-code-manifest.json"
-        ],
-        "executionMode": "update"
-      }
     },
     {
       "matchManagers": [

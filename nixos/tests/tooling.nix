@@ -8,20 +8,20 @@ let
         path = ../../. + "/${path}";
       })
       [
-        "home/dot_agents/skills/t3-completion-notifier/scripts"
-        "home/dot_agents/skills/t3-remote-thread/scripts"
+        "nixos/assets/skills/t3-completion-notifier/scripts"
+        "nixos/assets/skills/t3-remote-thread/scripts"
         "tests/test_dictation.py"
         "tests/test_emoji_expansion.py"
         "nixos/home/espanso-layout.py"
         "nixos/home/emoji-expansion-control.sh"
         "nixos/packages/generate-emoji-shortcodes.py"
-        "home/dot_config/niri/cfg/input.kdl"
+        "nixos/assets/config/niri/cfg/input.kdl"
         "tests/test_work_tailnet.py"
         "tests/test_dns_resolver.py"
-        "home/dot_local/share/homelab-dns/resolv-conf.sh"
+        "nixos/assets/homelab-dns/resolv-conf.sh"
         "tests/test_work_tailnet_peer_dns.py"
         "nixos/modules/work-tailnet/netns.sh"
-        "home/dot_local/share/homelab-dns/dnsdist.conf"
+        "nixos/assets/homelab-dns/dnsdist.conf"
         "nixos/modules/work-tailnet/control.py"
         "nixos/modules/work-tailnet/peer_dns.py"
         "nixos/hosts/rocket/dictation.py"
@@ -34,13 +34,10 @@ let
         "nixos/ci/cache-policy.py"
         "nixos/ci/build-graph.py"
         "nixos/ci/build-systems.sh"
-        "tests/test_package_updates.py"
         "tests/test_wayland_clipboard.py"
         "tests/test_t3code_idle_update.py"
         "nixos/hosts/rocket/t3code-idle-update.py"
         "nixos/home/wayland-clipboard.py"
-        "nixos/packages/update-claude-code.sh"
-        "nixos/packages/claude-code-manifest.json"
       ]
   );
 in
@@ -64,7 +61,7 @@ pkgs.runCommand "tooling-unit-checks"
     chmod -R u+w source
     cd source
     python3 -m unittest discover -s tests -p 'test_*.py' -v
-    python3 -B -m unittest discover -s home/dot_agents/skills/t3-completion-notifier/scripts -p 'test_poll.py' -v
-    python3 -B -m unittest discover -s home/dot_agents/skills/t3-remote-thread/scripts -p 'test_t3_remote.py' -v
+    python3 -B -m unittest discover -s nixos/assets/skills/t3-completion-notifier/scripts -p 'test_poll.py' -v
+    python3 -B -m unittest discover -s nixos/assets/skills/t3-remote-thread/scripts -p 'test_t3_remote.py' -v
     touch "$out"
   ''

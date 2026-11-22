@@ -16,7 +16,7 @@ import dbus
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / 'home/dot_local/bin/executable_unlock-keyring'
+SOURCE = ROOT / 'nixos/assets/scripts/unlock-keyring.py'
 loader = SourceFileLoader('keyring_unlock', str(SOURCE))
 spec = importlib.util.spec_from_loader(loader.name, loader)
 helper = importlib.util.module_from_spec(spec)

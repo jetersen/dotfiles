@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchurl,
+  src,
+  version,
   autoPatchelfHook,
   makeWrapper,
   nodejs_24,
@@ -9,14 +10,10 @@
   buildFHSEnv,
 }:
 let
-  manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).vite-plus;
-  cli = stdenv.mkDerivation (finalAttrs: {
+  cli = stdenv.mkDerivation {
     pname = "vite-plus";
-    version = lib.removePrefix "v" manifest.version;
-    src = fetchurl {
-      url = "https://github.com/voidzero-dev/vite-plus/releases/download/v${finalAttrs.version}/vp-x86_64-unknown-linux-gnu.tar.gz";
-      sha256 = manifest.sha256;
-    };
+    inherit src version;
+    unpackCmd = ''tar -xzf "$curSrc"'';
     nativeBuildInputs = [
       autoPatchelfHook
       makeWrapper
@@ -46,7 +43,7 @@ let
       platforms = [ "x86_64-linux" ];
       mainProgram = "vp";
     };
-  });
+  };
 in
 buildFHSEnv {
   name = "vp";

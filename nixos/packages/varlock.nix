@@ -1,7 +1,8 @@
 {
   lib,
   stdenv,
-  fetchurl,
+  src,
+  version,
   autoPatchelfHook,
   makeWrapper,
   openssl,
@@ -9,16 +10,10 @@
   libsecret,
   versionCheckHook,
 }:
-let
-  manifest = (builtins.fromJSON (builtins.readFile ./workstation-manifest.json)).varlock;
-in
 stdenv.mkDerivation {
   pname = "varlock";
-  version = lib.removePrefix "varlock@" manifest.version;
-  src = fetchurl {
-    url = "https://github.com/dmno-dev/varlock/releases/download/${manifest.version}/varlock-linux-x64.tar.gz";
-    sha256 = manifest.sha256;
-  };
+  inherit src version;
+  unpackCmd = ''tar -xzf "$curSrc"'';
   nativeBuildInputs = [
     autoPatchelfHook
     makeWrapper

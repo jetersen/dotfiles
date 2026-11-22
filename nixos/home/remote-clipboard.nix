@@ -20,7 +20,7 @@
         pkgs.systemd
       ];
       text = ''
-        exec ${pkgs.python3}/bin/python3 ${../../home/dot_local/bin/executable_remote-clip} "$@"
+        exec ${pkgs.python3}/bin/python3 ${../assets/scripts/remote-clip.py} "$@"
       '';
     })
   ];
