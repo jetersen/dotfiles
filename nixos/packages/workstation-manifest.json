@@ -11,8 +11,8 @@
   },
   "freelens": {
     "repo": "freelensapp/freelens",
-    "version": "v2.0.0",
-    "sha256": "372a019765170ad420b0224d653d488ebebc41faa972052fa3df1337c2cb11d1"
+    "version": "v2.1.0",
+    "sha256": "0f7c5a240edee664d25f1c18283a7a67ad98dcf33f4d03cc319bf581bfed1bd2"
   },
   "varlock": {
     "repo": "dmno-dev/varlock",
