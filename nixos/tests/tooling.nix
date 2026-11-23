@@ -21,8 +21,6 @@ let
         "nixos/assets/config/niri/cfg/input.kdl"
         "tests/test_work_tailnet.py"
         "tests/test_dns_resolver.py"
-        "tests/test_tailscale_resolver.py"
-        "nixos/modules/tailscale-resolver-init.sh"
         "nixos/assets/homelab-dns/resolv-conf.sh"
         "tests/test_work_tailnet_peer_dns.py"
         "nixos/modules/work-tailnet/netns.sh"

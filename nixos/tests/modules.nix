@@ -289,17 +289,17 @@ let
         && daemon.serviceConfig.Restart == "no"
         && builtins.elem (toString configurations.framework.pkgs.getent) (map toString daemon.path)
         && !framework.services.tailscale.enable
-        && !framework.services.resolved.enable
-        && framework.networking.networkmanager.dns == "none"
+        && framework.services.resolved.enable
+        && framework.networking.networkmanager.dns == "systemd-resolved"
         && !framework.networking.networkmanager.settings.connectivity.enabled
-        && !(framework.environment.etc ? "resolv.conf")
+        && framework.environment.etc."resolv.conf".source == "/run/systemd/resolve/stub-resolv.conf"
         && !(services ? tailscale-multinet-portal-mode)
         && !(services ? tailscaled-work)
         && !(services ? dnsdist)
         && !(services ? homelab-portal-dns)
         && !(services ? tailscale-multinet-recover)
-        && framework.dotfiles.gitops.prepareSwitch != null
-        && rocket.dotfiles.gitops.prepareSwitch != null;
+        && framework.dotfiles.gitops.prepareSwitch == null
+        && rocket.dotfiles.gitops.prepareSwitch == null;
       message = "Framework must retain its authenticated multinet state and simple DNS ownership";
     }
     {
@@ -315,21 +315,22 @@ let
             c.dotfiles.tailscaleMultinet.enable
             && !c.dotfiles.workTailnet.enable
             && !c.services.tailscale.enable
-            && !c.services.resolved.enable
+            && c.services.resolved.enable
             && !(c.systemd.services ? tailscaled)
             && !(c.systemd.services ? tailscaled-work)
             && !(c.systemd.services ? homelab-dns-reconcile)
             && builtins.elem "tailscaled.service" daemon.aliases
             && builtins.elem "tailscaled-work.service" daemon.conflicts
             && builtins.elem "tailscaled-work.service" daemon.after
-            && builtins.elem "${configurations.${host}.pkgs.coreutils}/bin/test -s ${stateFile}" daemon.serviceConfig.ExecStartPre
-            && builtins.any (lib.hasInfix "tailscale-resolver-init.sh") daemon.serviceConfig.ExecStartPre
+            && lib.hasSuffix "/bin/test -s ${stateFile}" daemon.serviceConfig.ExecStartPre
+            && builtins.elem "systemd-resolved.service" daemon.after
+            && builtins.elem "systemd-resolved.service" daemon.wants
             && lib.hasInfix "--state=${stateFile}" daemon.serviceConfig.ExecStart
             && lib.hasInfix "--tun=${c.dotfiles.tailscaleMultinet.interfaceName}" daemon.serviceConfig.ExecStart
             && c.systemd.services.NetworkManager-wait-online.enable
-            && c.networking.networkmanager.dns == "none"
+            && c.networking.networkmanager.dns == "systemd-resolved"
             && !c.networking.networkmanager.settings.connectivity.enabled
-            && !(c.environment.etc ? "resolv.conf")
+            && c.environment.etc."resolv.conf".source == "/run/systemd/resolve/stub-resolv.conf"
             && toString c.services.tailscale.package == toString framework.services.tailscale.package
           )
           [

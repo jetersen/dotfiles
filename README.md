@@ -47,7 +47,8 @@ View the result with `journalctl -u nixos-upgrade.service`.
 
 ## Tailnet DNS
 
-The shared Tailscale daemon manages DNS for both attached tailnets. Its service
-creates a NetworkManager fallback link only when `/etc/resolv.conf` is absent;
-Tailscale restores that link when it stops. NixOS activation must leave this file
-unmanaged so it cannot overwrite the running daemon's DNS configuration.
+The shared Tailscale daemon manages DNS for both attached tailnets through
+systemd-resolved. NetworkManager supplies the network's DNS servers to resolved;
+Tailscale reads that underlay configuration and adds the tailnets' DNS policy.
+`/etc/resolv.conf` stays linked to resolved's stub resolver, including across
+NixOS activation and Tailscale restarts.
