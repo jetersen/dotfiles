@@ -26,7 +26,7 @@
       flake = false;
     };
     proton-ge-source = {
-      url = "file+https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-12/GE-Proton11-12-x86_64.tar.gz";
+      url = "file+https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-13/GE-Proton11-13-x86_64.tar.gz";
       flake = false;
     };
     topf-source = {
