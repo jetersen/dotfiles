@@ -292,7 +292,7 @@ let
         && !framework.services.resolved.enable
         && framework.networking.networkmanager.dns == "none"
         && !framework.networking.networkmanager.settings.connectivity.enabled
-        && framework.environment.etc."resolv.conf".source == "/run/NetworkManager/no-stub-resolv.conf"
+        && !(framework.environment.etc ? "resolv.conf")
         && !(services ? tailscale-multinet-portal-mode)
         && !(services ? tailscaled-work)
         && !(services ? dnsdist)
@@ -322,13 +322,14 @@ let
             && builtins.elem "tailscaled.service" daemon.aliases
             && builtins.elem "tailscaled-work.service" daemon.conflicts
             && builtins.elem "tailscaled-work.service" daemon.after
-            && lib.hasSuffix "/bin/test -s ${stateFile}" daemon.serviceConfig.ExecStartPre
+            && builtins.elem "${configurations.${host}.pkgs.coreutils}/bin/test -s ${stateFile}" daemon.serviceConfig.ExecStartPre
+            && builtins.any (lib.hasInfix "tailscale-resolver-init.sh") daemon.serviceConfig.ExecStartPre
             && lib.hasInfix "--state=${stateFile}" daemon.serviceConfig.ExecStart
             && lib.hasInfix "--tun=${c.dotfiles.tailscaleMultinet.interfaceName}" daemon.serviceConfig.ExecStart
             && c.systemd.services.NetworkManager-wait-online.enable
             && c.networking.networkmanager.dns == "none"
             && !c.networking.networkmanager.settings.connectivity.enabled
-            && c.environment.etc."resolv.conf".source == "/run/NetworkManager/no-stub-resolv.conf"
+            && !(c.environment.etc ? "resolv.conf")
             && toString c.services.tailscale.package == toString framework.services.tailscale.package
           )
           [

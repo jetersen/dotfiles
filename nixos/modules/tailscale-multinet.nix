@@ -37,11 +37,11 @@ in
     ];
     # The pinned experimental build supports the direct DNS manager, but cannot
     # capture base DNS through systemd-resolved. NM still updates its live file
-    # with dns=none; this link avoids competing writes to Tailscale's resolv.conf.
+    # with dns=none. Bootstrap its fallback link at service start, not through
+    # environment.etc: activation would replace Tailscale's live resolver file.
     services.resolved.enable = lib.mkForce false;
     networking.networkmanager.dns = lib.mkForce "none";
     networking.resolvconf.enable = false;
-    environment.etc."resolv.conf".source = "/run/NetworkManager/no-stub-resolv.conf";
     networking.networkmanager.settings.connectivity.enabled = false;
 
     services.tailscale = {
@@ -77,7 +77,10 @@ in
       # Keep the existing authenticated state and saved explicit attachment set.
       serviceConfig = {
         # Require an explicit state handoff; no enrollment is configured here.
-        ExecStartPre = "${pkgs.coreutils}/bin/test -s ${stateFile}";
+        ExecStartPre = [
+          "${pkgs.coreutils}/bin/test -s ${stateFile}"
+          "${pkgs.bash}/bin/bash ${./tailscale-resolver-init.sh}"
+        ];
         ExecStart = "${package}/bin/tailscaled --experimental-multi-profile --encrypt-state=false --state=${stateFile} --statedir=${statePath} --socket=/run/tailscale/tailscaled.sock --tun=${cfg.interfaceName} --port=41641";
         StateDirectory = cfg.stateDirectory;
         StateDirectoryMode = "0700";

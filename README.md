@@ -44,3 +44,10 @@ leave rebooting to the operator and retain local generations for rollback.
 
 To check for an update manually, run `sudo systemctl start nixos-upgrade.service`.
 View the result with `journalctl -u nixos-upgrade.service`.
+
+## Tailnet DNS
+
+The shared Tailscale daemon manages DNS for both attached tailnets. Its service
+creates a NetworkManager fallback link only when `/etc/resolv.conf` is absent;
+Tailscale restores that link when it stops. NixOS activation must leave this file
+unmanaged so it cannot overwrite the running daemon's DNS configuration.
