@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rusqlite = "0.40"
+rusqlite = "0.43"
 
 [profile.release]
 opt-level = "s"
