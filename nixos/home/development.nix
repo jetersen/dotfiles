@@ -4,6 +4,8 @@
   ...
 }:
 {
+  imports = [ ./argocd-remote-sso.nix ];
+
   home.packages = with pkgs; [
     nodejs_24 # Includes npm.
     pnpm

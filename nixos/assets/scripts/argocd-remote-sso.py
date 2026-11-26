@@ -53,7 +53,7 @@ if not options['copy_only']:
     if key in session:
       env[key] = session[key]
   subprocess.run(['argocd', 'login', server, '--name', name, '--sso',
-                  '--sso-launch-browser', '--sso-port', '8085', '--grpc-web'],
+                  '--sso-launch-browser', '--sso-port', '8085'],
                  env=env, stdout=sys.stderr, check=True, timeout=240)
   options['context'] = name
   settings = load()
