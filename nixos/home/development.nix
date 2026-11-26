@@ -4,7 +4,10 @@
   ...
 }:
 {
-  imports = [ ./argocd-remote-sso.nix ];
+  imports = [
+    ./argocd-remote-sso.nix
+    ./kargo-remote-sso.nix
+  ];
 
   home.packages = with pkgs; [
     nodejs_24 # Includes npm.

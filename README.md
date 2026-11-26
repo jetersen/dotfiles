@@ -27,6 +27,17 @@ Use direnv or a Nix development shell for project-specific toolchains:
 nix develop .#python
 ```
 
+For SSO from a terminal without a desktop session, open the browser on another
+Tailscale-connected workstation and copy the login back:
+
+```sh
+argocd-remote-sso framework --server argocd.moviestarplanet.tech
+kargo-remote-sso framework --server kargo.moviestarplanet.tech
+```
+
+Both helpers accept `--copy-only` to reuse the remote login. Kargo uses callback
+port 8086 by default; override it with `--port` if needed.
+
 Home Manager shares [agent skills](nixos/assets/skills) between Codex and Claude,
 including vendored skills from
 [Theo's tstack](https://github.com/t3dotgg/tstack/tree/1085050f3baed1ac724caa4a8166145fb2ac88af/skills).
