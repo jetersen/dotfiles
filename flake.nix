@@ -38,7 +38,7 @@
       flake = false;
     };
     vite-plus-source = {
-      url = "file+https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz";
+      url = "file+https://github.com/voidzero-dev/vite-plus/releases/download/v1.8.0/vp-x86_64-unknown-linux-gnu.tar.gz";
       flake = false;
     };
     agentsview-source = {

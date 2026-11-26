@@ -840,13 +840,13 @@
     "vite-plus-source": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-65Fv6ppOf5RQkeB9Y8pXSuXtSfZU0stZ1h7ehqv2MCU=",
+        "narHash": "sha256-heUu4j0ECw9Cdp9LlUM2rskyNJdnanIvW/zMiQ5fXyI=",
         "type": "file",
-        "url": "https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz"
+        "url": "https://github.com/voidzero-dev/vite-plus/releases/download/v1.8.0/vp-x86_64-unknown-linux-gnu.tar.gz"
       },
       "original": {
         "type": "file",
-        "url": "https://github.com/voidzero-dev/vite-plus/releases/download/v1.7.0/vp-x86_64-unknown-linux-gnu.tar.gz"
+        "url": "https://github.com/voidzero-dev/vite-plus/releases/download/v1.8.0/vp-x86_64-unknown-linux-gnu.tar.gz"
       }
     },
     "zen-browser": {
