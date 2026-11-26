@@ -88,7 +88,7 @@
       };
     };
     pulumi-packages = {
-      url = "git+https://github.com/unmango/pulumipkgs.git?rev=60f79694f8e891eb2d30ffd22469074c5be39103&shallow=1";
+      url = "git+https://github.com/unmango/pulumipkgs.git?rev=13ab8880bb40bfdbaef5bba3a3c2b04f44e10486&shallow=1";
       flake = false;
     };
     dms-storage-monitor = {
