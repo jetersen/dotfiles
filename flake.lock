@@ -599,13 +599,13 @@
     "proton-ge-source": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-PJMcnqDC02zNtyQAoMy/2FTPhuqllY4uGFSCrC40ev8=",
+        "narHash": "sha256-nq9CVsjrx7+jJouyM16uRsS1J0H55PODpV65eAjj5f0=",
         "type": "file",
-        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-13/GE-Proton11-13-x86_64.tar.gz"
+        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-14/GE-Proton11-14-x86_64.tar.gz"
       },
       "original": {
         "type": "file",
-        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-13/GE-Proton11-13-x86_64.tar.gz"
+        "url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-14/GE-Proton11-14-x86_64.tar.gz"
       }
     },
     "pulumi-packages": {
