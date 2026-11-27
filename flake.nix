@@ -14,11 +14,11 @@
       flake = false;
     };
     t3code-cli = {
-      url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.12/t3-0.1.12-linux-x64.tar.gz";
+      url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.13/t3-0.1.13-linux-x64.tar.gz";
       flake = false;
     };
     t3code-desktop = {
-      url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.12/T3-Code-x86_64.AppImage";
+      url = "file+https://github.com/pingdotgg/t3code/releases/download/v0.1.13/T3-Code-x86_64.AppImage";
       flake = false;
     };
     freelens-source = {

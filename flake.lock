@@ -792,25 +792,25 @@
     "t3code-cli": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-L14NROgFi8M1wnDww2uw0dHsSfl38ubBeawZSLvlCJE=",
+        "narHash": "sha256-zhF0zFizB3o9EAvvs706a04YIzGl6SsQEBIFHHYJou4=",
         "type": "file",
-        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.12/t3-0.1.12-linux-x64.tar.gz"
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.13/t3-0.1.13-linux-x64.tar.gz"
       },
       "original": {
         "type": "file",
-        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.12/t3-0.1.12-linux-x64.tar.gz"
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.13/t3-0.1.13-linux-x64.tar.gz"
       }
     },
     "t3code-desktop": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-YsnLluYdlwQqkXysTyHsj0Ahve7SRNrKauPbq7ZSYes=",
+        "narHash": "sha256-RFGjB9zUpkhqE+LzaUyUsWZ8/zmb721diAB9OeDHyR0=",
         "type": "file",
-        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.12/T3-Code-x86_64.AppImage"
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.13/T3-Code-x86_64.AppImage"
       },
       "original": {
         "type": "file",
-        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.12/T3-Code-x86_64.AppImage"
+        "url": "https://github.com/pingdotgg/t3code/releases/download/v0.1.13/T3-Code-x86_64.AppImage"
       }
     },
     "topf-source": {
